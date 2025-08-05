@@ -1,7 +1,8 @@
-# WhatsApp Container Configuration
+# Go-WhatsApp-Web-MultiDevice Configuration
 app:
-  port: 3001
-  env: production
+  port: 3000
+  host: "0.0.0.0"
+  env: "production"
   debug: false
   timezone: "America/Sao_Paulo"
 
@@ -25,14 +26,14 @@ webhook:
 log:
   level: "info"
   save_to_file: true
-  file_path: "/app/logs/app.log"
+  file_path: "/app/sessions/app.log"
 
 database:
   type: "sqlite"
   path: "/app/sessions/database.db"
 
 security:
-  rate_limit: 100
+  rate_limit: 1000
   cors_allowed_origins:
     - "*"
 
@@ -40,3 +41,8 @@ session:
   path: "/app/sessions"
   auto_save: true
   save_interval: 30
+
+# Additional settings for multi-device support
+multidevice:
+  enabled: true
+  max_connections: 1

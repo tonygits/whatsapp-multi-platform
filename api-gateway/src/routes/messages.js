@@ -55,14 +55,13 @@ router.post('/send', asyncHandler(async (req, res) => {
     const containerUrl = `http://localhost:${device.port}`;
     
     const messageData = {
-      to,
+      phone: to,
       message,
-      type,
       timestamp: new Date().toISOString()
     };
 
     try {
-      const response = await axios.post(`${containerUrl}/send-message`, messageData, {
+      const response = await axios.post(`${containerUrl}/send/message`, messageData, {
         timeout: 25000, // 25 seconds timeout
         headers: {
           'Content-Type': 'application/json'
@@ -81,7 +80,7 @@ router.post('/send', asyncHandler(async (req, res) => {
       
       if (error.response) {
         throw new CustomError(
-          error.response.data?.error || 'Erro no container WhatsApp',
+          error.response.data?.message || 'Erro no container WhatsApp',
           error.response.status,
           'CONTAINER_ERROR',
           error.response.data
@@ -166,13 +165,12 @@ router.post('/send-bulk', asyncHandler(async (req, res) => {
       const containerUrl = `http://localhost:${device.port}`;
       
       const messageData = {
-        to: msg.to,
+        phone: msg.to,
         message: msg.message,
-        type: msg.type || 'text',
         timestamp: new Date().toISOString()
       };
 
-      const response = await axios.post(`${containerUrl}/send-message`, messageData, {
+      const response = await axios.post(`${containerUrl}/send/message`, messageData, {
         timeout: 25000,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -373,14 +371,14 @@ router.post('/send-media', asyncHandler(async (req, res) => {
     const containerUrl = `http://localhost:${device.port}`;
     
     const messageData = {
-      to,
+      phone: to,
       media,
       caption,
       type,
       timestamp: new Date().toISOString()
     };
 
-    const response = await axios.post(`${containerUrl}/send-media`, messageData, {
+    const response = await axios.post(`${containerUrl}/send/image`, messageData, {
       timeout: 60000, // 60 seconds for media
       headers: { 'Content-Type': 'application/json' }
     });

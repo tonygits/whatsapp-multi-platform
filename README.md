@@ -28,19 +28,24 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 
 ## 🏗️ Arquitetura
 
+> 🔄 **Nova Arquitetura de Proxy:** Agora usamos a [imagem oficial](https://hub.docker.com/r/aldinokemal2104/go-whatsapp-web-multidevice) do go-whatsapp-web-multidevice como containers de backend, com nossa API Gateway funcionando como um proxy inteligente. Veja [PROXY_ARCHITECTURE.md](docs/PROXY_ARCHITECTURE.md) para detalhes completos.
+
+## 🏗️ Arquitetura
+
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│     Nginx       │    │   API Gateway    │    │  WhatsApp Container │
-│   (Proxy/LB)    │◄──►│    (Node.js)     │◄──►│     (Go + WA)       │
+│     Nginx       │    │   API Gateway    │    │  Container Oficial  │
+│   (Proxy/LB)    │◄──►│  (Proxy + Filas) │◄──►│  go-whatsapp-web    │
 │   Port 80/443   │    │    Port 3000     │    │   Port 4000-4999    │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
          │                       │                         │
          │                       ▼                         │
          │              ┌─────────────────┐                │
-         │              │ Device Manager  │                │
-         │              │ Container Mgr   │                │
-         │              │ Queue Manager   │                │
-         │              │ Lock Manager    │                │
+         │              │ • Auth & JWT    │                │
+         │              │ • Smart Proxy   │                │
+         │              │ • Queue System  │                │
+         │              │ • Multi-tenant  │                │
+         │              │ • Monitoring    │                │
          │              └─────────────────┘                │
          │                       │                         │
          ▼                       ▼                         ▼
@@ -133,6 +138,7 @@ curl -X GET http://localhost:3000/api/devices/+5511999999999/qr \
 ### Enviar Mensagem
 
 ```bash
+# Via API tradicional (nossa interface)
 curl -X POST http://localhost:3000/api/messages/send \
   -H "Authorization: Bearer <seu_token>" \
   -H "Content-Type: application/json" \
@@ -140,6 +146,15 @@ curl -X POST http://localhost:3000/api/messages/send \
     "from": "+5511999999999",
     "to": "+5511888888888",
     "message": "Olá! Como posso ajudar?"
+  }'
+
+# OU via proxy direto (API oficial)
+curl -X POST http://localhost:3000/proxy/whatsapp/send/message \
+  -H "Authorization: Bearer <seu_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "+5511888888888@s.whatsapp.net",
+    "message": "Mensagem via proxy!"
   }'
 ```
 

@@ -180,9 +180,7 @@ class QRManager {
       const axios = require('axios');
       const containerUrl = `http://localhost:${device.port}`;
       
-      await axios.post(`${containerUrl}/refresh-qr`, {
-        retryCount
-      }, {
+      await axios.get(`${containerUrl}/app/login`, {
         timeout: 10000
       });
 

@@ -24,6 +24,8 @@ const deviceRoutes = require('./routes/devices');
 const messageRoutes = require('./routes/messages');
 const authRoutes = require('./routes/auth');
 const healthRoutes = require('./routes/health');
+const docsRoutes = require('./routes/docs');
+const proxyRoutes = require('./routes/proxy');
 
 class APIGateway {
   constructor() {
@@ -70,14 +72,19 @@ class APIGateway {
     // Public routes
     this.app.use('/api/auth', authRoutes);
     this.app.use('/api/health', healthRoutes);
+    this.app.use('/docs', docsRoutes);
 
     // Protected routes
     if (process.env.API_AUTH_ENABLED === 'true') {
       this.app.use('/api', authMiddleware);
+      this.app.use('/proxy', authMiddleware);
     }
 
     this.app.use('/api/devices', deviceRoutes);
     this.app.use('/api/messages', messageRoutes);
+    
+    // WhatsApp Proxy routes (direto para containers)
+    this.app.use('/proxy/whatsapp', proxyRoutes);
 
     // Root endpoint
     this.app.get('/', (req, res) => {
@@ -90,7 +97,20 @@ class APIGateway {
           auth: '/api/auth',
           devices: '/api/devices',
           messages: '/api/messages',
-          health: '/api/health'
+          health: '/api/health',
+          docs: '/docs',
+          whatsapp_proxy: '/proxy/whatsapp'
+        },
+        links: {
+          documentation: '/docs',
+          openapi_yaml: '/docs/openapi.yaml',
+          openapi_json: '/docs/openapi.json',
+          postman_collection: '/docs/postman'
+        },
+        proxy_examples: {
+          login: '/proxy/whatsapp/+5511999999999/app/login',
+          send_message: '/proxy/whatsapp/send/message',
+          user_info: '/proxy/whatsapp/+5511999999999/user/info'
         }
       });
     });

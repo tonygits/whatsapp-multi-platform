@@ -1,5 +1,7 @@
 # 📚 WhatsApp Multi-Platform - Documentação da API
 
+> 📖 **Documentação OpenAPI/Swagger:** [openapi.yaml](openapi.yaml)
+
 ## 🌟 Visão Geral
 
 A API WhatsApp Multi-Platform permite gerenciar múltiplos números de WhatsApp através de containers Docker isolados, proporcionando escalabilidade e robustez operacional.

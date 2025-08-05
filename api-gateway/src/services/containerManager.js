@@ -144,8 +144,8 @@ class ContainerManager {
           name: `whatsapp-${phoneNumber}`,
           Env: [
             `PHONE_NUMBER=${phoneNumber}`,
-            `SESSION_PATH=/app/sessions`,
-            `API_PORT=${device.port}`,
+            `WHATSAPP_API_PORT=${device.port}`,
+            `WHATSAPP_API_HOST=0.0.0.0`,
             `GATEWAY_URL=http://api-gateway:3000`,
             ...this.getEnvironmentVariables(options)
           ],

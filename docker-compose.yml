@@ -16,6 +16,7 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - JWT_SECRET=${JWT_SECRET}
       - DOCKER_SOCKET=/var/run/docker.sock
+      - WHATSAPP_IMAGE_NAME=whatsapp-multidevice
     networks:
       - whatsapp_network
     restart: unless-stopped

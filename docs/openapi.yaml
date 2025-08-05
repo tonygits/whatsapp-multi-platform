@@ -1,0 +1,1189 @@
+openapi: "3.0.3"
+info:
+  title: WhatsApp Multi-Platform API Gateway
+  version: 1.0.0
+  description: |
+    Plataforma escalável para gerenciar múltiplos números de WhatsApp utilizando containers Docker isolados.
+    
+    ## 🌟 Características
+    
+    - ✅ **Múltiplos números simultâneos** - Gerenciamento ilimitado de instâncias WhatsApp
+    - ✅ **Isolamento completo** - Cada número em container Docker separado
+    - ✅ **API RESTful completa** - Endpoints para todas as operações
+    - ✅ **WebSocket em tempo real** - Notificações instantâneas de eventos
+    - ✅ **Sistema de filas inteligente** - Controle de concorrência por número
+    - ✅ **Autenticação JWT** - Segurança robusta com controle de acesso
+    - ✅ **Monitoramento avançado** - Health checks e métricas detalhadas
+    
+    ## 🔑 Autenticação
+    
+    A API utiliza autenticação JWT. Todas as rotas protegidas requerem o header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## 📱 Fluxo Básico
+    
+    1. **Login** - `POST /api/auth/login`
+    2. **Registrar dispositivo** - `POST /api/devices`
+    3. **Obter QR Code** - `GET /api/devices/{phoneNumber}/qr`
+    4. **Enviar mensagem** - `POST /api/messages/send`
+
+  contact:
+    name: WhatsApp Multi-Platform Support
+    email: suporte@whatsapp-platform.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desenvolvimento
+  - url: https://api.whatsapp-platform.com
+    description: Servidor de produção
+
+tags:
+  - name: auth
+    description: Autenticação e gerenciamento de usuários
+  - name: devices
+    description: Gerenciamento de dispositivos WhatsApp
+  - name: messages
+    description: Envio e gerenciamento de mensagens
+  - name: health
+    description: Monitoramento e health checks
+  - name: admin
+    description: Funcionalidades administrativas
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ====== AUTENTICAÇÃO ======
+  /api/auth/login:
+    post:
+      operationId: authLogin
+      tags: [auth]
+      summary: Fazer login na plataforma
+      description: Autentica usuário e retorna token JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: admin
+                  description: Nome de usuário
+                password:
+                  type: string
+                  example: admin123
+                  description: Senha do usuário
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/logout:
+    post:
+      operationId: authLogout
+      tags: [auth]
+      summary: Fazer logout
+      description: Invalida o token do usuário (client-side)
+      responses:
+        '200':
+          description: Logout realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/auth/me:
+    get:
+      operationId: authMe
+      tags: [auth]
+      summary: Obter informações do usuário atual
+      responses:
+        '200':
+          description: Informações do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+
+  # ====== DISPOSITIVOS ======
+  /api/devices:
+    get:
+      operationId: listDevices
+      tags: [devices]
+      summary: Listar dispositivos
+      description: Retorna lista de dispositivos WhatsApp registrados
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, registered, error, stopped]
+          description: Filtrar por status
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+            maximum: 100
+          description: Limite de resultados
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Deslocamento para paginação
+      responses:
+        '200':
+          description: Lista de dispositivos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceListResponse'
+
+    post:
+      operationId: registerDevice
+      tags: [devices]
+      summary: Registrar novo dispositivo
+      description: Registra um novo número WhatsApp na plataforma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phoneNumber]
+              properties:
+                phoneNumber:
+                  type: string
+                  example: "+5511999999999"
+                  description: Número de telefone com código do país
+                name:
+                  type: string
+                  example: "Atendimento Principal"
+                  description: Nome identificador do dispositivo
+                autoStart:
+                  type: boolean
+                  default: true
+                  description: Iniciar container automaticamente
+      responses:
+        '201':
+          description: Dispositivo registrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceCreateResponse'
+        '409':
+          description: Dispositivo já existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/devices/{phoneNumber}:
+    get:
+      operationId: getDevice
+      tags: [devices]
+      summary: Obter dispositivo específico
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Informações do dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      operationId: updateDevice
+      tags: [devices]
+      summary: Atualizar dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do dispositivo
+                status:
+                  type: string
+                  enum: [active, stopped, error]
+                  description: Status do dispositivo
+      responses:
+        '200':
+          description: Dispositivo atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+
+    delete:
+      operationId: removeDevice
+      tags: [devices]
+      summary: Remover dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+        - name: force
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Forçar remoção mesmo se ativo
+      responses:
+        '200':
+          description: Dispositivo removido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/devices/{phoneNumber}/start:
+    post:
+      operationId: startDevice
+      tags: [devices]
+      summary: Iniciar container do dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Container iniciado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/devices/{phoneNumber}/stop:
+    post:
+      operationId: stopDevice
+      tags: [devices]
+      summary: Parar container do dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Container parado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/devices/{phoneNumber}/restart:
+    post:
+      operationId: restartDevice
+      tags: [devices]
+      summary: Reiniciar container do dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Container reiniciado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/devices/{phoneNumber}/qr:
+    get:
+      operationId: getQRCode
+      tags: [devices]
+      summary: Obter QR Code para autenticação
+      description: Retorna QR Code para escaneamento no WhatsApp
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: QR Code disponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '404':
+          description: QR Code não disponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/devices/{phoneNumber}/refresh-qr:
+    post:
+      operationId: refreshQRCode
+      tags: [devices]
+      summary: Solicitar novo QR Code
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Novo QR Code solicitado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ====== MENSAGENS ======
+  /api/messages/send:
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Enviar mensagem
+      description: Envia mensagem de texto via WhatsApp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to, message]
+              properties:
+                from:
+                  type: string
+                  example: "+5511999999999"
+                  description: Número remetente
+                to:
+                  type: string
+                  example: "+5511888888888"
+                  description: Número destinatário
+                message:
+                  type: string
+                  example: "Olá! Como posso ajudar?"
+                  description: Texto da mensagem
+                type:
+                  type: string
+                  default: "text"
+                  description: Tipo da mensagem
+                priority:
+                  type: integer
+                  default: 5
+                  minimum: 0
+                  maximum: 10
+                  description: Prioridade na fila (0 = mais alta)
+      responses:
+        '200':
+          description: Mensagem adicionada à fila
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageSendResponse'
+
+  /api/messages/send-bulk:
+    post:
+      operationId: sendBulkMessages
+      tags: [messages]
+      summary: Enviar múltiplas mensagens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, messages]
+              properties:
+                from:
+                  type: string
+                  example: "+5511999999999"
+                messages:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    required: [to, message]
+                    properties:
+                      to:
+                        type: string
+                        example: "+5511888888888"
+                      message:
+                        type: string
+                        example: "Mensagem em lote"
+                priority:
+                  type: integer
+                  default: 5
+      responses:
+        '200':
+          description: Mensagens adicionadas à fila
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkMessageResponse'
+
+  /api/messages/send-media:
+    post:
+      operationId: sendMedia
+      tags: [messages]
+      summary: Enviar mídia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to, media, type]
+              properties:
+                from:
+                  type: string
+                  example: "+5511999999999"
+                to:
+                  type: string
+                  example: "+5511888888888"
+                media:
+                  type: string
+                  example: "https://example.com/image.jpg"
+                  description: URL da mídia
+                caption:
+                  type: string
+                  example: "Legenda da imagem"
+                type:
+                  type: string
+                  enum: [image, video, audio, document]
+                  example: image
+                priority:
+                  type: integer
+                  default: 5
+      responses:
+        '200':
+          description: Mídia adicionada à fila
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageSendResponse'
+
+  /api/messages/queue/{phoneNumber}:
+    get:
+      operationId: getQueueStatus
+      tags: [messages]
+      summary: Status da fila por dispositivo
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Status da fila
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueStatusResponse'
+
+  /api/messages/queues:
+    get:
+      operationId: getAllQueuesStatus
+      tags: [messages]
+      summary: Status de todas as filas
+      responses:
+        '200':
+          description: Status geral das filas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllQueuesResponse'
+
+  /api/messages/queue/{phoneNumber}/pause:
+    post:
+      operationId: pauseQueue
+      tags: [messages]
+      summary: Pausar fila de mensagens
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Fila pausada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/messages/queue/{phoneNumber}/resume:
+    post:
+      operationId: resumeQueue
+      tags: [messages]
+      summary: Retomar fila de mensagens
+      parameters:
+        - $ref: '#/components/parameters/phoneNumber'
+      responses:
+        '200':
+          description: Fila retomada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ====== HEALTH CHECKS ======
+  /api/health:
+    get:
+      operationId: basicHealthCheck
+      tags: [health]
+      summary: Health check básico
+      security: []
+      responses:
+        '200':
+          description: Sistema saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicHealthResponse'
+
+  /api/health/detailed:
+    get:
+      operationId: detailedHealthCheck
+      tags: [health]
+      summary: Health check detalhado
+      responses:
+        '200':
+          description: Status detalhado do sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthResponse'
+        '503':
+          description: Sistema com problemas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthResponse'
+
+  /api/health/devices:
+    get:
+      operationId: devicesHealthCheck
+      tags: [health]
+      summary: Health check dos dispositivos
+      responses:
+        '200':
+          description: Status dos dispositivos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicesHealthResponse'
+
+  /api/health/containers:
+    get:
+      operationId: containersHealthCheck
+      tags: [health]
+      summary: Health check dos containers
+      responses:
+        '200':
+          description: Status dos containers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContainersHealthResponse'
+
+# ====== COMPONENTES ======
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    phoneNumber:
+      name: phoneNumber
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^\+[1-9]\d{1,14}$'
+        example: "+5511999999999"
+      description: Número de telefone com código do país
+
+  schemas:
+    # ====== RESPONSES BÁSICAS ======
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operação realizada com sucesso"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Mensagem de erro"
+        code:
+          type: string
+          example: "ERROR_CODE"
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/api/endpoint"
+        method:
+          type: string
+          example: "POST"
+
+    # ====== AUTENTICAÇÃO ======
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login realizado com sucesso"
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            user:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "admin"
+                role:
+                  type: string
+                  example: "admin"
+                lastLogin:
+                  type: string
+                  format: date-time
+            expiresIn:
+              type: string
+              example: "24h"
+
+    UserInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            username:
+              type: string
+              example: "admin"
+            role:
+              type: string
+              example: "admin"
+            iat:
+              type: integer
+              example: 1705228800
+            exp:
+              type: integer
+              example: 1705315200
+
+    # ====== DISPOSITIVOS ======
+    Device:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          example: "+5511999999999"
+        name:
+          type: string
+          example: "Atendimento Principal"
+        port:
+          type: integer
+          example: 4001
+        containerId:
+          type: string
+          example: "container_abc123"
+        status:
+          type: string
+          enum: [registered, active, stopped, error]
+          example: "active"
+        sessionPath:
+          type: string
+          example: "./volumes/+5511999999999"
+        createdAt:
+          type: string
+          format: date-time
+        lastActivity:
+          type: string
+          format: date-time
+        authStatus:
+          type: string
+          enum: [pending, qr_generated, authenticated, qr_expired, auth_failed]
+          example: "authenticated"
+        retryCount:
+          type: integer
+          example: 0
+
+    DeviceListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            devices:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/Device'
+                  - type: object
+                    properties:
+                      containerStatus:
+                        type: object
+                        properties:
+                          running:
+                            type: boolean
+                          status:
+                            type: string
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 50
+                limit:
+                  type: integer
+                  example: 25
+                offset:
+                  type: integer
+                  example: 0
+                hasMore:
+                  type: boolean
+                  example: true
+
+    DeviceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Device'
+            - type: object
+              properties:
+                containerStatus:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    status:
+                      type: string
+                    running:
+                      type: boolean
+                    startedAt:
+                      type: string
+                      format: date-time
+
+    DeviceCreateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Dispositivo registrado com sucesso"
+        data:
+          type: object
+          properties:
+            device:
+              $ref: '#/components/schemas/Device'
+            container:
+              type: object
+              properties:
+                id:
+                  type: string
+                port:
+                  type: integer
+                status:
+                  type: string
+
+    QRCodeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            qrCode:
+              type: string
+              example: "1@abc123def456..."
+              description: Dados do QR Code
+            qrCodeImage:
+              type: string
+              example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+              description: QR Code em base64
+            expiresAt:
+              type: string
+              format: date-time
+              example: "2024-01-15T10:31:00Z"
+              description: Quando o QR Code expira
+
+    # ====== MENSAGENS ======
+    MessageSendResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Mensagem adicionada à fila com sucesso"
+        data:
+          type: object
+          properties:
+            messageId:
+              type: string
+              example: "msg_1705228800123"
+            from:
+              type: string
+              example: "+5511999999999"
+            to:
+              type: string
+              example: "+5511888888888"
+            queuedAt:
+              type: string
+              format: date-time
+            priority:
+              type: integer
+              example: 5
+            queueStatus:
+              $ref: '#/components/schemas/QueueStatus'
+
+    BulkMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Mensagens adicionadas à fila"
+        data:
+          type: object
+          properties:
+            totalMessages:
+              type: integer
+              example: 10
+            successCount:
+              type: integer
+              example: 8
+            failureCount:
+              type: integer
+              example: 2
+            queuedAt:
+              type: string
+              format: date-time
+            queueStatus:
+              $ref: '#/components/schemas/QueueStatus'
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                  status:
+                    type: string
+                    enum: [fulfilled, rejected]
+                  error:
+                    type: string
+                    nullable: true
+
+    QueueStatus:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          example: "+5511999999999"
+        size:
+          type: integer
+          example: 5
+          description: Mensagens na fila
+        pending:
+          type: integer
+          example: 1
+          description: Mensagens sendo processadas
+        isPaused:
+          type: boolean
+          example: false
+        stats:
+          type: object
+          properties:
+            created:
+              type: string
+              format: date-time
+            totalJobs:
+              type: integer
+              example: 100
+            completedJobs:
+              type: integer
+              example: 95
+            failedJobs:
+              type: integer
+              example: 5
+            lastActivity:
+              type: string
+              format: date-time
+            successRate:
+              type: string
+              example: "95.00%"
+
+    QueueStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/QueueStatus'
+
+    AllQueuesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            queues:
+              type: array
+              items:
+                $ref: '#/components/schemas/QueueStatus'
+            stats:
+              type: object
+              properties:
+                totalQueues:
+                  type: integer
+                  example: 5
+                totalJobs:
+                  type: integer
+                  example: 500
+                completedJobs:
+                  type: integer
+                  example: 475
+                failedJobs:
+                  type: integer
+                  example: 25
+                activeQueues:
+                  type: integer
+                  example: 3
+                pausedQueues:
+                  type: integer
+                  example: 0
+
+    # ====== HEALTH CHECKS ======
+    BasicHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+          example: 3600.5
+        responseTime:
+          type: number
+          example: 15
+        version:
+          type: string
+          example: "1.0.0"
+        environment:
+          type: string
+          example: "production"
+
+    DetailedHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        responseTime:
+          type: number
+          example: 25
+        checks:
+          type: object
+          properties:
+            deviceManager:
+              $ref: '#/components/schemas/HealthCheck'
+            containerManager:
+              $ref: '#/components/schemas/HealthCheck'
+            queueManager:
+              $ref: '#/components/schemas/HealthCheck'
+            docker:
+              $ref: '#/components/schemas/HealthCheck'
+            fileSystem:
+              $ref: '#/components/schemas/HealthCheck'
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 5
+            healthy:
+              type: integer
+              example: 5
+            unhealthy:
+              type: integer
+              example: 0
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        message:
+          type: string
+          example: "Serviço operacional"
+        stats:
+          type: object
+          additionalProperties: true
+        error:
+          type: string
+          nullable: true
+
+    DevicesHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "ok"
+        timestamp:
+          type: string
+          format: date-time
+        devices:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy, error]
+              device:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  lastActivity:
+                    type: string
+                    format: date-time
+                  authStatus:
+                    type: string
+              container:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  running:
+                    type: boolean
+              queue:
+                type: object
+                properties:
+                  size:
+                    type: integer
+                  pending:
+                    type: integer
+              containerReachable:
+                type: boolean
+              lastChecked:
+                type: string
+                format: date-time
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            healthy:
+              type: integer
+            unhealthy:
+              type: integer
+            healthPercentage:
+              type: string
+              example: "95.0"
+
+    ContainersHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "ok"
+        timestamp:
+          type: string
+          format: date-time
+        containers:
+          type: array
+          items:
+            type: object
+            properties:
+              phoneNumber:
+                type: string
+              containerId:
+                type: string
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              containerStatus:
+                type: string
+              running:
+                type: boolean
+              port:
+                type: integer
+              healthEndpoint:
+                type: object
+                nullable: true
+              error:
+                type: string
+                nullable: true
+              lastChecked:
+                type: string
+                format: date-time
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            healthy:
+              type: integer
+            unhealthy:
+              type: integer
+            running:
+              type: integer
+            stopped:
+              type: integer
