@@ -1,6 +1,6 @@
 const express = require('express');
 const { asyncHandler, CustomError } = require('../middleware/errorHandler');
-const deviceManager = require('../services/deviceManager');
+const deviceManager = require('../services/newDeviceManager');
 const containerManager = require('../services/containerManager');
 const qrcode = require('qrcode');
 const logger = require('../utils/logger');

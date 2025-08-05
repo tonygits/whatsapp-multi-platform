@@ -1,34 +1,31 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const database = require('../database/database');
+const userRepository = require('../repositories/UserRepository');
 const logger = require('../utils/logger');
 
 class AuthManager {
   constructor() {
     this.jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
-    this.users = new Map(); // In production, use a database
-    this.initializeDefaultUser();
+    this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '24h';
   }
 
   /**
-   * Initialize default admin user
+   * Initialize auth manager and default admin user
    */
-  async initializeDefaultUser() {
-    const defaultUser = process.env.DEFAULT_ADMIN_USER || 'admin';
-    const defaultPass = process.env.DEFAULT_ADMIN_PASS || 'admin123';
-    
+  async initialize() {
     try {
-      const hashedPassword = await bcrypt.hash(defaultPass, 12);
-      this.users.set(defaultUser, {
-        username: defaultUser,
-        password: hashedPassword,
-        role: 'admin',
-        createdAt: new Date(),
-        lastLogin: null
-      });
+      // Initialize database if not already done
+      if (!database.isReady()) {
+        await database.initialize();
+      }
 
-      logger.info(`Usuário admin padrão inicializado: ${defaultUser}`);
+      // Initialize default admin user
+      await userRepository.initializeDefaultAdmin();
+      
+      logger.info('AuthManager inicializado com sucesso');
     } catch (error) {
-      logger.error('Erro ao inicializar usuário padrão:', error);
+      logger.error('Erro ao inicializar AuthManager:', error);
+      throw error;
     }
   }
 
@@ -39,48 +36,50 @@ class AuthManager {
    * @returns {Promise<Object|null>} - User object or null if invalid
    */
   async authenticateUser(username, password) {
-    const user = this.users.get(username);
-    if (!user) {
-      return null;
-    }
-
     try {
-      const isValid = await bcrypt.compare(password, user.password);
-      if (isValid) {
-        // Update last login
-        user.lastLogin = new Date();
-        return {
-          username: user.username,
-          role: user.role,
-          lastLogin: user.lastLogin
-        };
+      if (!username || !password) {
+        return null;
       }
-      return null;
+
+      const user = await userRepository.authenticate(username, password);
+      
+      if (user) {
+        logger.info(`Usuário autenticado: ${username}`);
+      } else {
+        logger.warn(`Falha na autenticação: ${username}`);
+      }
+
+      return user;
     } catch (error) {
-      logger.error('Erro na autenticação:', error);
+      logger.error('Erro ao autenticar usuário:', error);
       return null;
     }
   }
 
   /**
-   * Generate JWT token
+   * Generate JWT token for user
    * @param {Object} user - User object
    * @returns {string} - JWT token
    */
   generateToken(user) {
-    return jwt.sign(
-      {
+    try {
+      const payload = {
+        id: user.id,
         username: user.username,
-        role: user.role,
-        iat: Math.floor(Date.now() / 1000)
-      },
-      this.jwtSecret,
-      {
-        expiresIn: '24h',
+        role: user.role
+      };
+
+      const token = jwt.sign(payload, this.jwtSecret, {
+        expiresIn: this.jwtExpiresIn,
         issuer: 'whatsapp-gateway',
-        audience: 'whatsapp-api'
-      }
-    );
+        subject: user.id.toString()
+      });
+
+      return token;
+    } catch (error) {
+      logger.error('Erro ao gerar token:', error);
+      throw error;
+    }
   }
 
   /**
@@ -90,12 +89,16 @@ class AuthManager {
    */
   verifyToken(token) {
     try {
-      return jwt.verify(token, this.jwtSecret, {
-        issuer: 'whatsapp-gateway',
-        audience: 'whatsapp-api'
-      });
+      const decoded = jwt.verify(token, this.jwtSecret);
+      return decoded;
     } catch (error) {
-      logger.debug('Token inválido:', error.message);
+      if (error.name === 'TokenExpiredError') {
+        logger.warn('Token expirado');
+      } else if (error.name === 'JsonWebTokenError') {
+        logger.warn('Token inválido');
+      } else {
+        logger.error('Erro ao verificar token:', error);
+      }
       return null;
     }
   }
@@ -108,126 +111,169 @@ class AuthManager {
    * @returns {Promise<boolean>} - Success status
    */
   async addUser(username, password, role = 'user') {
-    if (this.users.has(username)) {
-      return false;
-    }
-
     try {
-      const hashedPassword = await bcrypt.hash(password, 12);
-      this.users.set(username, {
-        username,
-        password: hashedPassword,
-        role,
-        createdAt: new Date(),
-        lastLogin: null
-      });
-
-      logger.info(`Usuário ${username} criado com sucesso`);
+      await userRepository.create({ username, password, role });
       return true;
     } catch (error) {
-      logger.error('Erro ao criar usuário:', error);
-      return false;
+      if (error.message === 'Usuário já existe') {
+        return false;
+      }
+      logger.error('Erro ao adicionar usuário:', error);
+      throw error;
     }
   }
 
   /**
    * Remove user
    * @param {string} username - Username
-   * @returns {boolean} - Success status
+   * @returns {Promise<boolean>} - Success status
    */
-  removeUser(username) {
-    if (username === process.env.DEFAULT_ADMIN_USER) {
-      logger.warn('Tentativa de remover usuário admin padrão bloqueada');
-      return false;
-    }
+  async removeUser(username) {
+    try {
+      const user = await userRepository.findByUsername(username);
+      if (!user) {
+        return false;
+      }
 
-    const removed = this.users.delete(username);
-    if (removed) {
-      logger.info(`Usuário ${username} removido`);
+      // Prevent removing default admin
+      if (user.username === 'admin' && user.role === 'admin') {
+        logger.warn('Tentativa de remover usuário admin padrão bloqueada');
+        return false;
+      }
+
+      const success = await userRepository.deactivate(user.id);
+      return success;
+    } catch (error) {
+      logger.error('Erro ao remover usuário:', error);
+      throw error;
     }
-    return removed;
   }
 
   /**
-   * List all users (without passwords)
-   * @returns {Array} - Array of user objects
+   * List all users
+   * @returns {Promise<Array>} - Array of users (without passwords)
    */
-  listUsers() {
-    return Array.from(this.users.values()).map(user => ({
-      username: user.username,
-      role: user.role,
-      createdAt: user.createdAt,
-      lastLogin: user.lastLogin
-    }));
+  async listUsers() {
+    try {
+      const users = await userRepository.findAll();
+      return users.map(user => ({
+        username: user.username,
+        role: user.role,
+        createdAt: user.created_at,
+        lastLogin: user.last_login
+      }));
+    } catch (error) {
+      logger.error('Erro ao listar usuários:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user password
+   * @param {string} username - Username
+   * @param {string} newPassword - New password
+   * @returns {Promise<boolean>} - Success status
+   */
+  async updateUserPassword(username, newPassword) {
+    try {
+      const user = await userRepository.findByUsername(username);
+      if (!user) {
+        return false;
+      }
+
+      const success = await userRepository.updatePassword(user.id, newPassword);
+      return success;
+    } catch (error) {
+      logger.error('Erro ao atualizar senha:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user by username
+   * @param {string} username - Username
+   * @returns {Promise<Object|null>} - User (without password) or null
+   */
+  async getUser(username) {
+    try {
+      const user = await userRepository.findByUsername(username);
+      if (!user) {
+        return null;
+      }
+
+      const { password_hash, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      logger.error('Erro ao buscar usuário:', error);
+      throw error;
+    }
   }
 }
 
-// Create auth manager instance
-const authManager = new AuthManager();
-
 /**
- * Authentication middleware
+ * Auth middleware for Express
  */
-const authMiddleware = (req, res, next) => {
-  // Skip auth for health check endpoints
-  if (req.path.startsWith('/api/health')) {
-    return next();
-  }
+const authMiddleware = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token de acesso requerido',
+        error: 'MISSING_TOKEN'
+      });
+    }
 
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader) {
-    return res.status(401).json({
-      error: 'Token de acesso necessário',
-      code: 'MISSING_TOKEN'
+    const token = authHeader.substring(7);
+    const decoded = authManager.verifyToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido ou expirado',
+        error: 'INVALID_TOKEN'
+      });
+    }
+
+    // Add user info to request
+    req.user = {
+      id: decoded.id,
+      username: decoded.username,
+      role: decoded.role
+    };
+
+    next();
+  } catch (error) {
+    logger.error('Erro no middleware de auth:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: 'AUTH_ERROR'
     });
   }
-
-  const token = authHeader.split(' ')[1]; // Bearer <token>
-  
-  if (!token) {
-    return res.status(401).json({
-      error: 'Formato de token inválido',
-      code: 'INVALID_TOKEN_FORMAT'
-    });
-  }
-
-  const decoded = authManager.verifyToken(token);
-  
-  if (!decoded) {
-    return res.status(401).json({
-      error: 'Token inválido ou expirado',
-      code: 'INVALID_TOKEN'
-    });
-  }
-
-  // Add user info to request
-  req.user = decoded;
-  
-  logger.debug(`Usuário autenticado: ${decoded.username} (${decoded.role})`);
-  next();
 };
 
 /**
- * Role-based authorization middleware
+ * Role authorization middleware
  * @param {Array} allowedRoles - Array of allowed roles
+ * @returns {Function} - Express middleware
  */
 const authorizeRoles = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
-        error: 'Usuário não autenticado',
-        code: 'NOT_AUTHENTICATED'
+        success: false,
+        message: 'Usuário não autenticado',
+        error: 'NOT_AUTHENTICATED'
       });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      logger.warn(`Acesso negado para ${req.user.username} - role: ${req.user.role}`);
       return res.status(403).json({
-        error: 'Acesso negado - permissões insuficientes',
-        code: 'INSUFFICIENT_PERMISSIONS',
-        requiredRoles: allowedRoles,
-        userRole: req.user.role
+        success: false,
+        message: 'Acesso negado: permissões insuficientes',
+        error: 'INSUFFICIENT_PERMISSIONS'
       });
     }
 
@@ -235,63 +281,12 @@ const authorizeRoles = (allowedRoles) => {
   };
 };
 
-/**
- * API Key middleware (alternative auth method)
- */
-const apiKeyMiddleware = (req, res, next) => {
-  const apiKey = req.headers['x-api-key'];
-  const validApiKey = process.env.API_KEY;
-
-  if (!validApiKey) {
-    // If no API key is configured, skip this middleware
-    return next();
-  }
-
-  if (!apiKey) {
-    return res.status(401).json({
-      error: 'API Key necessária',
-      code: 'MISSING_API_KEY'
-    });
-  }
-
-  if (apiKey !== validApiKey) {
-    return res.status(401).json({
-      error: 'API Key inválida',
-      code: 'INVALID_API_KEY'
-    });
-  }
-
-  // Add API key auth info
-  req.apiKeyAuth = true;
-  next();
-};
-
-/**
- * Combined auth middleware (JWT or API Key)
- */
-const flexibleAuthMiddleware = (req, res, next) => {
-  // Skip auth for health check endpoints
-  if (req.path.startsWith('/api/health')) {
-    return next();
-  }
-
-  // Try API Key first
-  const apiKey = req.headers['x-api-key'];
-  const validApiKey = process.env.API_KEY;
-
-  if (validApiKey && apiKey === validApiKey) {
-    req.apiKeyAuth = true;
-    return next();
-  }
-
-  // Fallback to JWT
-  return authMiddleware(req, res, next);
-};
+// Create singleton instance
+const authManager = new AuthManager();
 
 module.exports = {
+  AuthManager,
   authManager,
   authMiddleware,
-  authorizeRoles,
-  apiKeyMiddleware,
-  flexibleAuthMiddleware
+  authorizeRoles
 };

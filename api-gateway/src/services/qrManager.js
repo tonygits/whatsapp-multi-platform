@@ -1,6 +1,6 @@
 const qrcode = require('qrcode');
 const logger = require('../utils/logger');
-const deviceManager = require('./deviceManager');
+const deviceManager = require('./newDeviceManager');
 
 class QRManager {
   constructor() {

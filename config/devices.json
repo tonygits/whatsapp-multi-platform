@@ -1,14 +1,1 @@
-{
-  "devices": {},
-  "ports": {
-    "used": [],
-    "available": [],
-    "last_assigned": 4000
-  },
-  "metadata": {
-    "created_at": "",
-    "last_updated": "",
-    "total_devices": 0,
-    "active_devices": 0
-  }
-}
+{}

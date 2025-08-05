@@ -1,6 +1,6 @@
 const express = require('express');
 const { asyncHandler } = require('../middleware/errorHandler');
-const deviceManager = require('../services/deviceManager');
+const deviceManager = require('../services/newDeviceManager');
 const containerManager = require('../services/containerManager');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');

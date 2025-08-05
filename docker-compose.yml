@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api-gateway:
     build:
@@ -20,8 +18,12 @@ services:
     networks:
       - whatsapp_network
     restart: unless-stopped
-    depends_on:
-      - nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   nginx:
     image: nginx:alpine
@@ -34,6 +36,9 @@ services:
     networks:
       - whatsapp_network
     restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_healthy
 
   watchtower:
     image: containrrr/watchtower

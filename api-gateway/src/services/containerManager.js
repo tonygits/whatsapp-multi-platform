@@ -1,8 +1,7 @@
 const Docker = require('dockerode');
 const path = require('path');
 const logger = require('../utils/logger');
-const deviceManager = require('./deviceManager');
-const lockManager = require('./lockManager');
+const deviceManager = require('./newDeviceManager');
 
 class ContainerManager {
   constructor() {
@@ -119,7 +118,7 @@ class ContainerManager {
    * @returns {Promise<Object>} - Container information
    */
   async createContainer(phoneNumber, options = {}) {
-    return await lockManager.withLock(`container-${phoneNumber}`, async () => {
+    
       // Check if container already exists
       if (this.containers.has(phoneNumber)) {
         throw new Error(`Container para ${phoneNumber} já existe`);
@@ -208,7 +207,6 @@ class ContainerManager {
         logger.error(`Erro ao criar container para ${phoneNumber}:`, error);
         throw error;
       }
-    }, 'create');
   }
 
   /**

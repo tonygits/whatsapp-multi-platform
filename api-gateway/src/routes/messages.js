@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { asyncHandler, CustomError } = require('../middleware/errorHandler');
-const deviceManager = require('../services/deviceManager');
+const deviceManager = require('../services/newDeviceManager');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 

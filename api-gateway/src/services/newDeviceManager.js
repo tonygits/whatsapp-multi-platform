@@ -1,0 +1,335 @@
+const logger = require('../utils/logger');
+const deviceRepository = require('../repositories/DeviceRepository');
+const containerManager = require('./containerManager');
+
+class DeviceManager {
+  constructor() {
+    this.cleanupInterval = null;
+  }
+
+  /**
+   * Initialize the device manager
+   */
+  async initialize() {
+    logger.info('Inicializando Device Manager (SQLite)...');
+    
+    try {
+      // Start periodic QR cleanup
+      this.startQRCleanup();
+      
+      logger.info('Device Manager inicializado com sucesso');
+    } catch (error) {
+      logger.error('Erro ao inicializar Device Manager:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Register a new device
+   * @param {string} phoneNumber - Phone number
+   * @param {Object} options - Additional options
+   * @returns {Promise<Object>} - Device configuration
+   */
+  async registerDevice(phoneNumber, options = {}) {
+    try {
+      logger.info(`Registrando dispositivo: ${phoneNumber}`);
+
+      // Check if device already exists
+      const existingDevice = await deviceRepository.findByPhoneNumber(phoneNumber);
+      if (existingDevice) {
+        throw new Error(`Dispositivo ${phoneNumber} já registrado`);
+      }
+
+      // Generate session ID
+      const sessionId = `session_${phoneNumber}_${Date.now()}`;
+
+      // Create device record
+      const device = await deviceRepository.create({
+        phone_number: phoneNumber,
+        name: options.name || `Device ${phoneNumber}`,
+        session_id: sessionId,
+        webhook_url: options.webhook_url,
+        user_id: options.user_id
+      });
+
+      logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id });
+      
+      return {
+        id: device.id,
+        phoneNumber: device.phone_number,
+        name: device.name,
+        sessionId: device.session_id,
+        status: device.status,
+        webhookUrl: device.webhook_url,
+        createdAt: device.created_at
+      };
+    } catch (error) {
+      logger.error(`Erro ao registrar dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove a device
+   * @param {string} phoneNumber - Phone number
+   * @returns {Promise<boolean>} - Success status
+   */
+  async removeDevice(phoneNumber) {
+    try {
+      logger.info(`Removendo dispositivo: ${phoneNumber}`);
+
+      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      if (!device) {
+        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+      }
+
+      // Stop container if running
+      if (device.container_id) {
+        try {
+          await containerManager.stopContainer(device.container_id);
+        } catch (error) {
+          logger.warn(`Erro ao parar container ${device.container_id}:`, error);
+        }
+      }
+
+      // Remove from database
+      const success = await deviceRepository.delete(device.id);
+      
+      if (success) {
+        logger.info(`Dispositivo removido com sucesso: ${phoneNumber}`);
+      }
+      
+      return success;
+    } catch (error) {
+      logger.error(`Erro ao remover dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get device information
+   * @param {string} phoneNumber - Phone number
+   * @returns {Promise<Object|null>} - Device information
+   */
+  async getDevice(phoneNumber) {
+    try {
+      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      
+      if (!device) {
+        return null;
+      }
+
+      return {
+        id: device.id,
+        phoneNumber: device.phone_number,
+        name: device.name,
+        sessionId: device.session_id,
+        status: device.status,
+        containerInfo: {
+          containerId: device.container_id,
+          port: device.container_port
+        },
+        qrCode: device.qr_code,
+        qrExpiresAt: device.qr_expires_at,
+        webhookUrl: device.webhook_url,
+        createdAt: device.created_at,
+        updatedAt: device.updated_at,
+        lastSeen: device.last_seen
+      };
+    } catch (error) {
+      logger.error(`Erro ao buscar dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all devices
+   * @param {Object} filters - Optional filters
+   * @returns {Promise<Array>} - Array of devices
+   */
+  async listDevices(filters = {}) {
+    try {
+      const devices = await deviceRepository.findAll(filters);
+      
+      return devices.map(device => ({
+        id: device.id,
+        phoneNumber: device.phone_number,
+        name: device.name,
+        sessionId: device.session_id,
+        status: device.status,
+        containerInfo: {
+          containerId: device.container_id,
+          port: device.container_port
+        },
+        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
+        qrExpiresAt: device.qr_expires_at,
+        webhookUrl: device.webhook_url,
+        createdAt: device.created_at,
+        updatedAt: device.updated_at,
+        lastSeen: device.last_seen
+      }));
+    } catch (error) {
+      logger.error('Erro ao listar dispositivos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update device status
+   * @param {string} phoneNumber - Phone number
+   * @param {string} status - New status
+   * @param {Object} additionalData - Additional data to update
+   * @returns {Promise<Object|null>} - Updated device
+   */
+  async updateDeviceStatus(phoneNumber, status, additionalData = {}) {
+    try {
+      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      if (!device) {
+        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+      }
+
+      const updateData = {
+        status,
+        last_seen: new Date().toISOString(),
+        ...additionalData
+      };
+
+      const updatedDevice = await deviceRepository.update(device.id, updateData);
+      
+      logger.info(`Status do dispositivo ${phoneNumber} atualizado para: ${status}`);
+      
+      return updatedDevice;
+    } catch (error) {
+      logger.error(`Erro ao atualizar status do dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set QR code for device
+   * @param {string} phoneNumber - Phone number
+   * @param {string} qrCode - QR code data
+   * @param {number} expiresInMinutes - QR expiration time in minutes
+   * @returns {Promise<Object|null>} - Updated device
+   */
+  async setDeviceQRCode(phoneNumber, qrCode, expiresInMinutes = 5) {
+    try {
+      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      if (!device) {
+        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+      }
+
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
+
+      const updatedDevice = await deviceRepository.setQRCode(device.id, qrCode, expiresAt);
+      
+      logger.info(`QR Code definido para dispositivo ${phoneNumber}, expira em: ${expiresAt.toISOString()}`);
+      
+      return updatedDevice;
+    } catch (error) {
+      logger.error(`Erro ao definir QR Code para dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get device statistics
+   * @returns {Promise<Object>} - Device statistics
+   */
+  async getStatistics() {
+    try {
+      const stats = await deviceRepository.getStatistics();
+      return stats;
+    } catch (error) {
+      logger.error('Erro ao obter estatísticas:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Start periodic QR code cleanup
+   */
+  startQRCleanup() {
+    // Clean expired QR codes every 5 minutes
+    this.cleanupInterval = setInterval(async () => {
+      try {
+        await deviceRepository.clearExpiredQRCodes();
+      } catch (error) {
+        logger.error('Erro na limpeza automática de QR codes:', error);
+      }
+    }, 5 * 60 * 1000);
+
+    logger.info('Limpeza automática de QR codes iniciada (5 min)');
+  }
+
+  /**
+   * Stop QR cleanup interval
+   */
+  stopQRCleanup() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+      logger.info('Limpeza automática de QR codes parada');
+    }
+  }
+
+  /**
+   * Update device (alias for updateDeviceStatus with more flexibility)
+   * @param {string} phoneNumber - Phone number
+   * @param {Object} updateData - Data to update
+   * @returns {Promise<Object|null>} - Updated device
+   */
+  async updateDevice(phoneNumber, updateData) {
+    try {
+      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      if (!device) {
+        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+      }
+
+      const updatedDevice = await deviceRepository.update(device.id, updateData);
+      
+      logger.info(`Dispositivo ${phoneNumber} atualizado`);
+      
+      return updatedDevice;
+    } catch (error) {
+      logger.error(`Erro ao atualizar dispositivo ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get devices by status
+   * @param {string} status - Device status
+   * @returns {Promise<Array>} - Array of devices
+   */
+  async getDevicesByStatus(status) {
+    return this.listDevices({ status });
+  }
+
+  /**
+   * Get all devices (alias for listDevices)
+   * @returns {Promise<Array>} - Array of devices
+   */
+  async getAllDevices() {
+    return this.listDevices();
+  }
+
+  /**
+   * Get statistics (alias for getStatistics)
+   * @returns {Promise<Object>} - Device statistics
+   */
+  async getStats() {
+    return this.getStatistics();
+  }
+
+  /**
+   * Cleanup on shutdown
+   */
+  async cleanup() {
+    this.stopQRCleanup();
+    logger.info('Device Manager cleanup concluído');
+  }
+}
+
+module.exports = new DeviceManager();

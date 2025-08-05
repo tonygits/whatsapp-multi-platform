@@ -13,11 +13,11 @@ dotenv.config();
 // Import custom modules
 const logger = require('./utils/logger');
 const containerManager = require('./services/containerManager');
-const deviceManager = require('./services/deviceManager');
+const deviceManager = require('./services/newDeviceManager');
 const qrManager = require('./services/qrManager');
 const updateManager = require('./services/updateManager');
-const authMiddleware = require('./middleware/auth');
-const errorHandler = require('./middleware/errorHandler');
+const { authMiddleware, authManager } = require('./middleware/auth');
+const { errorHandler } = require('./middleware/errorHandler');
 
 // Import routes
 const deviceRoutes = require('./routes/devices');
@@ -29,6 +29,7 @@ const proxyRoutes = require('./routes/proxy');
 
 class APIGateway {
   constructor() {
+    console.log('🏗️ Iniciando constructor...');
     this.app = express();
     this.server = http.createServer(this.app);
     this.io = new Server(this.server, {
@@ -38,10 +39,24 @@ class APIGateway {
       }
     });
     this.port = process.env.API_PORT || 3000;
+    console.log('✅ Express, server e Socket.IO criados');
+    
+    console.log('⚙️ Configurando middleware...');
     this.setupMiddleware();
+    console.log('✅ Middleware configurado');
+    
+    console.log('🛣️ Configurando rotas...');
     this.setupRoutes();
+    console.log('✅ Rotas configuradas');
+    
+    console.log('🔌 Configurando Socket.IO...');
     this.setupSocketIO();
+    console.log('✅ Socket.IO configurado');
+    
+    console.log('❌ Configurando error handling...');
     this.setupErrorHandling();
+    console.log('✅ Error handling configurado');
+    console.log('🎉 Constructor finalizado!');
   }
 
   setupMiddleware() {
@@ -149,9 +164,19 @@ class APIGateway {
 
   async start() {
     try {
+      console.log('🚀 INICIANDO start() method...');
       // Initialize services
+      console.log('🔐 Inicializando authManager...');
+      await authManager.initialize();
+      console.log('✅ authManager inicializado');
+      
+      console.log('📦 Inicializando containerManager...');
       await containerManager.initialize();
+      console.log('✅ containerManager inicializado');
+      
+      console.log('📱 Inicializando deviceManager...');
       await deviceManager.initialize();
+      console.log('✅ deviceManager inicializado');
       
       // Initialize QR Manager
       qrManager.startPeriodicCleanup();
@@ -173,6 +198,8 @@ class APIGateway {
 
     } catch (error) {
       logger.error('Erro ao inicializar API Gateway:', error);
+      console.error('ERRO CRÍTICO:', error.message);
+      console.error('STACK:', error.stack);
       process.exit(1);
     }
   }
@@ -202,7 +229,9 @@ class APIGateway {
 }
 
 // Initialize and start the API Gateway
+console.log('🏗️ Criando instância do APIGateway...');
 const gateway = new APIGateway();
+console.log('✅ Instância criada, iniciando start()...');
 gateway.start();
 
 module.exports = gateway;
