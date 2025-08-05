@@ -1,4 +1,4 @@
-const PQueue = require('p-queue').default;
+const PQueue = require('p-queue');
 const logger = require('../utils/logger');
 
 class QueueManager {
