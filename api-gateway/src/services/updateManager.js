@@ -1,0 +1,589 @@
+const cron = require('cron');
+const axios = require('axios');
+const logger = require('../utils/logger');
+const containerManager = require('./containerManager');
+const deviceManager = require('./deviceManager');
+
+class UpdateManager {
+  constructor() {
+    this.updateCheckCron = process.env.UPDATE_CHECK_CRON || '0 2 * * *'; // 2 AM daily
+    this.cronJob = null;
+    this.lastUpdateCheck = null;
+    this.updateHistory = [];
+    this.autoUpdateEnabled = process.env.AUTO_UPDATE_ENABLED === 'true' || false;
+  }
+
+  /**
+   * Initialize update manager and start scheduled checks
+   */
+  initialize() {
+    logger.info('Inicializando Update Manager...');
+    
+    this.startScheduledChecks();
+    
+    // Check on startup (delayed)
+    setTimeout(() => {
+      this.performUpdateCheck();
+    }, 30000); // Wait 30 seconds after startup
+
+    logger.info('Update Manager inicializado');
+  }
+
+  /**
+   * Start scheduled update checks
+   */
+  startScheduledChecks() {
+    try {
+      this.cronJob = new cron.CronJob(
+        this.updateCheckCron,
+        () => this.performUpdateCheck(),
+        null,
+        true,
+        'America/Sao_Paulo'
+      );
+
+      logger.info(`Verificações de atualização agendadas: ${this.updateCheckCron}`);
+    } catch (error) {
+      logger.error('Erro ao agendar verificações de atualização:', error);
+    }
+  }
+
+  /**
+   * Perform comprehensive update check
+   */
+  async performUpdateCheck() {
+    logger.info('Iniciando verificação inteligente de atualizações...');
+    
+    this.lastUpdateCheck = new Date();
+    const checkResults = {
+      timestamp: this.lastUpdateCheck.toISOString(),
+      checks: {}
+    };
+
+    try {
+      // Check Docker image updates
+      checkResults.checks.dockerImages = await this.checkDockerImageUpdates();
+
+      // Check Node.js dependencies
+      checkResults.checks.nodeDependencies = await this.checkNodeDependencies();
+
+      // Check WhatsApp library updates
+      checkResults.checks.whatsappLibrary = await this.checkWhatsAppLibraryUpdates();
+
+      // Check system packages
+      checkResults.checks.systemPackages = await this.checkSystemPackages();
+
+      // Check container health and recommend updates
+      checkResults.checks.containerHealth = await this.checkContainerHealthForUpdates();
+
+      // Analyze update recommendations
+      const recommendations = this.analyzeUpdateRecommendations(checkResults.checks);
+      checkResults.recommendations = recommendations;
+
+      // Store in history
+      this.updateHistory.push(checkResults);
+      
+      // Keep only last 30 checks
+      if (this.updateHistory.length > 30) {
+        this.updateHistory = this.updateHistory.slice(-30);
+      }
+
+      // Send notifications if critical updates are available
+      await this.sendUpdateNotifications(checkResults);
+
+      // Auto-update if enabled and safe
+      if (this.autoUpdateEnabled && recommendations.safeToAutoUpdate) {
+        await this.performAutoUpdate(recommendations.autoUpdateActions);
+      }
+
+      logger.info('Verificação de atualizações concluída');
+      return checkResults;
+
+    } catch (error) {
+      logger.error('Erro durante verificação de atualizações:', error);
+      checkResults.error = error.message;
+      return checkResults;
+    }
+  }
+
+  /**
+   * Check for Docker image updates
+   */
+  async checkDockerImageUpdates() {
+    const results = {
+      images: [],
+      updates_available: false,
+      last_checked: new Date().toISOString()
+    };
+
+    try {
+      const images = [
+        'node:18-alpine',
+        'golang:1.21-alpine',
+        'alpine:latest',
+        'nginx:alpine'
+      ];
+
+      for (const image of images) {
+        try {
+          // Get local image info
+          const localInfo = await this.getLocalImageInfo(image);
+          
+          // Check registry for updates
+          const registryInfo = await this.getRegistryImageInfo(image);
+          
+          const updateAvailable = localInfo && registryInfo && 
+            localInfo.digest !== registryInfo.digest;
+
+          results.images.push({
+            name: image,
+            local_digest: localInfo?.digest,
+            registry_digest: registryInfo?.digest,
+            update_available: updateAvailable,
+            local_created: localInfo?.created,
+            registry_updated: registryInfo?.last_updated
+          });
+
+          if (updateAvailable) {
+            results.updates_available = true;
+          }
+
+        } catch (error) {
+          logger.warn(`Erro ao verificar imagem ${image}:`, error.message);
+          results.images.push({
+            name: image,
+            error: error.message
+          });
+        }
+      }
+
+    } catch (error) {
+      logger.error('Erro ao verificar atualizações Docker:', error);
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
+   * Check Node.js dependencies for updates
+   */
+  async checkNodeDependencies() {
+    const results = {
+      dependencies: [],
+      updates_available: false,
+      security_updates: false
+    };
+
+    try {
+      const { execSync } = require('child_process');
+      
+      // Check for outdated packages
+      const outdatedOutput = execSync('npm outdated --json', { 
+        encoding: 'utf8',
+        cwd: process.cwd()
+      });
+
+      if (outdatedOutput) {
+        const outdated = JSON.parse(outdatedOutput);
+        
+        for (const [name, info] of Object.entries(outdated)) {
+          const isSecurityUpdate = await this.checkPackageSecurityAdvisories(name, info.current);
+          
+          results.dependencies.push({
+            name,
+            current: info.current,
+            wanted: info.wanted,
+            latest: info.latest,
+            security_update: isSecurityUpdate
+          });
+
+          results.updates_available = true;
+          if (isSecurityUpdate) {
+            results.security_updates = true;
+          }
+        }
+      }
+
+      // Check for security vulnerabilities
+      try {
+        const auditOutput = execSync('npm audit --audit-level=moderate --json', { 
+          encoding: 'utf8',
+          cwd: process.cwd()
+        });
+        
+        const audit = JSON.parse(auditOutput);
+        if (audit.metadata.vulnerabilities.total > 0) {
+          results.security_vulnerabilities = audit.metadata.vulnerabilities;
+          results.security_updates = true;
+        }
+      } catch (auditError) {
+        // npm audit returns non-zero exit code when vulnerabilities found
+        logger.warn('Vulnerabilidades de segurança encontradas no npm audit');
+      }
+
+    } catch (error) {
+      logger.warn('Erro ao verificar dependências Node.js:', error.message);
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
+   * Check WhatsApp library updates
+   */
+  async checkWhatsAppLibraryUpdates() {
+    const results = {
+      current_version: null,
+      latest_version: null,
+      update_available: false,
+      release_notes: null
+    };
+
+    try {
+      // Check go-whatsapp-web-multidevice releases
+      const response = await axios.get(
+        'https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest',
+        { timeout: 10000 }
+      );
+
+      results.latest_version = response.data.tag_name;
+      results.release_notes = response.data.body;
+      results.published_at = response.data.published_at;
+
+      // Get current version from containers (if possible)
+      // This would require implementing version tracking in containers
+      results.current_version = 'unknown';
+      results.update_available = true; // Conservative approach
+
+    } catch (error) {
+      logger.warn('Erro ao verificar atualizações da biblioteca WhatsApp:', error.message);
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
+   * Check system packages for updates
+   */
+  async checkSystemPackages() {
+    const results = {
+      packages: [],
+      security_updates: false,
+      updates_available: false
+    };
+
+    try {
+      // This would require implementation based on the host OS
+      // For Docker containers, this might not be as relevant
+      results.message = 'System package checks not implemented for containerized environment';
+    } catch (error) {
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
+   * Check container health to recommend updates
+   */
+  async checkContainerHealthForUpdates() {
+    const results = {
+      containers: [],
+      recommendations: []
+    };
+
+    try {
+      const containers = await containerManager.listContainers();
+      
+      for (const container of containers) {
+        const health = await this.analyzeContainerHealth(container);
+        
+        results.containers.push({
+          phone_number: container.phoneNumber,
+          health_score: health.score,
+          uptime: health.uptime,
+          memory_usage: health.memoryUsage,
+          restart_recommended: health.restartRecommended,
+          update_recommended: health.updateRecommended
+        });
+
+        if (health.restartRecommended) {
+          results.recommendations.push({
+            type: 'restart',
+            container: container.phoneNumber,
+            reason: health.restartReason
+          });
+        }
+
+        if (health.updateRecommended) {
+          results.recommendations.push({
+            type: 'update',
+            container: container.phoneNumber,
+            reason: health.updateReason
+          });
+        }
+      }
+
+    } catch (error) {
+      logger.error('Erro ao analisar saúde dos containers:', error);
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
+   * Analyze container health
+   */
+  async analyzeContainerHealth(container) {
+    const health = {
+      score: 100,
+      uptime: 0,
+      memoryUsage: 0,
+      restartRecommended: false,
+      updateRecommended: false,
+      restartReason: null,
+      updateReason: null
+    };
+
+    try {
+      // Calculate uptime
+      if (container.startedAt) {
+        health.uptime = Date.now() - new Date(container.startedAt).getTime();
+      }
+
+      // Recommend restart if uptime > 7 days
+      if (health.uptime > 7 * 24 * 60 * 60 * 1000) {
+        health.restartRecommended = true;
+        health.restartReason = 'Container running for more than 7 days';
+        health.score -= 20;
+      }
+
+      // Check if container is healthy
+      if (!container.running) {
+        health.score = 0;
+        health.updateRecommended = true;
+        health.updateReason = 'Container not running';
+      }
+
+      // Additional health checks could be added here
+
+    } catch (error) {
+      logger.error(`Erro ao analisar container ${container.phoneNumber}:`, error);
+      health.score = 0;
+    }
+
+    return health;
+  }
+
+  /**
+   * Analyze update recommendations
+   */
+  analyzeUpdateRecommendations(checks) {
+    const recommendations = {
+      priority: 'low',
+      safeToAutoUpdate: false,
+      autoUpdateActions: [],
+      manualActions: [],
+      securityCritical: false
+    };
+
+    // Check for security updates
+    if (checks.nodeDependencies?.security_updates || 
+        checks.dockerImages?.security_updates) {
+      recommendations.priority = 'high';
+      recommendations.securityCritical = true;
+    }
+
+    // Check for critical container issues
+    if (checks.containerHealth?.recommendations?.length > 0) {
+      const restartCount = checks.containerHealth.recommendations
+        .filter(r => r.type === 'restart').length;
+      
+      if (restartCount > 0) {
+        recommendations.priority = 'medium';
+        recommendations.autoUpdateActions.push({
+          type: 'restart_containers',
+          containers: checks.containerHealth.recommendations
+            .filter(r => r.type === 'restart')
+            .map(r => r.container)
+        });
+        recommendations.safeToAutoUpdate = true;
+      }
+    }
+
+    // Add manual actions for major updates
+    if (checks.dockerImages?.updates_available) {
+      recommendations.manualActions.push({
+        type: 'update_docker_images',
+        description: 'Atualize as imagens Docker manualmente'
+      });
+    }
+
+    if (checks.whatsappLibrary?.update_available) {
+      recommendations.manualActions.push({
+        type: 'update_whatsapp_library',
+        description: 'Nova versão da biblioteca WhatsApp disponível'
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Send update notifications
+   */
+  async sendUpdateNotifications(checkResults) {
+    const { recommendations } = checkResults;
+
+    if (recommendations.priority === 'high' || recommendations.securityCritical) {
+      logger.warn('ATENÇÃO: Atualizações críticas de segurança disponíveis!');
+      
+      // Send via webhook/socket if configured
+      if (global.socketIO) {
+        global.socketIO.emit('security-update-alert', {
+          severity: 'high',
+          message: 'Atualizações críticas de segurança disponíveis',
+          details: checkResults,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    if (recommendations.manualActions.length > 0) {
+      logger.info(`${recommendations.manualActions.length} ações manuais recomendadas`);
+    }
+  }
+
+  /**
+   * Perform auto-update for safe actions
+   */
+  async performAutoUpdate(actions) {
+    logger.info('Iniciando auto-update...');
+
+    for (const action of actions) {
+      try {
+        switch (action.type) {
+          case 'restart_containers':
+            await this.autoRestartContainers(action.containers);
+            break;
+
+          default:
+            logger.warn(`Ação de auto-update não reconhecida: ${action.type}`);
+        }
+      } catch (error) {
+        logger.error(`Erro durante auto-update ${action.type}:`, error);
+      }
+    }
+
+    logger.info('Auto-update concluído');
+  }
+
+  /**
+   * Auto-restart containers
+   */
+  async autoRestartContainers(containerPhones) {
+    for (const phoneNumber of containerPhones) {
+      try {
+        logger.info(`Auto-reiniciando container: ${phoneNumber}`);
+        await containerManager.restartContainer(phoneNumber);
+        
+        // Wait between restarts
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } catch (error) {
+        logger.error(`Erro ao reiniciar container ${phoneNumber}:`, error);
+      }
+    }
+  }
+
+  /**
+   * Get local Docker image info
+   */
+  async getLocalImageInfo(imageName) {
+    try {
+      const docker = containerManager.docker;
+      const image = docker.getImage(imageName);
+      const inspect = await image.inspect();
+      
+      return {
+        digest: inspect.RepoDigests?.[0]?.split('@')[1],
+        created: inspect.Created,
+        size: inspect.Size
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Get registry image info
+   */
+  async getRegistryImageInfo(imageName) {
+    try {
+      // This would require implementing Docker registry API calls
+      // For now, return placeholder
+      return {
+        digest: 'unknown',
+        last_updated: new Date().toISOString()
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Check package security advisories
+   */
+  async checkPackageSecurityAdvisories(packageName, version) {
+    try {
+      // This would require implementing security advisory checks
+      // Could use GitHub Security Advisory API or npm audit
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Get update history
+   */
+  getUpdateHistory(limit = 10) {
+    return this.updateHistory.slice(-limit);
+  }
+
+  /**
+   * Get current update status
+   */
+  getCurrentStatus() {
+    return {
+      last_check: this.lastUpdateCheck,
+      schedule: this.updateCheckCron,
+      auto_update_enabled: this.autoUpdateEnabled,
+      checks_performed: this.updateHistory.length
+    };
+  }
+
+  /**
+   * Manually trigger update check
+   */
+  async manualUpdateCheck() {
+    logger.info('Update check manual solicitado');
+    return await this.performUpdateCheck();
+  }
+
+  /**
+   * Stop scheduled checks
+   */
+  stop() {
+    if (this.cronJob) {
+      this.cronJob.stop();
+      logger.info('Verificações de atualização paradas');
+    }
+  }
+}
+
+// Export singleton instance
+module.exports = new UpdateManager();

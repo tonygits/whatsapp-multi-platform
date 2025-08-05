@@ -1,0 +1,42 @@
+# WhatsApp Container Configuration
+app:
+  port: 3001
+  env: production
+  debug: false
+  timezone: "America/Sao_Paulo"
+
+whatsapp:
+  auto_reply: false
+  webhook_url: ""
+  session_timeout: 3600
+  qr_timeout: 60
+  max_retry: 3
+  save_history: true
+
+webhook:
+  url: ""
+  secret: ""
+  events:
+    - message
+    - qr_code
+    - connected
+    - disconnected
+
+log:
+  level: "info"
+  save_to_file: true
+  file_path: "/app/logs/app.log"
+
+database:
+  type: "sqlite"
+  path: "/app/sessions/database.db"
+
+security:
+  rate_limit: 100
+  cors_allowed_origins:
+    - "*"
+
+session:
+  path: "/app/sessions"
+  auto_save: true
+  save_interval: 30
