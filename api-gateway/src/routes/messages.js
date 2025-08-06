@@ -13,31 +13,46 @@ const router = express.Router();
  * Send a message via WhatsApp
  */
 router.post('/send', asyncHandler(async (req, res) => {
-  const { from, to, message, type = 'text', priority = 5 } = req.body;
+  const { to, message, priority = 5, instance_id: phoneNumber } = req.body;
 
-  if (!from || !to || !message) {
+  if (!phoneNumber || !to || !message) {
     throw new CustomError(
-      'Campos obrigatórios: from, to, message',
+      'Campos obrigatórios: instance_id, to, message',
       400,
       'MISSING_REQUIRED_FIELDS'
     );
   }
 
-  // Validate phone numbers
+  // Validate target phone number
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  if (!phoneRegex.test(from) || !phoneRegex.test(to)) {
+  if (!phoneRegex.test(to)) {
     throw new CustomError(
-      'Formato de número de telefone inválido',
+      'Formato de número de telefone de destino inválido',
       400,
       'INVALID_PHONE_FORMAT'
     );
   }
 
-  // Get device information
-  const device = await deviceManager.getDevice(from);
+  // Get device information by instance_id (can be phone or device_hash)
+  let device = await deviceManager.getDevice(phoneNumber);
+  
+  if (!device) {
+    // Try by device_hash
+    const DeviceRepository = require('../repositories/DeviceRepository');
+    device = await DeviceRepository.findByDeviceHash(phoneNumber);
+    
+    if (device) {
+      // Convert database format to device manager format
+      device = {
+        phoneNumber: device.phone_number,
+        port: device.container_port,
+        status: device.status === 'connected' ? 'active' : device.status
+      };
+    }
+  }
   if (!device) {
     throw new CustomError(
-      `Dispositivo ${from} não está registrado`,
+      `Instance ${PhoneUtils.maskForLog(phoneNumber, 'error')} não está registrado`,
       404,
       'DEVICE_NOT_REGISTERED'
     );
@@ -45,7 +60,7 @@ router.post('/send', asyncHandler(async (req, res) => {
 
   if (device.status !== 'active') {
     throw new CustomError(
-      `Dispositivo ${from} não está ativo (status: ${device.status})`,
+      `Instance ${PhoneUtils.maskForLog(phoneNumber, 'error')} não está ativo (status: ${device.status})`,
       400,
       'DEVICE_NOT_ACTIVE'
     );
@@ -73,7 +88,7 @@ router.post('/send', asyncHandler(async (req, res) => {
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
         throw new CustomError(
-          `Container ${from} não está respondendo`,
+          `Container ${instance_id} não está respondendo`,
           503,
           'CONTAINER_UNAVAILABLE'
         );
@@ -92,21 +107,22 @@ router.post('/send', asyncHandler(async (req, res) => {
     }
   };
 
-  logger.info(`Adicionando mensagem à fila: ${from} -> ${to}`);
+  logger.info(`Adicionando mensagem à fila: ${PhoneUtils.maskForLog(device.phoneNumber, 'info')} -> ${PhoneUtils.maskForLog(to, 'info')}`);
 
   // Add to queue
-  const result = await queueManager.addMessage(from, messageFunction, priority);
+  const result = await queueManager.addMessage(device.phoneNumber, messageFunction, priority);
 
   res.json({
     success: true,
     message: 'Mensagem adicionada à fila com sucesso',
     data: {
       messageId: result.messageId || `msg_${Date.now()}`,
-      from,
+      instance_id: phoneNumber,
+      from: device.phoneNumber,
       to,
       queuedAt: new Date().toISOString(),
       priority,
-      queueStatus: queueManager.getQueueStatus(from)
+      queueStatus: queueManager.getQueueStatus(device.phoneNumber)
     }
   });
 }));

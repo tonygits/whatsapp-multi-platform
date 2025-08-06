@@ -27,6 +27,14 @@ const healthRoutes = require('./routes/health');
 const docsRoutes = require('./routes/docs');
 const proxyRoutes = require('./routes/proxy');
 
+// Import new direct API routes
+const appRoutes = require('./routes/app');
+const sendRoutes = require('./routes/send');
+const userRoutes = require('./routes/user');
+const messageApiRoutes = require('./routes/message');
+const chatRoutes = require('./routes/chat');
+const groupRoutes = require('./routes/group');
+
 class APIGateway {
   constructor() {
     console.log('🏗️ Iniciando constructor...');
@@ -98,6 +106,14 @@ class APIGateway {
     this.app.use('/api/devices', deviceRoutes);
     this.app.use('/api/messages', messageRoutes);
     
+    // New direct API routes with instance_id support
+    this.app.use('/api/app', appRoutes);
+    this.app.use('/api/send', sendRoutes);
+    this.app.use('/api/user', userRoutes);
+    this.app.use('/api/message', messageApiRoutes);
+    this.app.use('/api/chat', chatRoutes);
+    this.app.use('/api/group', groupRoutes);
+    
     // WhatsApp Proxy routes (direto para containers)
     this.app.use('/proxy/whatsapp', proxyRoutes);
 
@@ -112,6 +128,12 @@ class APIGateway {
           auth: '/api/auth',
           devices: '/api/devices',
           messages: '/api/messages',
+          app: '/api/app',
+          send: '/api/send',
+          user: '/api/user',
+          message: '/api/message',
+          chat: '/api/chat',
+          group: '/api/group',
           health: '/api/health',
           docs: '/docs',
           whatsapp_proxy: '/proxy/whatsapp'
