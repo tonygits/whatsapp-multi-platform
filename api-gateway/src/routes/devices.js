@@ -108,12 +108,15 @@ router.post('/', asyncHandler(async (req, res) => {
 
     logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} registrado e container criado`);
 
+    const phoneHash = PhoneUtils.hashPhoneNumber(normalizedPhone);
+
     res.status(201).json({
       success: true,
       message: 'Dispositivo registrado com sucesso',
       data: {
         deviceHash: device.device_hash,
-        phoneNumber: PhoneUtils.maskPhoneNumber(device.phoneNumber || device.phone_number, { forceMask: false }),
+        phoneNumber: phoneNumber, // Retorna o número original
+        phoneHash: phoneHash, // Retorna o hash do número normalizado
         name: device.name,
         status: device.status,
         containerInfo

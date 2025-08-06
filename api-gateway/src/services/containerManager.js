@@ -98,12 +98,16 @@ class ContainerManager {
           });
 
           // Update device manager
-          await deviceManager.updateDevice(phoneNumber, {
-            containerId: containerInfo.Id,
-            status: containerInfo.State === 'running' ? 'active' : 'stopped'
-          });
-
-          logger.info(`Container para ${phoneNumber} carregado (${containerInfo.State})`);
+          const deviceExists = await deviceManager.getDevice(phoneNumber);
+          if (deviceExists) {
+            await deviceManager.updateDevice(phoneNumber, {
+              containerId: containerInfo.Id,
+              status: containerInfo.State === 'running' ? 'active' : 'stopped'
+            });
+            logger.info(`Container para ${phoneNumber} carregado (${containerInfo.State})`);
+          } else {
+            logger.warn(`Container para ${phoneNumber} encontrado, mas dispositivo não está no banco de dados. Ignorando.`);
+          }
         }
       }
     } catch (error) {
