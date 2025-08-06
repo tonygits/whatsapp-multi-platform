@@ -128,29 +128,8 @@ class PhoneUtils {
    */
   static validatePhoneNumber(phoneNumber) {
     if (!phoneNumber || typeof phoneNumber !== 'string') return false;
-    
-    // Regex para números internacionais
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    const phoneRegex = /^\d{10,15}$/;
     return phoneRegex.test(phoneNumber);
-  }
-
-  /**
-   * Normaliza número de telefone (adiciona + se necessário)
-   * @param {string} phoneNumber - Número de telefone
-   * @returns {string} - Número normalizado
-   */
-  static normalizePhoneNumber(phoneNumber) {
-    if (!phoneNumber) return '';
-    
-    // Remove espaços e caracteres especiais
-    let normalized = phoneNumber.replace(/[\s\-\(\)]/g, '');
-    
-    // Adiciona + se não tiver
-    if (!normalized.startsWith('+')) {
-      normalized = `+${normalized}`;
-    }
-    
-    return normalized;
   }
 
   /**

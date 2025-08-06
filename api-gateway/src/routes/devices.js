@@ -83,51 +83,50 @@ router.post('/', asyncHandler(async (req, res) => {
     throw new CustomError('Formato de número de telefone inválido', 400, 'INVALID_PHONE_FORMAT');
   }
 
-  const normalizedPhone = PhoneUtils.normalizePhoneNumber(phoneNumber);
-  logger.info(`Iniciando registro para: ${PhoneUtils.maskForLog(normalizedPhone, 'info')}`);
+  logger.info(`Iniciando registro para: ${phoneNumber}`);
 
   try {
-    let device = await deviceManager.getDevice(normalizedPhone);
-    let container = await containerManager.getContainerStatus(normalizedPhone);
+    let device = await deviceManager.getDevice(phoneNumber);
+    let container = await containerManager.getContainerStatus(phoneNumber);
     let wasCreated = false;
 
     // Scenario 1: Device does not exist in DB
     if (!device) {
-      logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não encontrado no DB. Criando...`);
-      device = await deviceManager.registerDevice(normalizedPhone, { name });
+      logger.info(`Dispositivo ${phoneNumber} não encontrado no DB. Criando...`);
+      device = await deviceManager.registerDevice(phoneNumber, { name });
       wasCreated = true;
     } else {
-      logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} já existe no DB.`);
+      logger.info(`Dispositivo ${phoneNumber} já existe no DB.`);
     }
 
     // Scenario 2: Container does not exist
     if (!container) {
-      logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não encontrado. Criando...`);
-      container = await containerManager.createContainer(normalizedPhone);
+      logger.info(`Container para ${phoneNumber} não encontrado. Criando...`);
+      container = await containerManager.createContainer(phoneNumber);
       if (autoStart) {
-        await containerManager.startContainer(normalizedPhone);
+        await containerManager.startContainer(phoneNumber);
       }
     } else {
-      logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} já existe.`);
+      logger.info(`Container para ${phoneNumber} já existe.`);
       // Ensure container is started if autoStart is requested
       if (autoStart && container.status !== 'running') {
-        logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não está rodando. Iniciando...`);
-        await containerManager.startContainer(normalizedPhone);
+        logger.info(`Container para ${phoneNumber} não está rodando. Iniciando...`);
+        await containerManager.startContainer(phoneNumber);
       }
     }
     
     // Final state
-    const finalDeviceState = await deviceManager.getDevice(normalizedPhone);
-    const finalContainerState = await containerManager.getContainerStatus(normalizedPhone);
-    const phoneHash = PhoneUtils.hashPhoneNumber(normalizedPhone);
+    const finalDeviceState = await deviceManager.getDevice(phoneNumber);
+    const finalContainerState = await containerManager.getContainerStatus(phoneNumber);
+    const phoneHash = PhoneUtils.hashPhoneNumber(phoneNumber);
 
-    logger.info(`Registro para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} concluído com sucesso.`);
+    logger.info(`Registro para ${phoneNumber} concluído com sucesso.`);
 
     res.status(wasCreated ? 201 : 200).json({
       success: true,
       message: `Dispositivo ${wasCreated ? 'registrado' : 'já existente'} e verificado com sucesso.`,
       data: {
-        deviceHash: finalDeviceState.device_hash || PhoneUtils.generateDeviceId(normalizedPhone),
+        deviceHash: finalDeviceState.device_hash || PhoneUtils.generateDeviceId(phoneNumber),
         phoneNumber: phoneNumber, // Return original number
         phoneHash: phoneHash,
         name: finalDeviceState.name,
@@ -137,7 +136,7 @@ router.post('/', asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Erro catastrófico ao registrar dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'error')}:`, error);
+    logger.error(`Erro catastrófico ao registrar dispositivo ${phoneNumber}:`, error);
     // Avoid cleanup logic here as it can cause more state issues.
     // The idempotent nature of the endpoint should allow for safe retries.
     throw new CustomError('Ocorreu um erro inesperado durante o registro.', 500, 'REGISTRATION_UNEXPECTED_ERROR');
