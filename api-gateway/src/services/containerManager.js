@@ -10,7 +10,6 @@ class ContainerManager {
     this.imageName = process.env.WHATSAPP_IMAGE_NAME || 'aldinokemal2104/go-whatsapp-web-multidevice';
     this.basicAuthUsername = process.env.BASIC_AUTH_USERNAME || 'admin';
     this.basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'admin';
-    this.volumesBasePath = process.env.VOLUMES_BASE_PATH || './volumes';
     this.containers = new Map(); // phoneNumber -> container info
   }
 
@@ -168,6 +167,7 @@ class ContainerManager {
             `APP_DEBUG=true`,
             `APP_OS=Chrome`,
             `APP_ACCOUNT_VALIDATION=false`,
+            `DB_URI=file:whatsapp.db?_foreign_keys=on`,
             ...this.getEnvironmentVariables(options)
           ],
           ExposedPorts: {
@@ -178,7 +178,7 @@ class ContainerManager {
               [`${devicePort}/tcp`]: [{ HostPort: devicePort.toString() }]
             },
             Binds: [
-              `${volumeName}:/app/storages:rw`
+              `${volumeName}:/app:rw`
             ],
             NetworkMode: this.networkName,
             RestartPolicy: {
