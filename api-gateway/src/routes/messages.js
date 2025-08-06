@@ -4,6 +4,7 @@ const { asyncHandler, CustomError } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
+const PhoneUtils = require('../utils/phoneUtils');
 
 const router = express.Router();
 
@@ -218,7 +219,7 @@ router.get('/queue/:phoneNumber', asyncHandler(async (req, res) => {
     return res.json({
       success: true,
       data: {
-        phoneNumber,
+        phoneNumber: PhoneUtils.maskForLog(phoneNumber, 'info'),
         queueExists: false,
         message: 'Nenhuma fila ativa para este dispositivo'
       }
@@ -265,7 +266,7 @@ router.post('/queue/:phoneNumber/pause', asyncHandler(async (req, res) => {
     );
   }
 
-  logger.info(`Fila pausada para ${phoneNumber}`);
+  logger.info(`Fila pausada para ${PhoneUtils.maskForLog(phoneNumber, 'info')}`);
 
   res.json({
     success: true,
@@ -290,7 +291,7 @@ router.post('/queue/:phoneNumber/resume', asyncHandler(async (req, res) => {
     );
   }
 
-  logger.info(`Fila retomada para ${phoneNumber}`);
+  logger.info(`Fila retomada para ${PhoneUtils.maskForLog(phoneNumber, 'info')}`);
 
   res.json({
     success: true,
@@ -315,7 +316,7 @@ router.delete('/queue/:phoneNumber', asyncHandler(async (req, res) => {
     );
   }
 
-  logger.info(`Fila limpa para ${phoneNumber}`);
+  logger.info(`Fila limpa para ${PhoneUtils.maskForLog(phoneNumber, 'info')}`);
 
   res.json({
     success: true,

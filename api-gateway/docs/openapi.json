@@ -275,7 +275,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phoneNumber": { "type": "string", "example": "+5511999999999" },
+                  "phoneNumber": { "type": "string", "example": "+5511999999999", "description": "Número de telefone completo (requerido apenas para registro)" },
                   "name": { "type": "string", "example": "Atendimento Principal" },
                   "autoStart": { "type": "boolean", "default": true }
                 },

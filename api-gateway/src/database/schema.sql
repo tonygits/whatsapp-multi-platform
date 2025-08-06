@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
 -- Tabela de dispositivos WhatsApp
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_hash VARCHAR(16) NOT NULL UNIQUE,
     phone_number VARCHAR(20) NOT NULL UNIQUE,
+    phone_hash VARCHAR(64),
     name VARCHAR(100),
     session_id VARCHAR(100) UNIQUE,
     container_id VARCHAR(100),
@@ -61,7 +63,9 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 -- Índices para performance
+CREATE INDEX IF NOT EXISTS idx_devices_hash ON devices(device_hash);
 CREATE INDEX IF NOT EXISTS idx_devices_phone ON devices(phone_number);
+CREATE INDEX IF NOT EXISTS idx_devices_phone_hash ON devices(phone_hash);
 CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status);
 CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_device ON messages(device_id);

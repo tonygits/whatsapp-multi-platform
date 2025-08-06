@@ -1,5 +1,6 @@
 const database = require('../database/database');
 const logger = require('../utils/logger');
+const PhoneUtils = require('../utils/phoneUtils');
 
 class DeviceRepository {
   /**
@@ -18,14 +19,18 @@ class DeviceRepository {
         user_id
       } = deviceData;
 
+      // Gerar hashes de segurança
+      const device_hash = PhoneUtils.generateDeviceId(phone_number);
+      const phone_hash = PhoneUtils.hashPhoneNumber(phone_number);
+
       const result = await database.run(
-        `INSERT INTO devices (phone_number, name, session_id, container_port, webhook_url, user_id)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [phone_number, name || null, session_id || null, container_port || null, webhook_url || null, user_id || null]
+        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, session_id, container_port, webhook_url, user_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [device_hash, phone_number, phone_hash, name || null, session_id || null, container_port || null, webhook_url || null, user_id || null]
       );
 
       const device = await this.findById(result.lastID);
-      logger.info(`Dispositivo criado: ${phone_number}`, { deviceId: result.lastID });
+      logger.info(`Dispositivo criado: ${PhoneUtils.maskForLog(phone_number, 'info')}`, { deviceId: result.lastID, deviceHash: device_hash });
       
       return device;
     } catch (error) {
@@ -66,6 +71,24 @@ class DeviceRepository {
       return device;
     } catch (error) {
       logger.error('Erro ao buscar dispositivo por número:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find device by device hash
+   * @param {string} deviceHash - Device hash
+   * @returns {Promise<Object|null>} - Device or null
+   */
+  async findByDeviceHash(deviceHash) {
+    try {
+      const device = await database.get(
+        'SELECT * FROM devices WHERE device_hash = ?',
+        [deviceHash]
+      );
+      return device;
+    } catch (error) {
+      logger.error('Erro ao buscar dispositivo por hash:', error);
       throw error;
     }
   }

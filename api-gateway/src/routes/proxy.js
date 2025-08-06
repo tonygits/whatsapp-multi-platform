@@ -4,6 +4,7 @@ const { asyncHandler, CustomError } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
+const PhoneUtils = require('../utils/phoneUtils');
 
 const router = express.Router();
 
@@ -181,7 +182,7 @@ const proxyMessageWithQueue = asyncHandler(async (req, res) => {
     return response.data;
   };
 
-  logger.info(`Adicionando mensagem à fila: ${req.phoneNumber} -> ${to}`);
+  logger.info(`Adicionando mensagem à fila: ${PhoneUtils.maskForLog(req.phoneNumber, 'info')} -> ${PhoneUtils.maskForLog(to, 'info')}`);
 
   // Adicionar à fila
   const result = await queueManager.addMessage(req.phoneNumber, messageFunction, priority);
@@ -191,8 +192,8 @@ const proxyMessageWithQueue = asyncHandler(async (req, res) => {
     message: 'Mensagem adicionada à fila com sucesso',
     data: {
       messageId: `queued_${Date.now()}`,
-      from: req.phoneNumber,
-      to,
+      from: PhoneUtils.maskForLog(req.phoneNumber, 'info'),
+      to: PhoneUtils.maskForLog(to, 'info'),
       queuedAt: new Date().toISOString(),
       priority,
       queueStatus: queueManager.getQueueStatus(req.phoneNumber)
