@@ -5,52 +5,70 @@ const proxyToContainer = require('../middleware/proxyToContainer');
 const router = express.Router();
 
 /**
- * POST /api/group/create
- * Create group
+ * GET /api/group/info
+ * Group Info
  */
-router.post('/create', resolveInstance, proxyToContainer);
+router.get('/info', resolveInstance, proxyToContainer);
 
 /**
- * GET /api/group/list
- * Get group list
+ * POST /api/group
+ * Create group and add participant
  */
-router.get('/list', resolveInstance, proxyToContainer);
+router.post('/', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/members
- * Get group members
+ * POST /api/group/participants
+ * Adding more participants to group
  */
-router.post('/members', resolveInstance, proxyToContainer);
+router.post('/participants', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/admins
- * Get group admins
+ * POST /api/group/participants/remove
+ * Remove participants from group
  */
-router.post('/admins', resolveInstance, proxyToContainer);
+router.post('/participants/remove', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/add-member
- * Add member to group
+ * POST /api/group/participants/promote
+ * Promote participants to admin
  */
-router.post('/add-member', resolveInstance, proxyToContainer);
+router.post('/participants/promote', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/remove-member
- * Remove member from group
+ * POST /api/group/participants/demote
+ * Demote participants to member
  */
-router.post('/remove-member', resolveInstance, proxyToContainer);
+router.post('/participants/demote', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/promote-member
- * Promote member to admin
+ * POST /api/group/join-with-link
+ * Join group with link
  */
-router.post('/promote-member', resolveInstance, proxyToContainer);
+router.post('/join-with-link', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/demote-member
- * Demote admin to member
+ * GET /api/group/info-from-link
+ * Get group information from invitation link
  */
-router.post('/demote-member', resolveInstance, proxyToContainer);
+router.get('/info-from-link', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/group/participant-requests
+ * Get list of participant requests to join group
+ */
+router.get('/participant-requests', resolveInstance, proxyToContainer);
+
+/**
+ * POST /api/group/participant-requests/approve
+ * Approve participant request to join group
+ */
+router.post('/participant-requests/approve', resolveInstance, proxyToContainer);
+
+/**
+ * POST /api/group/participant-requests/reject
+ * Reject participant request to join group
+ */
+router.post('/participant-requests/reject', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/group/leave
@@ -59,57 +77,33 @@ router.post('/demote-member', resolveInstance, proxyToContainer);
 router.post('/leave', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/invite-code/get
- * Get group invite code
+ * POST /api/group/photo
+ * Set group photo
  */
-router.post('/invite-code/get', resolveInstance, proxyToContainer);
+router.post('/photo', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/invite-code/revoke
- * Revoke group invite code
+ * POST /api/group/name
+ * Set group name
  */
-router.post('/invite-code/revoke', resolveInstance, proxyToContainer);
+router.post('/name', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/join-with-code
- * Join group with invite code
+ * POST /api/group/locked
+ * Set group locked status
  */
-router.post('/join-with-code', resolveInstance, proxyToContainer);
+router.post('/locked', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/settings/announcement
- * Set group announcement setting
+ * POST /api/group/announce
+ * Set group announce mode
  */
-router.post('/settings/announcement', resolveInstance, proxyToContainer);
+router.post('/announce', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/group/settings/locked
- * Set group locked setting
+ * POST /api/group/topic
+ * Set group topic
  */
-router.post('/settings/locked', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/group/update-subject
- * Update group subject/name
- */
-router.post('/update-subject', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/group/update-description
- * Update group description
- */
-router.post('/update-description', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/group/update-picture
- * Update group picture
- */
-router.post('/update-picture', resolveInstance, proxyToContainer);
-
-/**
- * DELETE /api/group/delete-picture
- * Delete group picture
- */
-router.delete('/delete-picture', resolveInstance, proxyToContainer);
+router.post('/topic', resolveInstance, proxyToContainer);
 
 module.exports = router;

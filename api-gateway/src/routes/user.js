@@ -6,38 +6,62 @@ const router = express.Router();
 
 /**
  * GET /api/user/info
- * Get user information
+ * User Info
  */
 router.get('/info', resolveInstance, proxyToContainer);
 
 /**
  * GET /api/user/avatar
- * Get profile picture
+ * User Avatar
  */
 router.get('/avatar', resolveInstance, proxyToContainer);
 
 /**
- * GET /api/user/my/groups
- * Get joined groups
- */
-router.get('/my/groups', resolveInstance, proxyToContainer);
-
-/**
- * GET /api/user/my/privacy
- * Get privacy settings
- */
-router.get('/my/privacy', resolveInstance, proxyToContainer);
-
-/**
  * POST /api/user/avatar
- * Set profile picture
+ * User Change Avatar
  */
 router.post('/avatar', resolveInstance, proxyToContainer);
 
 /**
- * PUT /api/user/privacy
- * Set privacy settings
+ * POST /api/user/pushname
+ * User Change Push Name
  */
-router.put('/privacy', resolveInstance, proxyToContainer);
+router.post('/pushname', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/my/privacy
+ * User My Privacy Setting
+ */
+router.get('/my/privacy', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/my/groups
+ * User My List Groups
+ */
+router.get('/my/groups', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/my/newsletters
+ * User My List Newsletters
+ */
+router.get('/my/newsletters', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/my/contacts
+ * Get list of user contacts
+ */
+router.get('/my/contacts', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/check
+ * Check if user is on WhatsApp
+ */
+router.get('/check', resolveInstance, proxyToContainer);
+
+/**
+ * GET /api/user/business-profile
+ * Get Business Profile Information
+ */
+router.get('/business-profile', resolveInstance, proxyToContainer);
 
 module.exports = router;

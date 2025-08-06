@@ -5,93 +5,27 @@ const proxyToContainer = require('../middleware/proxyToContainer');
 const router = express.Router();
 
 /**
- * GET /api/chat/list
- * Get chat list
+ * GET /api/chats
+ * Get list of chats
  */
-router.get('/list', resolveInstance, proxyToContainer);
+router.get('/', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/chat/find
- * Find chat
+ * GET /api/chat/:chat_jid/messages
+ * Get messages from a specific chat
  */
-router.post('/find', resolveInstance, proxyToContainer);
+router.get('/:chat_jid/messages', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/chat/whatsapp/find
- * Find WhatsApp chat
+ * POST /api/chat/:chat_jid/label
+ * Label or unlabel a chat
  */
-router.post('/whatsapp/find', resolveInstance, proxyToContainer);
+router.post('/:chat_jid/label', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/chat/presence
- * Update chat presence
+ * POST /api/chat/:chat_jid/pin
+ * Pin or unpin a chat
  */
-router.post('/presence', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/search
- * Search in chat
- */
-router.post('/search', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/mute
- * Mute chat
- */
-router.post('/mute', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/unmute
- * Unmute chat
- */
-router.post('/unmute', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/archive
- * Archive chat
- */
-router.post('/archive', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/unarchive
- * Unarchive chat
- */
-router.post('/unarchive', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/pin
- * Pin chat
- */
-router.post('/pin', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/unpin
- * Unpin chat
- */
-router.post('/unpin', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/mark-as-read
- * Mark chat as read
- */
-router.post('/mark-as-read', resolveInstance, proxyToContainer);
-
-/**
- * POST /api/chat/mark-as-unread
- * Mark chat as unread
- */
-router.post('/mark-as-unread', resolveInstance, proxyToContainer);
-
-/**
- * DELETE /api/chat/clear
- * Clear chat
- */
-router.delete('/clear', resolveInstance, proxyToContainer);
-
-/**
- * DELETE /api/chat/delete
- * Delete chat
- */
-router.delete('/delete', resolveInstance, proxyToContainer);
+router.post('/:chat_jid/pin', resolveInstance, proxyToContainer);
 
 module.exports = router;

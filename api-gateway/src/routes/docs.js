@@ -4,20 +4,51 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const swaggerUi = require('swagger-ui-express');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { generateOpenAPIFromApp } = require('../utils/openapi-generator');
 
 const router = express.Router();
 
 // Carregar especificação OpenAPI
 let swaggerDocument = null;
 
-async function loadSwaggerDocument() {
-  if (!swaggerDocument) {
+async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressApp = null) {
+  if (!swaggerDocument || forceRegenerate) {
     try {
-      const yamlPath = path.join(__dirname, '../../docs/openapi.yaml');
-      const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
-      swaggerDocument = yaml.load(yamlContent);
+      if (forceRegenerate && expressApp) {
+        console.log('Gerando nova documentação OpenAPI a partir das rotas Express...');
+        swaggerDocument = generateOpenAPIFromApp(expressApp);
+        
+        // Save to files
+        const docsDir = path.join(__dirname, '../../docs');
+        const yamlPath = path.join(docsDir, 'openapi.yaml');
+        const jsonPath = path.join(docsDir, 'openapi.json');
+        
+        try {
+          await fs.promises.mkdir(docsDir, { recursive: true });
+          await fs.promises.writeFile(yamlPath, yaml.dump(swaggerDocument, { indent: 2 }));
+          await fs.promises.writeFile(jsonPath, JSON.stringify(swaggerDocument, null, 2));
+          console.log('OpenAPI files saved successfully!');
+        } catch (writeError) {
+          console.warn('Could not save OpenAPI files:', writeError.message);
+        }
+        
+      } else {
+        // Try to load from existing files first
+        const yamlPath = path.join(__dirname, '../../docs/openapi.yaml');
+        try {
+          const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
+          swaggerDocument = yaml.load(yamlContent);
+        } catch (fileError) {
+          console.log('No existing OpenAPI file found, generating from Express app...');
+          if (expressApp) {
+            swaggerDocument = generateOpenAPIFromApp(expressApp);
+          } else {
+            throw new Error('No Express app provided for generation');
+          }
+        }
+      }
     } catch (error) {
-      console.error('Erro ao carregar OpenAPI YAML:', error);
+      console.error('Erro ao carregar/gerar OpenAPI:', error);
       swaggerDocument = {
         openapi: '3.0.0',
         info: {
@@ -68,7 +99,8 @@ router.use('/', swaggerUi.serve);
  */
 router.get('/', async (req, res, next) => {
   try {
-    const swaggerDoc = await loadSwaggerDocument();
+    const expressApp = req.app;
+    const swaggerDoc = await generateAndLoadSwaggerDocument(false, expressApp);
     swaggerUi.setup(swaggerDoc, swaggerOptions)(req, res, next);
   } catch (error) {
     res.status(500).json({
@@ -255,6 +287,32 @@ router.get('/postman', asyncHandler(async (req, res) => {
     res.status(500).json({
       error: 'Erro ao gerar coleção Postman',
       code: 'POSTMAN_GENERATION_ERROR'
+    });
+  }
+}));
+
+/**
+ * GET /docs/generate
+ * Regenerar documentação OpenAPI
+ */
+router.get('/generate', asyncHandler(async (req, res) => {
+  try {
+    console.log('Regenerando documentação OpenAPI...');
+    swaggerDocument = null; // Clear cache
+    const expressApp = req.app;
+    await generateAndLoadSwaggerDocument(true, expressApp);
+    
+    res.json({
+      success: true,
+      message: 'Documentação OpenAPI regenerada com sucesso',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro ao regenerar documentação:', error);
+    res.status(500).json({
+      error: 'Erro ao regenerar documentação',
+      code: 'DOCS_REGENERATION_ERROR',
+      details: error.message
     });
   }
 }));

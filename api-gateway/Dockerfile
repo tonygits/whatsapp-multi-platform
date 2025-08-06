@@ -20,6 +20,7 @@ RUN npm ci --only=production
 
 # Copy application source
 COPY api-gateway/src ./src
+COPY openapi.yaml ./openapi.yaml
 COPY docs ./docs
 
 # Create necessary directories

@@ -5,39 +5,45 @@ const proxyToContainer = require('../middleware/proxyToContainer');
 const router = express.Router();
 
 /**
- * GET /api/message/list
- * Get message list
+ * POST /api/message/:message_id/revoke
+ * Revoke Message
  */
-router.get('/list', resolveInstance, proxyToContainer);
+router.post('/:message_id/revoke', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/message/send
- * Send message (individual route, different from /api/send/message)
+ * POST /api/message/:message_id/delete
+ * Delete Message
  */
-router.post('/send', resolveInstance, proxyToContainer);
+router.post('/:message_id/delete', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/message/reaction/send
- * Send message reaction
+ * POST /api/message/:message_id/reaction
+ * Send reaction to message
  */
-router.post('/reaction/send', resolveInstance, proxyToContainer);
+router.post('/:message_id/reaction', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/message/revoke
- * Revoke message
+ * POST /api/message/:message_id/update
+ * Edit message by message ID before 15 minutes
  */
-router.post('/revoke', resolveInstance, proxyToContainer);
+router.post('/:message_id/update', resolveInstance, proxyToContainer);
 
 /**
- * POST /api/message/update
- * Update message
+ * POST /api/message/:message_id/read
+ * Mark as read message
  */
-router.post('/update', resolveInstance, proxyToContainer);
+router.post('/:message_id/read', resolveInstance, proxyToContainer);
 
 /**
- * GET /api/message/history
- * Get message history
+ * POST /api/message/:message_id/star
+ * Star message
  */
-router.get('/history', resolveInstance, proxyToContainer);
+router.post('/:message_id/star', resolveInstance, proxyToContainer);
+
+/**
+ * POST /api/message/:message_id/unstar
+ * Unstar message
+ */
+router.post('/:message_id/unstar', resolveInstance, proxyToContainer);
 
 module.exports = router;

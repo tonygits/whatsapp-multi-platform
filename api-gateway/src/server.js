@@ -34,6 +34,7 @@ const userRoutes = require('./routes/user');
 const messageApiRoutes = require('./routes/message');
 const chatRoutes = require('./routes/chat');
 const groupRoutes = require('./routes/group');
+const newsletterRoutes = require('./routes/newsletter');
 
 class APIGateway {
   constructor() {
@@ -112,7 +113,9 @@ class APIGateway {
     this.app.use('/api/user', userRoutes);
     this.app.use('/api/message', messageApiRoutes);
     this.app.use('/api/chat', chatRoutes);
+    this.app.use('/api/chats', chatRoutes);
     this.app.use('/api/group', groupRoutes);
+    this.app.use('/api/newsletter', newsletterRoutes);
     
     // WhatsApp Proxy routes (direto para containers)
     this.app.use('/proxy/whatsapp', proxyRoutes);
@@ -141,7 +144,9 @@ class APIGateway {
         links: {
           documentation: '/docs',
           openapi_yaml: '/docs/openapi.yaml',
-          postman_collection: '/docs/postman'
+          'openapi_json': '/docs/openapi.json',
+          postman_collection: '/docs/postman',
+          'regenerate_docs': '/docs/generate'
         },
         proxy_examples: {
           login: '/proxy/whatsapp/5511999999999/app/login',
