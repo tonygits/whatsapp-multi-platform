@@ -172,21 +172,34 @@ class UpdateManager {
     const results = {
       dependencies: [],
       updates_available: false,
-      security_updates: false
+      security_updates: false,
     };
 
-    try {
-      const { execSync } = require('child_process');
-      
-      // Check for outdated packages
-      const outdatedOutput = execSync('npm outdated --json', { 
-        encoding: 'utf8',
-        cwd: process.cwd()
-      });
+    const { execSync } = require('child_process');
+    let outdatedOutput = '';
 
-      if (outdatedOutput) {
+    try {
+      // This will succeed (exit code 0) only if NO packages are outdated.
+      outdatedOutput = execSync('npm outdated --json', {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+      });
+    } catch (error) {
+      // This block will execute if packages ARE outdated (exit code 1).
+      // The JSON output is in error.stdout, which is what we want to parse.
+      if (error.stdout) {
+        outdatedOutput = error.stdout;
+      } else {
+        // This is a real error (e.g., npm not found or another issue).
+        logger.warn('Erro ao executar "npm outdated":', error);
+        results.error = error.message;
+        return results; // Exit early
+      }
+    }
+
+    if (outdatedOutput) {
+      try {
         const outdated = JSON.parse(outdatedOutput);
-        
         for (const [name, info] of Object.entries(outdated)) {
           const isSecurityUpdate = await this.checkPackageSecurityAdvisories(name, info.current);
           
@@ -195,7 +208,7 @@ class UpdateManager {
             current: info.current,
             wanted: info.wanted,
             latest: info.latest,
-            security_update: isSecurityUpdate
+            security_update: isSecurityUpdate,
           });
 
           results.updates_available = true;
@@ -203,28 +216,36 @@ class UpdateManager {
             results.security_updates = true;
           }
         }
+      } catch (parseError) {
+          logger.warn('Erro ao fazer parse da saída do "npm outdated":', parseError);
+          results.error = 'Failed to parse npm outdated JSON output.';
       }
+    }
 
-      // Check for security vulnerabilities
-      try {
-        const auditOutput = execSync('npm audit --audit-level=moderate --json', { 
-          encoding: 'utf8',
-          cwd: process.cwd()
-        });
-        
-        const audit = JSON.parse(auditOutput);
-        if (audit.metadata.vulnerabilities.total > 0) {
-          results.security_vulnerabilities = audit.metadata.vulnerabilities;
-          results.security_updates = true;
+    // Check for security vulnerabilities using npm audit
+    try {
+      // This will succeed (exit code 0) if no vulnerabilities are found.
+      execSync('npm audit --audit-level=moderate --json', {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+      });
+    } catch (auditError) {
+      // This block executes if vulnerabilities ARE found.
+      if (auditError.stdout) {
+        try {
+            const audit = JSON.parse(auditError.stdout);
+            if (audit.metadata && audit.metadata.vulnerabilities.total > 0) {
+              results.security_vulnerabilities = audit.metadata.vulnerabilities;
+              results.security_updates = true;
+              logger.warn(`Vulnerabilidades de segurança encontradas: ${audit.metadata.vulnerabilities.total} total`);
+            }
+        } catch(parseError) {
+            logger.warn('Erro ao fazer parse da saída do "npm audit":', parseError);
         }
-      } catch (auditError) {
-        // npm audit returns non-zero exit code when vulnerabilities found
-        logger.warn('Vulnerabilidades de segurança encontradas no npm audit');
+      } else {
+        // This is a real error.
+        logger.warn('Erro ao executar "npm audit":', auditError);
       }
-
-    } catch (error) {
-      logger.warn('Erro ao verificar dependências Node.js:', error.message);
-      results.error = error.message;
     }
 
     return results;

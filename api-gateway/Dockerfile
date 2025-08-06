@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     docker \
     docker-cli \
     curl \
-    bash
+    bash \
+    npm
 
 # Set working directory
 WORKDIR /app

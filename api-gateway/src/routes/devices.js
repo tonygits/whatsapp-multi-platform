@@ -6,6 +6,7 @@ const DeviceRepository = require('../repositories/DeviceRepository');
 const qrcode = require('qrcode');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
+const resolveInstance = require('../middleware/resolveInstance');
 
 const router = express.Router();
 
@@ -69,91 +70,86 @@ router.get('/', asyncHandler(async (req, res) => {
 
 /**
  * POST /api/devices
- * Register a new device
+ * Register a new device (idempotent)
  */
 router.post('/', asyncHandler(async (req, res) => {
   const { phoneNumber, name, autoStart = true } = req.body;
 
   if (!phoneNumber) {
-    throw new CustomError(
-      'Número de telefone é obrigatório',
-      400,
-      'MISSING_PHONE_NUMBER'
-    );
+    throw new CustomError('Número de telefone é obrigatório', 400, 'MISSING_PHONE_NUMBER');
   }
 
-  // Validate and normalize phone number
   if (!PhoneUtils.validatePhoneNumber(phoneNumber)) {
-    throw new CustomError(
-      'Formato de número de telefone inválido',
-      400,
-      'INVALID_PHONE_FORMAT'
-    );
+    throw new CustomError('Formato de número de telefone inválido', 400, 'INVALID_PHONE_FORMAT');
   }
 
   const normalizedPhone = PhoneUtils.normalizePhoneNumber(phoneNumber);
-  
-  logger.info(`Registrando novo dispositivo: ${PhoneUtils.maskForLog(normalizedPhone, 'info')}`);
+  logger.info(`Iniciando registro para: ${PhoneUtils.maskForLog(normalizedPhone, 'info')}`);
 
   try {
-    // Register device with masked logging
-    const device = await deviceManager.registerDevice(normalizedPhone, { name });
+    let device = await deviceManager.getDevice(normalizedPhone);
+    let container = await containerManager.getContainerStatus(normalizedPhone);
+    let wasCreated = false;
 
-    // Create container
-    const containerInfo = await containerManager.createContainer(normalizedPhone);
-
-    if (autoStart) {
-      await containerManager.startContainer(normalizedPhone);
+    // Scenario 1: Device does not exist in DB
+    if (!device) {
+      logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não encontrado no DB. Criando...`);
+      device = await deviceManager.registerDevice(normalizedPhone, { name });
+      wasCreated = true;
+    } else {
+      logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} já existe no DB.`);
     }
 
-    logger.info(`Dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'info')} registrado e container criado`);
-
+    // Scenario 2: Container does not exist
+    if (!container) {
+      logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não encontrado. Criando...`);
+      container = await containerManager.createContainer(normalizedPhone);
+      if (autoStart) {
+        await containerManager.startContainer(normalizedPhone);
+      }
+    } else {
+      logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} já existe.`);
+      // Ensure container is started if autoStart is requested
+      if (autoStart && container.status !== 'running') {
+        logger.info(`Container para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} não está rodando. Iniciando...`);
+        await containerManager.startContainer(normalizedPhone);
+      }
+    }
+    
+    // Final state
+    const finalDeviceState = await deviceManager.getDevice(normalizedPhone);
+    const finalContainerState = await containerManager.getContainerStatus(normalizedPhone);
     const phoneHash = PhoneUtils.hashPhoneNumber(normalizedPhone);
 
-    res.status(201).json({
+    logger.info(`Registro para ${PhoneUtils.maskForLog(normalizedPhone, 'info')} concluído com sucesso.`);
+
+    res.status(wasCreated ? 201 : 200).json({
       success: true,
-      message: 'Dispositivo registrado com sucesso',
+      message: `Dispositivo ${wasCreated ? 'registrado' : 'já existente'} e verificado com sucesso.`,
       data: {
-        deviceHash: device.device_hash,
-        phoneNumber: phoneNumber, // Retorna o número original
-        phoneHash: phoneHash, // Retorna o hash do número normalizado
-        name: device.name,
-        status: device.status,
-        containerInfo
+        deviceHash: finalDeviceState.device_hash || PhoneUtils.generateDeviceId(normalizedPhone),
+        phoneNumber: phoneNumber, // Return original number
+        phoneHash: phoneHash,
+        name: finalDeviceState.name,
+        status: finalDeviceState.status,
+        containerInfo: finalContainerState
       }
     });
 
   } catch (error) {
-    logger.error(`Erro ao registrar dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'error')}:`, error);
-    
-    // Cleanup on error
-    try {
-      await deviceManager.removeDevice(normalizedPhone);
-      await containerManager.removeContainer(normalizedPhone, true);
-    } catch (cleanupError) {
-      logger.error('Erro na limpeza após falha:', cleanupError);
-    }
-    
-    throw error;
+    logger.error(`Erro catastrófico ao registrar dispositivo ${PhoneUtils.maskForLog(normalizedPhone, 'error')}:`, error);
+    // Avoid cleanup logic here as it can cause more state issues.
+    // The idempotent nature of the endpoint should allow for safe retries.
+    throw new CustomError('Ocorreu um erro inesperado durante o registro.', 500, 'REGISTRATION_UNEXPECTED_ERROR');
   }
 }));
 
 /**
- * GET /api/devices/:deviceHash
- * Get specific device information by hash
+ * GET /api/devices/info
+ * Get specific device information by instance ID
  */
-router.get('/:deviceHash', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-  
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   const containerStatus = await containerManager.getContainerStatus(device.phone_number);
 
@@ -174,22 +170,12 @@ router.get('/:deviceHash', asyncHandler(async (req, res) => {
 }));
 
 /**
- * PUT /api/devices/:deviceHash
- * Update device information
+ * PUT /api/devices/info
+ * Update device information by instance ID
  */
-router.put('/:deviceHash', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
+router.put('/info', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
   const updates = req.body;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
 
   // Filter allowed updates (não permitir alteração de phone_number, hashes, etc.)
   const allowedFields = ['name', 'webhook_url'];
@@ -218,22 +204,12 @@ router.put('/:deviceHash', asyncHandler(async (req, res) => {
 }));
 
 /**
- * DELETE /api/devices/:deviceHash
- * Remove device
+ * DELETE /api/devices
+ * Remove device by instance ID
  */
-router.delete('/:deviceHash', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
+router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
   const { force = false } = req.query;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
 
   logger.info(`Removendo dispositivo: ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
@@ -266,21 +242,11 @@ router.delete('/:deviceHash', asyncHandler(async (req, res) => {
 }));
 
 /**
- * POST /api/devices/:deviceHash/start
- * Start device container
+ * POST /api/devices/start
+ * Start device container by instance ID
  */
-router.post('/:deviceHash/start', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   logger.info(`Iniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
@@ -293,21 +259,11 @@ router.post('/:deviceHash/start', asyncHandler(async (req, res) => {
 }));
 
 /**
- * POST /api/devices/:deviceHash/stop
- * Stop device container
+ * POST /api/devices/stop
+ * Stop device container by instance ID
  */
-router.post('/:deviceHash/stop', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   logger.info(`Parando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
@@ -320,21 +276,11 @@ router.post('/:deviceHash/stop', asyncHandler(async (req, res) => {
 }));
 
 /**
- * POST /api/devices/:deviceHash/restart
- * Restart device container
+ * POST /api/devices/restart
+ * Restart device container by instance ID
  */
-router.post('/:deviceHash/restart', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   logger.info(`Reiniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
@@ -347,21 +293,11 @@ router.post('/:deviceHash/restart', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /api/devices/:deviceHash/qr
- * Get QR code for device
+ * GET /api/devices/qr
+ * Get QR code for device by instance ID
  */
-router.get('/:deviceHash/qr', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.get('/qr', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   if (!device.qr_code) {
     // Try to get QR from container
@@ -408,21 +344,11 @@ router.get('/:deviceHash/qr', asyncHandler(async (req, res) => {
 }));
 
 /**
- * POST /api/devices/:deviceHash/refresh-qr
- * Force refresh QR code
+ * POST /api/devices/refresh-qr
+ * Force refresh QR code by instance ID
  */
-router.post('/:deviceHash/refresh-qr', asyncHandler(async (req, res) => {
-  const { deviceHash } = req.params;
-
-  const device = await DeviceRepository.findByDeviceHash(deviceHash);
-  
-  if (!device) {
-    throw new CustomError(
-      'Dispositivo não encontrado',
-      404,
-      'DEVICE_NOT_FOUND'
-    );
-  }
+router.post('/refresh-qr', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
 
   // Force refresh QR by requesting new one from container
   try {

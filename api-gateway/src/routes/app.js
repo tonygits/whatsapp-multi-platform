@@ -1,55 +1,11 @@
 const express = require('express');
 const axios = require('axios');
 const { asyncHandler, CustomError } = require('../middleware/errorHandler');
-const deviceManager = require('../services/newDeviceManager');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
+const resolveInstance = require('../middleware/resolveInstance');
 
 const router = express.Router();
-
-/**
- * Middleware to extract instance_id and resolve container
- */
-const resolveInstance = asyncHandler(async (req, res, next) => {
-  const instanceId = req.body.instance_id || req.query.instance_id || req.headers['x-instance-id'];
-  
-  if (!instanceId) {
-    throw new CustomError(
-      'instance_id is required in body, query, or header',
-      400,
-      'INSTANCE_ID_REQUIRED'
-    );
-  }
-
-  // Try to find device by phone number or device_hash
-  let device = await deviceManager.getDevice(instanceId);
-  
-  if (!device) {
-    // Try by device_hash
-    const DeviceRepository = require('../repositories/DeviceRepository');
-    device = await DeviceRepository.findByDeviceHash(instanceId);
-  }
-
-  if (!device) {
-    throw new CustomError(
-      `Instance ${PhoneUtils.maskForLog(instanceId, 'error')} not found`,
-      404,
-      'INSTANCE_NOT_FOUND'
-    );
-  }
-
-  if (device.status !== 'active') {
-    throw new CustomError(
-      `Instance ${PhoneUtils.maskForLog(instanceId, 'error')} is not active`,
-      400,
-      'INSTANCE_NOT_ACTIVE'
-    );
-  }
-
-  req.instance = device;
-  req.instanceId = instanceId;
-  next();
-});
 
 /**
  * Proxy request to WhatsApp container
