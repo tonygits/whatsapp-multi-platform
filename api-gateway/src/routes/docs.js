@@ -10,6 +10,7 @@ const router = express.Router();
 
 // Carregar especificação OpenAPI
 let swaggerDocument = null;
+let allReadyForcedRegenerate = false;
 
 async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressApp = null) {
   if (!swaggerDocument || forceRegenerate) {
@@ -28,6 +29,7 @@ async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressAp
           await fs.promises.writeFile(yamlPath, yaml.dump(swaggerDocument, { indent: 2 }));
           await fs.promises.writeFile(jsonPath, JSON.stringify(swaggerDocument, null, 2));
           console.log('OpenAPI files saved successfully!');
+          allReadyForcedRegenerate = true;
         } catch (writeError) {
           console.warn('Could not save OpenAPI files:', writeError.message);
         }
@@ -42,6 +44,7 @@ async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressAp
           console.log('No existing OpenAPI file found, generating from Express app...');
           if (expressApp) {
             swaggerDocument = generateOpenAPIFromApp(expressApp);
+            allReadyForcedRegenerate = true;
           } else {
             throw new Error('No Express app provided for generation');
           }
@@ -100,7 +103,7 @@ router.use('/', swaggerUi.serve);
 router.get('/', async (req, res, next) => {
   try {
     const expressApp = req.app;
-    const swaggerDoc = await generateAndLoadSwaggerDocument(false, expressApp);
+    const swaggerDoc = await generateAndLoadSwaggerDocument(!allReadyForcedRegenerate, expressApp);
     swaggerUi.setup(swaggerDoc, swaggerOptions)(req, res, next);
   } catch (error) {
     res.status(500).json({
