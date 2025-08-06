@@ -102,9 +102,6 @@ if command -v docker &> /dev/null; then
     # Export list of running containers
     docker ps --filter 'label=whatsapp.managed_by=gateway' --format 'json' > "${TEMP_DIR}/running_containers.json" 2>/dev/null || true
     
-    # Export Docker images info
-    docker images --filter 'reference=whatsapp-instance' --format 'json' > "${TEMP_DIR}/docker_images.json" 2>/dev/null || true
-    
     print_status "Configuração Docker exportada"
 else
     print_warning "Docker não encontrado"

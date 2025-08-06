@@ -7,7 +7,9 @@ class ContainerManager {
   constructor() {
     this.docker = new Docker({ socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock' });
     this.networkName = process.env.CONTAINER_NETWORK || 'whatsapp_network';
-    this.imageName = process.env.WHATSAPP_IMAGE_NAME || 'whatsapp-instance';
+    this.imageName = process.env.WHATSAPP_IMAGE_NAME || 'aldinokemal2104/go-whatsapp-web-multidevice';
+    this.basicAuthUsername = process.env.BASIC_AUTH_USERNAME || 'admin';
+    this.basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'admin';
     this.volumesBasePath = process.env.VOLUMES_BASE_PATH || './volumes';
     this.containers = new Map(); // phoneNumber -> container info
   }
@@ -76,7 +78,8 @@ class ContainerManager {
       const containers = await this.docker.listContainers({ all: true });
       const whatsappContainers = containers.filter(container => 
         container.Image === this.imageName || 
-        container.Names.some(name => name.includes('whatsapp-'))
+        container.Names.some(name => name.includes('whatsapp-')) ||
+        container.Labels['whatsapp.managed_by'] === 'gateway'
       );
 
       logger.info(`Encontrados ${whatsappContainers.length} containers WhatsApp existentes`);
@@ -142,22 +145,29 @@ class ContainerManager {
       logger.info(`Criando container para ${phoneNumber} na porta ${devicePort}`);
 
       try {
-        // Create session volume directory
-        const sessionPath = path.join(this.volumesBasePath, phoneNumber);
-        await this.ensureSessionDirectory(sessionPath);
+        const containerName = `whatsapp-${phoneNumber}`;
+        const volumeName = `whatsapp_volume_${phoneNumber}`;
 
-        // Sanitize phone number for container name (remove + and replace with underscore)
-        const sanitizedPhoneNumber = phoneNumber.replace(/\+/g, '').replace(/[^a-zA-Z0-9]/g, '_');
+        // Ensure Docker volume exists
+        try {
+          await this.docker.getVolume(volumeName).inspect();
+          logger.info(`Volume Docker ${volumeName} já existe.`);
+        } catch (e) {
+          logger.info(`Criando volume Docker: ${volumeName}`);
+          await this.docker.createVolume({ name: volumeName });
+          logger.info(`Volume ${volumeName} criado com sucesso.`);
+        }
         
         // Container configuration
         const containerConfig = {
           Image: this.imageName,
-          name: `whatsapp-${sanitizedPhoneNumber}`,
+          name: containerName,
           Env: [
-            `PHONE_NUMBER=${phoneNumber}`,
-            `WHATSAPP_API_PORT=${devicePort}`,
-            `WHATSAPP_API_HOST=0.0.0.0`,
-            `GATEWAY_URL=http://api-gateway:3000`,
+            `APP_PORT=${devicePort}`,
+            `APP_BASIC_AUTH=${this.basicAuthUsername}:${this.basicAuthPassword}`,
+            `APP_DEBUG=true`,
+            `APP_OS=Chrome`,
+            `APP_ACCOUNT_VALIDATION=false`,
             ...this.getEnvironmentVariables(options)
           ],
           ExposedPorts: {
@@ -168,11 +178,11 @@ class ContainerManager {
               [`${devicePort}/tcp`]: [{ HostPort: devicePort.toString() }]
             },
             Binds: [
-              `${path.resolve(sessionPath)}:/app/sessions:rw`
+              `${volumeName}:/app/storages:rw`
             ],
             NetworkMode: this.networkName,
             RestartPolicy: {
-              Name: 'unless-stopped'
+              Name: 'always'
             },
             Memory: 512 * 1024 * 1024, // 512MB
             CpuShares: 512
@@ -184,6 +194,7 @@ class ContainerManager {
           },
           AttachStdout: false,
           AttachStderr: false,
+          Cmd: ['rest'],
           ...options.containerConfig
         };
 
@@ -301,6 +312,16 @@ class ContainerManager {
 
       // Remove container
       await containerInfo.container.remove({ force });
+
+      // Remove associated volume
+      const volumeName = `whatsapp_volume_${phoneNumber}`;
+      try {
+        const volume = this.docker.getVolume(volumeName);
+        await volume.remove();
+        logger.info(`Volume Docker ${volumeName} removido com sucesso.`);
+      } catch (e) {
+        logger.warn(`Não foi possível remover o volume ${volumeName}: ${e.message}`);
+      }
       
       // Clean up references
       this.containers.delete(phoneNumber);

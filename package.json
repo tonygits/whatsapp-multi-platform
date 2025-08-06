@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node api-gateway/src/server.js",
     "dev": "nodemon api-gateway/src/server.js",
-    "docker:build": "docker build -t whatsapp-instance whatsapp-container/",
     "docker:compose": "docker-compose up -d --build",
     "test": "jest",
     "logs": "docker-compose logs -f"
