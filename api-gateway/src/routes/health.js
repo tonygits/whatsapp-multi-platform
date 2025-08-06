@@ -99,15 +99,16 @@ router.get('/detailed', asyncHandler(async (req, res) => {
     };
   }
 
-  // Check file system permissions
+  // Check database file access
   try {
     const fs = require('fs').promises;
-    const testPath = process.env.CONFIG_FILE_PATH || './config/devices.json';
+    const database = require('../database/database');
+    const testPath = database.dbPath || './volumes/whatsapp.db';
     await fs.access(testPath);
     
     checks.fileSystem = {
       status: 'healthy',
-      message: 'Sistema de arquivos acessível'
+      message: 'Banco de dados acessível'
     };
   } catch (error) {
     checks.fileSystem = {

@@ -60,14 +60,14 @@ mkdir -p "${TEMP_DIR}/src"
 rsync -av --exclude='node_modules' --exclude='.git' --exclude='logs' --exclude='volumes' . "${TEMP_DIR}/src/"
 print_status "Código fonte copiado"
 
-# 3. Export device configurations
-print_info "Exportando configurações de dispositivos..."
-CONFIG_FILE="${CONFIG_FILE_PATH:-./config/devices.json}"
-if [ -f "$CONFIG_FILE" ]; then
-    cp "$CONFIG_FILE" "${TEMP_DIR}/devices_backup.json"
-    print_status "Configurações de dispositivos exportadas"
+# 3. Export database
+print_info "Exportando banco de dados..."
+DATABASE_FILE="${DATABASE_PATH:-./volumes/whatsapp.db}"
+if [ -f "$DATABASE_FILE" ]; then
+    cp "$DATABASE_FILE" "${TEMP_DIR}/whatsapp_backup.db"
+    print_status "Banco de dados exportado"
 else
-    print_warning "Arquivo de dispositivos não encontrado: $CONFIG_FILE"
+    print_warning "Arquivo de banco não encontrado: $DATABASE_FILE"
 fi
 
 # 4. Copy session data (selective)

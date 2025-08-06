@@ -221,11 +221,18 @@ router.post('/send/contact', extractPhoneNumber, checkContainerActive, proxyMess
 router.post('/send/link', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
 router.post('/send/location', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
 router.post('/send/poll', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
+router.post('/send/presence', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
+router.post('/send/chat-presence', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
 
 /**
  * Proxy para outras rotas /send/*
  */
 router.all('/send/*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+
+/**
+ * Proxy para rotas de app (login, logout, devices, etc.)
+ */
+router.all('/app/*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
 
 /**
  * Proxy para rotas de usuário
@@ -240,8 +247,8 @@ router.all('/message/*', extractPhoneNumber, checkContainerActive, proxyToWhatsA
 /**
  * Proxy para rotas de chat
  */
-router.all('/chat/*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
-router.all('/chats/*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.all('/chat*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.all('/chats*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
 
 /**
  * Proxy para rotas de grupo

@@ -51,7 +51,7 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
          ▼                       ▼                         ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
 │   Config Files  │    │   Docker Engine  │    │   Session Volumes   │
-│ (devices.json)  │    │                  │    │  (SQLite + Keys)    │
+│ (whatsapp.db)   │    │                  │    │  (SQLite + Keys)    │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
 ```
 

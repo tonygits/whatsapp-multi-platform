@@ -591,6 +591,284 @@
         }
       }
     },
+    "/proxy/whatsapp/send/message": {
+      "post": {
+        "summary": "Send message via proxy",
+        "description": "Send message directly to WhatsApp container",
+        "tags": ["Proxy - Send"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "5511888888888@s.whatsapp.net", "description": "Target phone with domain" },
+                  "message": { "type": "string", "example": "Hello from proxy!" }
+                },
+                "required": ["phone", "message"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message sent successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/send/image": {
+      "post": {
+        "summary": "Send image via proxy",
+        "tags": ["Proxy - Send"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "5511888888888@s.whatsapp.net" },
+                  "image": { "type": "string", "description": "Base64 image or URL" },
+                  "caption": { "type": "string", "example": "Image caption" }
+                },
+                "required": ["phone", "image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image sent successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/{phoneNumber}/app/login": {
+      "get": {
+        "summary": "Login to WhatsApp",
+        "description": "Login specific device to WhatsApp server",
+        "tags": ["Proxy - App"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Phone number of device",
+            "schema": { "type": "string", "example": "5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "string" },
+                    "message": { "type": "string" },
+                    "qrCode": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/{phoneNumber}/user/info": {
+      "get": {
+        "summary": "Get user info via proxy",
+        "tags": ["Proxy - User"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Device phone number",
+            "schema": { "type": "string", "example": "5511999999999" }
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "required": true,
+            "description": "Target phone number with domain",
+            "schema": { "type": "string", "example": "5511888888888@s.whatsapp.net" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phone": { "type": "string" },
+                    "name": { "type": "string" },
+                    "status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/{phoneNumber}/group/info": {
+      "get": {
+        "summary": "Get group info via proxy",
+        "tags": ["Proxy - Group"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Device phone number",
+            "schema": { "type": "string", "example": "5511999999999" }
+          },
+          {
+            "name": "group_jid",
+            "in": "query",
+            "required": true,
+            "description": "Group JID",
+            "schema": { "type": "string", "example": "120363025343298860@g.us" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "participants": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/{phoneNumber}/message/{messageId}/revoke": {
+      "post": {
+        "summary": "Revoke message via proxy",
+        "tags": ["Proxy - Message"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Device phone number",
+            "schema": { "type": "string", "example": "5511999999999" }
+          },
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "description": "Message ID to revoke",
+            "schema": { "type": "string", "example": "msg123456" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message revoked successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/send/audio": {
+      "post": {
+        "summary": "Send audio via proxy",
+        "tags": ["Proxy - Send"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "5511888888888@s.whatsapp.net" },
+                  "audio": { "type": "string", "description": "Base64 audio or URL" }
+                },
+                "required": ["phone", "audio"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio sent successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/whatsapp/{phoneNumber}/chats": {
+      "get": {
+        "summary": "Get all chats via proxy",
+        "tags": ["Proxy - Chat"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Device phone number",
+            "schema": { "type": "string", "example": "5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of chats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chats": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "jid": { "type": "string" },
+                          "name": { "type": "string" },
+                          "lastMessage": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Status de saúde da API",

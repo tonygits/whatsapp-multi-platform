@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 class Database {
   constructor() {
     this.db = null;
-    this.dbPath = path.resolve(__dirname, '../../data/app/volumes/whatsapp.db');
+    this.dbPath = path.resolve(__dirname, '../../../volumes/whatsapp.db');
     this.isConnected = false;
     this.initialized = false;
   }
