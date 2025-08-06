@@ -141,7 +141,6 @@ class APIGateway {
         links: {
           documentation: '/docs',
           openapi_yaml: '/docs/openapi.yaml',
-          openapi_json: '/docs/openapi.json',
           postman_collection: '/docs/postman'
         },
         proxy_examples: {

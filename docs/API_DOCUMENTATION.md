@@ -157,5 +157,5 @@ MASK_PHONE_NUMBERS=true   # Force masking
 ## OpenAPI Documentation
 
 - **Swagger UI**: `/docs`
-- **OpenAPI JSON**: `/docs/openapi.json`
+
 - **OpenAPI YAML**: `/docs/openapi.yaml`

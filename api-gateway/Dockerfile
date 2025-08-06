@@ -19,7 +19,7 @@ RUN npm ci --only=production
 
 # Copy application source
 COPY api-gateway/src ./src
-COPY api-gateway/docs ./docs
+COPY docs ./docs
 
 # Create necessary directories
 RUN mkdir -p /app/config /app/volumes /app/logs

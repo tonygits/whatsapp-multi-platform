@@ -13,11 +13,11 @@ let swaggerDocument = null;
 async function loadSwaggerDocument() {
   if (!swaggerDocument) {
     try {
-      const jsonPath = path.join(__dirname, '../../docs/openapi.json');
-      const jsonContent = await fs.promises.readFile(jsonPath, 'utf8');
-      swaggerDocument = JSON.parse(jsonContent);
+      const yamlPath = path.join(__dirname, '../../docs/openapi.yaml');
+      const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
+      swaggerDocument = yaml.load(yamlContent);
     } catch (error) {
-      console.error('Erro ao carregar OpenAPI JSON:', error);
+      console.error('Erro ao carregar OpenAPI YAML:', error);
       swaggerDocument = {
         openapi: '3.0.0',
         info: {
@@ -97,24 +97,7 @@ router.get('/openapi.yaml', asyncHandler(async (req, res) => {
   }
 }));
 
-/**
- * GET /docs/openapi.json
- * Servir OpenAPI em formato JSON
- */
-router.get('/openapi.json', asyncHandler(async (req, res) => {
-  try {
-    const yamlPath = path.join(__dirname, '../../docs/openapi.yaml');
-    const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
-    const jsonContent = yaml.load(yamlContent);
-    
-    res.json(jsonContent);
-  } catch (error) {
-    res.status(404).json({
-      error: 'Arquivo OpenAPI não encontrado',
-      code: 'OPENAPI_NOT_FOUND'
-    });
-  }
-}));
+
 
 /**
  * GET /docs/postman
