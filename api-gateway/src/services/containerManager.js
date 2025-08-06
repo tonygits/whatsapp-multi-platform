@@ -130,30 +130,38 @@ class ContainerManager {
         throw new Error(`Dispositivo ${phoneNumber} não está registrado`);
       }
 
-      logger.info(`Criando container para ${phoneNumber} na porta ${device.port}`);
+      const devicePort = device.port || device.containerInfo?.port;
+      if (!devicePort) {
+        throw new Error(`Porta não definida para dispositivo ${phoneNumber}`);
+      }
+
+      logger.info(`Criando container para ${phoneNumber} na porta ${devicePort}`);
 
       try {
         // Create session volume directory
         const sessionPath = path.join(this.volumesBasePath, phoneNumber);
         await this.ensureSessionDirectory(sessionPath);
 
+        // Sanitize phone number for container name (remove + and replace with underscore)
+        const sanitizedPhoneNumber = phoneNumber.replace(/\+/g, '').replace(/[^a-zA-Z0-9]/g, '_');
+        
         // Container configuration
         const containerConfig = {
           Image: this.imageName,
-          name: `whatsapp-${phoneNumber}`,
+          name: `whatsapp-${sanitizedPhoneNumber}`,
           Env: [
             `PHONE_NUMBER=${phoneNumber}`,
-            `WHATSAPP_API_PORT=${device.port}`,
+            `WHATSAPP_API_PORT=${devicePort}`,
             `WHATSAPP_API_HOST=0.0.0.0`,
             `GATEWAY_URL=http://api-gateway:3000`,
             ...this.getEnvironmentVariables(options)
           ],
           ExposedPorts: {
-            [`${device.port}/tcp`]: {}
+            [`${devicePort}/tcp`]: {}
           },
           HostConfig: {
             PortBindings: {
-              [`${device.port}/tcp`]: [{ HostPort: device.port.toString() }]
+              [`${devicePort}/tcp`]: [{ HostPort: devicePort.toString() }]
             },
             Binds: [
               `${path.resolve(sessionPath)}:/app/sessions:rw`
@@ -184,7 +192,7 @@ class ContainerManager {
           id: inspect.Id,
           container,
           status: 'created',
-          port: device.port,
+          port: devicePort,
           phoneNumber,
           createdAt: new Date()
         });

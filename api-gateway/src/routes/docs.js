@@ -2,79 +2,80 @@ const express = require('express');
 const path = require('path');
 const yaml = require('js-yaml');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 const router = express.Router();
+
+// Carregar especificação OpenAPI
+let swaggerDocument = null;
+
+async function loadSwaggerDocument() {
+  if (!swaggerDocument) {
+    try {
+      const jsonPath = path.join(__dirname, '../../docs/openapi.json');
+      const jsonContent = await fs.promises.readFile(jsonPath, 'utf8');
+      swaggerDocument = JSON.parse(jsonContent);
+    } catch (error) {
+      console.error('Erro ao carregar OpenAPI JSON:', error);
+      swaggerDocument = {
+        openapi: '3.0.0',
+        info: {
+          title: 'WhatsApp Multi-Platform API Gateway',
+          version: '1.0.0',
+          description: 'Erro ao carregar especificação OpenAPI'
+        },
+        paths: {}
+      };
+    }
+  }
+  return swaggerDocument;
+}
+
+// Configurar Swagger UI com customizações
+const swaggerOptions = {
+  customCss: `
+    .swagger-ui .topbar { 
+      background-color: #25D366; 
+    }
+    .swagger-ui .info .title { 
+      color: #25D366; 
+    }
+    .swagger-ui .scheme-container { 
+      background: #fafafa; 
+      border: 1px solid #25D366; 
+    }
+  `,
+  customSiteTitle: "WhatsApp Multi-Platform API Documentation",
+  swaggerOptions: {
+    tryItOutEnabled: true,
+    requestInterceptor: (req) => {
+      const token = req.headers?.Authorization || localStorage?.getItem?.('jwt_token');
+      if (token) {
+        req.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+      return req;
+    }
+  }
+};
+
+// Servir assets do Swagger UI
+router.use('/', swaggerUi.serve);
 
 /**
  * GET /docs
  * Servir Swagger UI
  */
-router.get('/', (req, res) => {
-  const swaggerHtml = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Multi-Platform API Documentation</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui.css" />
-    <style>
-        html {
-            box-sizing: border-box;
-            overflow: -moz-scrollbars-vertical;
-            overflow-y: scroll;
-        }
-        *, *:before, *:after {
-            box-sizing: inherit;
-        }
-        body {
-            margin:0;
-            background: #fafafa;
-        }
-        .swagger-ui .topbar {
-            background-color: #25D366;
-        }
-        .swagger-ui .info .title {
-            color: #25D366;
-        }
-    </style>
-</head>
-<body>
-    <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-bundle.js"></script>
-    <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-standalone-preset.js"></script>
-    <script>
-        window.onload = function() {
-            const ui = SwaggerUIBundle({
-                url: '/docs/openapi.yaml',
-                dom_id: '#swagger-ui',
-                deepLinking: true,
-                presets: [
-                    SwaggerUIBundle.presets.apis,
-                    SwaggerUIStandalonePreset
-                ],
-                plugins: [
-                    SwaggerUIBundle.plugins.DownloadUrl
-                ],
-                layout: "StandaloneLayout",
-                validatorUrl: null,
-                tryItOutEnabled: true,
-                requestInterceptor: function(request) {
-                    // Adicionar token JWT automaticamente se disponível
-                    const token = localStorage.getItem('jwt_token');
-                    if (token) {
-                        request.headers['Authorization'] = 'Bearer ' + token;
-                    }
-                    return request;
-                }
-            });
-        };
-    </script>
-</body>
-</html>`;
-
-  res.send(swaggerHtml);
+router.get('/', async (req, res, next) => {
+  try {
+    const swaggerDoc = await loadSwaggerDocument();
+    swaggerUi.setup(swaggerDoc, swaggerOptions)(req, res, next);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Erro ao carregar documentação',
+      code: 'DOCS_LOAD_ERROR'
+    });
+  }
 });
 
 /**

@@ -7,7 +7,7 @@
     "start": "node api-gateway/src/server.js",
     "dev": "nodemon api-gateway/src/server.js",
     "docker:build": "docker build -t whatsapp-instance whatsapp-container/",
-    "docker:compose": "docker-compose up -d",
+    "docker:compose": "docker-compose up -d --build",
     "test": "jest",
     "logs": "docker-compose logs -f"
   },
@@ -31,7 +31,8 @@
     "qrcode": "^1.5.3",
     "socket.io": "^4.7.4",
     "js-yaml": "^4.1.0",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

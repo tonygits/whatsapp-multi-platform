@@ -1,0 +1,626 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WhatsApp Multi-Platform API Gateway",
+    "version": "1.0.0",
+    "description": "API Gateway para gerenciar múltiplos dispositivos WhatsApp",
+    "contact": {
+      "name": "WPP Platform",
+      "email": "support@wpp-platform.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor de desenvolvimento"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Device": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": { "type": "string", "example": "+5511999999999" },
+          "name": { "type": "string", "example": "Atendimento Principal" },
+          "status": { "type": "string", "enum": ["pending", "active", "failed"], "example": "active" },
+          "qrCode": { "type": "string", "nullable": true },
+          "lastSeen": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "retryCount": { "type": "number", "example": 0 }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "from": { "type": "string", "example": "+5511999999999" },
+          "to": { "type": "string", "example": "+5511888888888" },
+          "message": { "type": "string", "example": "Olá! Como posso ajudar?" },
+          "type": { "type": "string", "enum": ["text", "media"], "default": "text" },
+          "priority": { "type": "number", "minimum": 1, "maximum": 10, "default": 5 }
+        },
+        "required": ["from", "to", "message"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "admin" },
+          "role": { "type": "string", "enum": ["admin", "user"], "example": "admin" },
+          "lastLogin": { "type": "string", "format": "date-time" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "admin" },
+          "password": { "type": "string", "example": "admin123" }
+        },
+        "required": ["username", "password"]
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "code": { "type": "string" },
+          "details": { "type": "object" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Informações da API",
+        "description": "Retorna informações básicas sobre a API e endpoints disponíveis",
+        "tags": ["Sistema"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Informações da API",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login do usuário",
+        "description": "Autentica o usuário e retorna token JWT",
+        "tags": ["Autenticação"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "token": { "type": "string" },
+                            "user": { "$ref": "#/components/schemas/User" },
+                            "expiresIn": { "type": "string", "example": "24h" }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Logout do usuário",
+        "tags": ["Autenticação"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Logout realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Informações do usuário atual",
+        "tags": ["Autenticação"],
+        "responses": {
+          "200": {
+            "description": "Informações do usuário",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/User" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices": {
+      "get": {
+        "summary": "Listar dispositivos",
+        "description": "Lista todos os dispositivos cadastrados",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrar por status",
+            "schema": { "type": "string", "enum": ["pending", "active", "failed"] }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limite de registros por página",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Deslocamento para paginação",
+            "schema": { "type": "integer", "minimum": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de dispositivos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "devices": {
+                              "type": "array",
+                              "items": { "$ref": "#/components/schemas/Device" }
+                            },
+                            "pagination": {
+                              "type": "object",
+                              "properties": {
+                                "total": { "type": "integer" },
+                                "limit": { "type": "integer" },
+                                "offset": { "type": "integer" },
+                                "hasMore": { "type": "boolean" }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrar novo dispositivo",
+        "description": "Registra um novo dispositivo WhatsApp",
+        "tags": ["Dispositivos"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phoneNumber": { "type": "string", "example": "+5511999999999" },
+                  "name": { "type": "string", "example": "Atendimento Principal" },
+                  "autoStart": { "type": "boolean", "default": true }
+                },
+                "required": ["phoneNumber"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Dispositivo registrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "device": { "$ref": "#/components/schemas/Device" },
+                            "container": { "type": "object" }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}": {
+      "get": {
+        "summary": "Obter dispositivo específico",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informações do dispositivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/Device" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dispositivo não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remover dispositivo",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Forçar remoção",
+            "schema": { "type": "boolean", "default": false }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dispositivo removido com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dispositivo não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}/start": {
+      "post": {
+        "summary": "Iniciar container do dispositivo",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Container iniciado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}/stop": {
+      "post": {
+        "summary": "Parar container do dispositivo",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Container parado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}/restart": {
+      "post": {
+        "summary": "Reiniciar container do dispositivo",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Container reiniciado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}/qr": {
+      "get": {
+        "summary": "Obter QR Code do dispositivo",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "QR Code do dispositivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "qrCode": { "type": "string" },
+                            "qrCodeImage": { "type": "string", "format": "base64" },
+                            "expiresAt": { "type": "string", "format": "date-time" }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "QR Code não disponível",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{phoneNumber}/refresh-qr": {
+      "post": {
+        "summary": "Solicitar novo QR Code",
+        "tags": ["Dispositivos"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "description": "Número do telefone",
+            "schema": { "type": "string", "example": "+5511999999999" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitação enviada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/send": {
+      "post": {
+        "summary": "Enviar mensagem",
+        "description": "Envia uma mensagem via WhatsApp",
+        "tags": ["Mensagens"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Message" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensagem enviada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dispositivo não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Status de saúde da API",
+        "tags": ["Sistema"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Status de saúde da API",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "healthy" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "uptime": { "type": "number" },
+                    "services": {
+                      "type": "object",
+                      "properties": {
+                        "database": { "type": "string", "example": "healthy" },
+                        "docker": { "type": "string", "example": "healthy" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

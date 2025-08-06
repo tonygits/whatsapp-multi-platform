@@ -13,14 +13,15 @@ class DeviceRepository {
         phone_number,
         name,
         session_id,
+        container_port,
         webhook_url,
         user_id
       } = deviceData;
 
       const result = await database.run(
-        `INSERT INTO devices (phone_number, name, session_id, webhook_url, user_id)
-         VALUES (?, ?, ?, ?, ?)`,
-        [phone_number, name || null, session_id || null, webhook_url || null, user_id || null]
+        `INSERT INTO devices (phone_number, name, session_id, container_port, webhook_url, user_id)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [phone_number, name || null, session_id || null, container_port || null, webhook_url || null, user_id || null]
       );
 
       const device = await this.findById(result.lastID);

@@ -5,6 +5,8 @@ const containerManager = require('./containerManager');
 class DeviceManager {
   constructor() {
     this.cleanupInterval = null;
+    this.basePort = 8000; // Starting port for WhatsApp containers
+    this.usedPorts = new Set();
   }
 
   /**
@@ -14,6 +16,9 @@ class DeviceManager {
     logger.info('Inicializando Device Manager (SQLite)...');
     
     try {
+      // Load existing ports to avoid conflicts
+      await this.loadUsedPorts();
+      
       // Start periodic QR cleanup
       this.startQRCleanup();
       
@@ -22,6 +27,42 @@ class DeviceManager {
       logger.error('Erro ao inicializar Device Manager:', error);
       throw error;
     }
+  }
+
+  /**
+   * Load used ports from existing devices
+   */
+  async loadUsedPorts() {
+    try {
+      const devices = await deviceRepository.findAll();
+      for (const device of devices) {
+        if (device.container_port) {
+          this.usedPorts.add(device.container_port);
+        }
+      }
+      logger.info(`Carregadas ${this.usedPorts.size} portas em uso`);
+    } catch (error) {
+      logger.error('Erro ao carregar portas usadas:', error);
+    }
+  }
+
+  /**
+   * Get next available port
+   */
+  getNextAvailablePort() {
+    let port = this.basePort;
+    while (this.usedPorts.has(port)) {
+      port++;
+    }
+    this.usedPorts.add(port);
+    return port;
+  }
+
+  /**
+   * Release a port
+   */
+  releasePort(port) {
+    this.usedPorts.delete(port);
   }
 
   /**
@@ -40,6 +81,9 @@ class DeviceManager {
         throw new Error(`Dispositivo ${phoneNumber} já registrado`);
       }
 
+      // Allocate port for the device
+      const port = this.getNextAvailablePort();
+
       // Generate session ID
       const sessionId = `session_${phoneNumber}_${Date.now()}`;
 
@@ -48,11 +92,12 @@ class DeviceManager {
         phone_number: phoneNumber,
         name: options.name || `Device ${phoneNumber}`,
         session_id: sessionId,
+        container_port: port,
         webhook_url: options.webhook_url,
         user_id: options.user_id
       });
 
-      logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id });
+      logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id, port });
       
       return {
         id: device.id,
@@ -60,6 +105,7 @@ class DeviceManager {
         name: device.name,
         sessionId: device.session_id,
         status: device.status,
+        port: device.container_port,
         webhookUrl: device.webhook_url,
         createdAt: device.created_at
       };
@@ -90,6 +136,11 @@ class DeviceManager {
         } catch (error) {
           logger.warn(`Erro ao parar container ${device.container_id}:`, error);
         }
+      }
+
+      // Release the port
+      if (device.container_port) {
+        this.releasePort(device.container_port);
       }
 
       // Remove from database
