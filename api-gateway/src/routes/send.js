@@ -1,10 +1,11 @@
 const express = require('express');
 const axios = require('axios');
-const { asyncHandler, CustomError } = require('../middleware/errorHandler');
+const { asyncHandler } = require('../middleware/errorHandler');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
 const resolveInstance = require('../middleware/resolveInstance');
+const proxyToContainer = require('../middleware/proxyToContainer');
 
 const router = express.Router();
 
@@ -13,11 +14,11 @@ const router = express.Router();
  */
 const proxyWithQueue = asyncHandler(async (req, res) => {
   const { priority = 5 } = req.body;
-  const phoneNumber = req.instance.phoneNumber;
+  const phoneNumber = req.device.phoneNumber;
 
   // Create message function for queue
   const messageFunction = async () => {
-    const containerPort = req.instance.container_port;
+    const containerPort = req.device.containerInfo.port;
     const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
 
     const response = await axios({
@@ -50,41 +51,6 @@ const proxyWithQueue = asyncHandler(async (req, res) => {
       result
     }
   });
-});
-
-/**
- * Direct proxy without queue
- */
-const proxyDirect = asyncHandler(async (req, res) => {
-  const containerPort = req.instance.container_port;
-  const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
-
-  try {
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      data: req.body,
-      params: req.query,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 30000
-    });
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    logger.error(`Error proxying to container ${containerPort}:`, error.message);
-    
-    if (error.response) {
-      res.status(error.response.status).json(error.response.data);
-    } else {
-      throw new CustomError(
-        'Container not responding',
-        503,
-        'CONTAINER_ERROR'
-      );
-    }
-  }
 });
 
 /**
@@ -145,12 +111,12 @@ router.post('/poll', resolveInstance, proxyWithQueue);
  * POST /api/send/presence
  * Send presence status
  */
-router.post('/presence', resolveInstance, proxyDirect);
+router.post('/presence', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/chat-presence
  * Send chat presence (typing indicator)
  */
-router.post('/chat-presence', resolveInstance, proxyDirect);
+router.post('/chat-presence', resolveInstance, proxyToContainer);
 
 module.exports = router;
