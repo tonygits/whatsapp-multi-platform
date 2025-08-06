@@ -126,12 +126,12 @@ curl -X POST http://localhost:3000/api/devices \
   -H "Authorization: Bearer <seu_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "phoneNumber": "+5511999999999",
+    "phoneNumber": "5511999999999",
     "name": "Atendimento Principal"
   }'
 
 # 3. Obter QR Code
-curl -X GET http://localhost:3000/api/devices/+5511999999999/qr \
+curl -X GET http://localhost:3000/api/devices/5511999999999/qr \
   -H "Authorization: Bearer <seu_token>"
 ```
 
@@ -143,8 +143,8 @@ curl -X POST http://localhost:3000/api/messages/send \
   -H "Authorization: Bearer <seu_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "from": "+5511999999999",
-    "to": "+5511888888888",
+    "from": "5511999999999",
+    "to": "5511888888888",
     "message": "Olá! Como posso ajudar?"
   }'
 
@@ -164,7 +164,7 @@ curl -X POST http://localhost:3000/proxy/whatsapp/send/message \
 const socket = io('http://localhost:3000');
 
 // Entrar na sala do dispositivo
-socket.emit('join-device', '+5511999999999');
+socket.emit('join-device', '5511999999999');
 
 // Escutar QR Code
 socket.on('qr-code', (data) => {
@@ -223,7 +223,7 @@ docker-compose logs -f
 docker-compose logs -f api-gateway
 
 # Container específico
-docker logs whatsapp-+5511999999999
+docker logs whatsapp-5511999999999
 ```
 
 ### Métricas Importantes
@@ -288,14 +288,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ## 🎯 Roadmap
 
-- [ ] **Interface Web** - Dashboard completo para gerenciamento
-- [ ] **Webhook avançado** - Integração com sistemas externos  
-- [ ] **Templates de mensagem** - Sistema de templates reutilizáveis
-- [ ] **Analytics** - Relatórios e estatísticas detalhadas
-- [ ] **Multi-tenancy** - Suporte a múltiplos clientes
-- [ ] **Kubernetes** - Suporte para orquestração K8s
-- [ ] **Redis** - Cache distribuído para alta performance
-- [ ] **Clustering** - Balanceamento de carga automático
+Veja nosso [roadmap completo](ROADMAP.md) com próximas features planejadas.
 
 ---
 

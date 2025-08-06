@@ -31,7 +31,7 @@
       "Device": {
         "type": "object",
         "properties": {
-          "phoneNumber": { "type": "string", "example": "+5511999999999" },
+          "phoneNumber": { "type": "string", "example": "5511999999999" },
           "name": { "type": "string", "example": "Atendimento Principal" },
           "status": { "type": "string", "enum": ["pending", "active", "failed"], "example": "active" },
           "qrCode": { "type": "string", "nullable": true },
@@ -43,7 +43,7 @@
       "Message": {
         "type": "object",
         "properties": {
-          "from": { "type": "string", "example": "+5511999999999" },
+          "from": { "type": "string", "example": "5511999999999" },
           "to": { "type": "string", "example": "+5511888888888" },
           "message": { "type": "string", "example": "Olá! Como posso ajudar?" },
           "type": { "type": "string", "enum": ["text", "media"], "default": "text" },
@@ -275,7 +275,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phoneNumber": { "type": "string", "example": "+5511999999999", "description": "Número de telefone completo (requerido apenas para registro)" },
+                  "phoneNumber": { "type": "string", "example": "5511999999999", "description": "Número de telefone completo (requerido apenas para registro)" },
                   "name": { "type": "string", "example": "Atendimento Principal" },
                   "autoStart": { "type": "boolean", "default": true }
                 },
@@ -330,7 +330,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {
@@ -371,7 +371,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           },
           {
             "name": "force",
@@ -410,7 +410,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {
@@ -435,7 +435,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {
@@ -460,7 +460,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {
@@ -485,7 +485,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {
@@ -535,7 +535,7 @@
             "in": "path",
             "required": true,
             "description": "Número do telefone",
-            "schema": { "type": "string", "example": "+5511999999999" }
+            "schema": { "type": "string", "example": "5511999999999" }
           }
         ],
         "responses": {

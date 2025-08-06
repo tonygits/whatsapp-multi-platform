@@ -218,7 +218,7 @@ router.get('/postman', asyncHandler(async (req, res) => {
               body: {
                 mode: "raw",
                 raw: JSON.stringify({
-                  phoneNumber: "+5511999999999",
+                  phoneNumber: "5511999999999",
                   name: "Atendimento Principal"
                 }, null, 2)
               },
@@ -247,7 +247,7 @@ router.get('/postman', asyncHandler(async (req, res) => {
               body: {
                 mode: "raw",
                 raw: JSON.stringify({
-                  from: "+5511999999999",
+                  from: "5511999999999",
                   to: "+5511888888888",
                   message: "Olá! Como posso ajudar?"
                 }, null, 2)

@@ -123,9 +123,9 @@ class APIGateway {
           postman_collection: '/docs/postman'
         },
         proxy_examples: {
-          login: '/proxy/whatsapp/+5511999999999/app/login',
+          login: '/proxy/whatsapp/5511999999999/app/login',
           send_message: '/proxy/whatsapp/send/message',
-          user_info: '/proxy/whatsapp/+5511999999999/user/info'
+          user_info: '/proxy/whatsapp/5511999999999/user/info'
         }
       });
     });

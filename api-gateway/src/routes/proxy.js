@@ -276,9 +276,9 @@ router.all('*', (req, res) => {
     error: 'Número de telefone não identificado. Use: /proxy/whatsapp/{phoneNumber}/rota ou inclua phone no body/query',
     code: 'PHONE_NUMBER_REQUIRED',
     examples: {
-      path: '/proxy/whatsapp/+5511999999999/app/login',
-      body: '{"phone": "+5511999999999", "message": "test"}',
-      query: '/proxy/whatsapp/send/message?phone=+5511999999999'
+      path: '/proxy/whatsapp/5511999999999/app/login',
+      body: '{"phone": "5511999999999", "message": "test"}',
+      query: '/proxy/whatsapp/send/message?phone=5511999999999'
     }
   });
 });
