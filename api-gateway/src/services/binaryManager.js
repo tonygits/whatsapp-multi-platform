@@ -22,8 +22,10 @@ class BinaryManager {
       // Check if binary exists and is executable
       await this.checkBinaryExists();
       
+      logger.info('Iniciando loadExistingProcesses...');
       // Load existing processes from device manager
       await this.loadExistingProcesses();
+      logger.info('loadExistingProcesses concluído');
 
       // Start health check monitoring
       this.startHealthCheckMonitoring();
@@ -56,8 +58,12 @@ class BinaryManager {
       logger.info(`Verificando ${devices.length} dispositivos registrados`);
 
       for (const device of devices) {
-        if (device.status === 'active' && device.processId) {
-          // Check if process is still running
+        logger.info(`Dispositivo ${device.phoneNumber}: processId=${device.processId}, status=${device.status}`);
+        
+        // Check if device had an active session before restart
+        if (device.processId) {
+          logger.info(`Verificando se processo ${device.processId} ainda está rodando...`);
+          // Check if process is still running (unlikely after container restart)
           const isRunning = await this.isProcessRunning(device.processId);
           if (isRunning) {
             this.processes.set(device.phoneNumber, {
@@ -69,17 +75,60 @@ class BinaryManager {
             });
             logger.info(`Processo para ${device.phoneNumber} ainda está rodando (PID: ${device.processId})`);
           } else {
-            // Process is dead, update device status
-            await deviceManager.updateDevice(device.phoneNumber, {
-              processId: null,
-              status: 'stopped'
-            });
-            logger.warn(`Processo para ${device.phoneNumber} não está mais rodando`);
+            logger.info(`Processo ${device.processId} não está mais rodando, tentando reiniciar...`);
+            // Process is dead - try to restart if session files exist
+            await this.restartSessionIfExists(device);
           }
+        } else if (device.status === 'active') {
+          logger.info(`Dispositivo ${device.phoneNumber} marcado como ativo sem processo, tentando reiniciar...`);
+          // Device is marked as active but has no process - try to restart
+          await this.restartSessionIfExists(device);
+        } else if (device.status === 'error' || device.status === 'stopped') {
+          logger.info(`Dispositivo ${device.phoneNumber} com status ${device.status}, verificando se há sessão existente...`);
+          // Device has error/stopped status - check if session exists and restart
+          await this.restartSessionIfExists(device);
+        } else {
+          logger.info(`Dispositivo ${device.phoneNumber} não precisa de restart (status: ${device.status})`);
         }
       }
     } catch (error) {
       logger.error('Erro ao carregar processos existentes:', error);
+    }
+  }
+
+  /**
+   * Restart session if session files exist
+   * @param {Object} device - Device info
+   */
+  async restartSessionIfExists(device) {
+    try {
+      const sessionPath = path.join('/app/sessions', device.phoneNumber);
+      const sessionDbPath = path.join(sessionPath, 'whatsapp.db');
+      
+      // Check if session database exists (indicates previous session)
+      const fs = require('fs').promises;
+      try {
+        await fs.access(sessionDbPath);
+        logger.info(`Sessão existente detectada para ${device.phoneNumber}, reiniciando automaticamente...`);
+        
+        // Restart the process
+        await this.startProcess(device.phoneNumber);
+        logger.info(`Processo reiniciado automaticamente para ${device.phoneNumber}`);
+        
+      } catch (accessError) {
+        // Session doesn't exist, just update status to stopped
+        logger.info(`Nenhuma sessão existente para ${device.phoneNumber}, marcando como parado`);
+        await deviceManager.updateDevice(device.phoneNumber, {
+          processId: null,
+          status: 'stopped'
+        });
+      }
+    } catch (error) {
+      logger.error(`Erro ao tentar reiniciar sessão para ${device.phoneNumber}:`, error);
+      await deviceManager.updateDevice(device.phoneNumber, {
+        processId: null,
+        status: 'error'
+      });
     }
   }
 
