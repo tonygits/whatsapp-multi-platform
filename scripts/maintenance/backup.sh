@@ -96,18 +96,7 @@ else
     print_warning "Diretório de volumes não encontrado: $VOLUMES_DIR"
 fi
 
-# 5. Export Docker configuration
-print_info "Exportando configuração Docker..."
-if command -v docker &> /dev/null; then
-    # Export list of running containers
-    docker ps --filter 'label=whatsapp.managed_by=gateway' --format 'json' > "${TEMP_DIR}/running_containers.json" 2>/dev/null || true
-    
-    print_status "Configuração Docker exportada"
-else
-    print_warning "Docker não encontrado"
-fi
-
-# 6. Create logs snapshot (recent logs only)
+# 5. Create logs snapshot (recent logs only)
 print_info "Criando snapshot dos logs..."
 LOGS_DIR="${LOGS_PATH:-./logs}"
 if [ -d "$LOGS_DIR" ]; then
@@ -119,7 +108,7 @@ if [ -d "$LOGS_DIR" ]; then
     print_status "Snapshot dos logs criado"
 fi
 
-# 7. Create backup metadata
+# 6. Create backup metadata
 print_info "Criando metadados do backup..."
 {
     echo "WhatsApp Multi-Platform Backup"
@@ -149,7 +138,7 @@ print_info "Criando metadados do backup..."
 
 print_status "Metadados criados"
 
-# 8. Create compressed backup
+# 7. Create compressed backup
 echo "🗜️ Comprimindo backup..."
 tar -czf "$BACKUP_FILE" -C "$(dirname "$TEMP_DIR")" "$(basename "$TEMP_DIR")"
 
@@ -162,18 +151,18 @@ else
     exit 1
 fi
 
-# 9. Cleanup temporary files
+# 8. Cleanup temporary files
 print_info "Limpando arquivos temporários..."
 rm -rf "$TEMP_DIR"
 print_status "Limpeza concluída"
 
-# 10. Manage backup retention
+# 9. Manage backup retention
 echo "🗂️ Gerenciando retenção de backups..."
 # Keep only last 7 backups
 ls -t "${BACKUP_DIR}"/whatsapp_backup_*.tar.gz 2>/dev/null | tail -n +8 | xargs -r rm -f
 print_status "Backups antigos removidos (mantidos últimos 7)"
 
-# 11. Create backup verification
+# 10. Create backup verification
 echo "🔍 Verificando integridade do backup..."
 if tar -tzf "$BACKUP_FILE" >/dev/null 2>&1; then
     print_status "Backup verificado - integridade OK"
@@ -182,7 +171,7 @@ else
     exit 1
 fi
 
-# 12. Generate backup report
+# 11. Generate backup report
 REPORT_FILE="${BACKUP_DIR}/backup_report_${TIMESTAMP}.txt"
 {
     echo "WhatsApp Multi-Platform Backup Report"
