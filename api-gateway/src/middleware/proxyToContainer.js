@@ -16,8 +16,7 @@ const proxyToContainer = asyncHandler(async (req, res) => {
   // Add basic auth header
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Basic ${Buffer.from(`${BASIC_AUTH_USERNAME}:${BASIC_AUTH_PASSWORD}`).toString('base64')}`,
-    ...req.headers
+    'Authorization': `Basic ${Buffer.from(`${BASIC_AUTH_USERNAME}:${BASIC_AUTH_PASSWORD}`).toString('base64')}`
   };
 
   try {
