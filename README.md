@@ -9,49 +9,45 @@
 
 ## 📋 Visão Geral
 
-A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite gerenciar múltiplos números de WhatsApp simultaneamente através de containers Docker isolados. Cada instância do WhatsApp roda em seu próprio container com sessão persistente, garantindo isolamento completo e máxima disponibilidade.
+A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite gerenciar múltiplos números de WhatsApp simultaneamente através de processos isolados. Cada instância do WhatsApp roda como um processo separado com sessão persistente, garantindo isolamento completo e máxima disponibilidade.
 
 ### 🌟 Características Principais
 
 - ✅ **Múltiplos números simultâneos** - Gerenciamento ilimitado de instâncias WhatsApp
-- ✅ **Isolamento completo** - Cada número em container Docker separado
-- ✅ **Sessões persistentes** - Volumes dedicados para cada instância
+- ✅ **Isolamento por processo** - Cada número roda em processo separado com sessão própria
+- ✅ **Sessões persistentes** - Dados salvos em volumes dedicados para cada instância
 - ✅ **API RESTful completa** - Endpoints para todas as operações
-- ✅ **WebSocket em tempo real** - Notificações instantâneas de eventos
 - ✅ **Sistema de filas inteligente** - Controle de concorrência por número
-- ✅ **Autenticação JWT** - Segurança robusta com controle de acesso
-- ✅ **Monitoramento avançado** - Health checks e métricas detalhadas
-- ✅ **Auto-scaling** - Provisionamento automático de containers
-- ✅ **QR Code dinâmico** - Reautenticação automática via WebSocket
-- ✅ **Backup automático** - Scripts de backup e restauração
+- ✅ **Monitoramento de processos** - Health checks e controle de PIDs
+- ✅ **Auto-restart inteligente** - Recuperação automática de sessões ativas
+- ✅ **QR Code via Base64** - QR codes servidos diretamente como base64
 - ✅ **Auto-updates** - Verificação inteligente de atualizações
+- ✅ **Persistência de sessões** - Sessions sobrevivem a restarts de containers
 
 ## 🏗️ Arquitetura
 
-> 🔄 **Nova Arquitetura de Proxy:** Agora usamos a [imagem oficial](https://hub.docker.com/r/aldinokemal2104/go-whatsapp-web-multidevice) do go-whatsapp-web-multidevice como containers de backend, com nossa API Gateway funcionando como um proxy inteligente. Veja [PROXY_ARCHITECTURE.md](docs/PROXY_ARCHITECTURE.md) para detalhes completos.
-
-## 🏗️ Arquitetura
+> 🔄 **Arquitetura Atual:** Utilizamos o binário oficial do go-whatsapp-web-multidevice executando múltiplos processos dentro do container da API Gateway. Cada número de telefone roda como um processo separado com sua própria sessão.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│     Nginx       │    │   API Gateway    │    │  Container Oficial  │
-│   (Proxy/LB)    │◄──►│  (Proxy + Filas) │◄──►│  go-whatsapp-web    │
-│   Port 80/443   │    │    Port 3000     │    │   Port 4000-4999    │
+│     Nginx       │    │   API Gateway    │    │   WhatsApp Binary   │
+│   (Proxy/LB)    │◄──►│ (Process Manager)│◄──►│  Multiple Processes │
+│   Port 80/443   │    │    Port 3000     │    │   Port 8000-8999    │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
          │                       │                         │
          │                       ▼                         │
          │              ┌─────────────────┐                │
-         │              │ • Auth & JWT    │                │
-         │              │ • Smart Proxy   │                │
+         │              │ • Binary Mgr    │                │
+         │              │ • Process Ctrl  │                │
          │              │ • Queue System  │                │
-         │              │ • Multi-tenant  │                │
-         │              │ • Monitoring    │                │
+         │              │ • Session Mgmt  │                │
+         │              │ • Health Check  │                │
          │              └─────────────────┘                │
          │                       │                         │
          ▼                       ▼                         ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   Config Files  │    │   Docker Engine  │    │   Session Volumes   │
-│ (whatsapp.db)   │    │                  │    │  (SQLite + Keys)    │
+│   SQLite DB     │    │  Binary Manager  │    │   Session Volumes   │
+│ (whatsapp.db)   │    │ (PID Tracking)   │    │  (Per Phone Number) │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
 ```
 
@@ -110,6 +106,26 @@ DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
 - 🔧 [**Guia de Instalação Detalhado**](docs/INSTALLATION.md)
 - 🛠️ [**Configuração Avançada**](docs/CONFIGURATION.md)
 - 🔍 [**Troubleshooting**](docs/TROUBLESHOOTING.md)
+
+## 🔄 Persistência e Auto-Restart
+
+### Sessões Persistentes
+- **Volume mapping**: `./sessions:/app/sessions` garante que as sessões sobrevivem a restarts de containers
+- **SQLite Database**: Armazenado em `/app/volumes/whatsapp.db` com path absoluto para máxima compatibilidade
+- **Session files**: Cada dispositivo tem sua própria pasta em `/app/sessions/{phoneNumber}/`
+
+### Auto-Restart Inteligente
+Quando o container inicia, o sistema automaticamente:
+1. **Verifica dispositivos registrados** no banco de dados
+2. **Detecta sessões existentes** através dos arquivos `whatsapp.db` em cada pasta de sessão  
+3. **Reinicia automaticamente** dispositivos com status `active`, `error` ou `stopped` que possuem sessão válida
+4. **Logs detalhados** de todo o processo de verificação e restart
+
+### QR Code via Base64
+- **Interceptação automática**: Middleware captura arquivos de QR code gerados
+- **Conversão base64**: QR codes são convertidos e retornados diretamente na resposta da API
+- **Sem exposição de arquivos**: Não há necessidade de servir arquivos estáticos
+- **Compatibilidade total**: Funciona com qualquer frontend ou aplicação client
 
 ## 💡 Exemplos de Uso
 
@@ -222,15 +238,15 @@ docker-compose logs -f
 # Apenas API Gateway
 docker-compose logs -f api-gateway
 
-# Container específico
-docker logs whatsapp-5511999999999
+# Logs do processo específico (via API Gateway)
+curl http://localhost:3000/api/devices/5511999999999/logs
 ```
 
 ### Métricas Importantes
 
 - **Taxa de entrega**: Percentual de mensagens entregues com sucesso
 - **Tempo de resposta**: Latência média da API
-- **Containers ativos**: Número de instâncias WhatsApp rodando
+- **Processos ativos**: Número de instâncias WhatsApp rodando
 - **Filas ativas**: Mensagens pendentes por dispositivo
 - **Uso de recursos**: CPU, memória e disco
 
@@ -241,8 +257,8 @@ docker logs whatsapp-5511999999999
 | Variável | Descrição | Padrão |
 |----------|-----------|---------|
 | `API_PORT` | Porta da API Gateway | `3000` |
-| `CONTAINER_BASE_PORT` | Porta inicial dos containers | `4000` |
-| `MAX_CONTAINERS` | Máximo de containers | `50` |
+| `PROCESS_BASE_PORT` | Porta inicial dos processos | `8000` |
+| `MAX_PROCESSES` | Máximo de processos | `50` |
 | `QR_CODE_TIMEOUT` | Timeout do QR Code (ms) | `60000` |
 | `UPDATE_CHECK_CRON` | Cron para verificar updates | `0 2 * * *` |
 | `API_RATE_LIMIT` | Limite de requisições | `100` |
@@ -259,7 +275,7 @@ const customQueue = {
 
 // Configurar timeouts
 const timeouts = {
-  container: 30000,
+  process: 30000,
   message: 25000,
   qr: 60000
 };

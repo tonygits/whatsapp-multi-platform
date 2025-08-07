@@ -1,5 +1,3 @@
 node_modules/
-volumes/whatsapp.db
-volumes/whatsapp.db-shm
-volumes/whatsapp.db-wal
-
+volumes/
+logs/
