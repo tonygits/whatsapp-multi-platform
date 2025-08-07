@@ -16,6 +16,7 @@ class DeviceRepository {
         session_id,
         container_port,
         webhook_url,
+        webhook_secret,
         user_id
       } = deviceData;
 
@@ -24,9 +25,9 @@ class DeviceRepository {
       const phone_hash = PhoneUtils.hashPhoneNumber(phone_number);
 
       const result = await database.run(
-        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, session_id, container_port, webhook_url, user_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [device_hash, phone_number, phone_hash, name || null, session_id || null, container_port || null, webhook_url || null, user_id || null]
+        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, session_id, container_port, webhook_url, webhook_secret, user_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [device_hash, phone_number, phone_hash, name || null, session_id || null, container_port || null, webhook_url || null, webhook_secret || null, user_id || null]
       );
 
       const device = await this.findById(result.lastID);
@@ -156,7 +157,7 @@ class DeviceRepository {
     try {
       const allowedFields = [
         'name', 'status', 'container_id', 'container_port',
-        'qr_code', 'qr_expires_at', 'webhook_url', 'last_seen'
+        'qr_code', 'qr_expires_at', 'webhook_url', 'webhook_secret', 'last_seen'
       ];
 
       const fields = [];

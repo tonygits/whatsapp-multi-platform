@@ -210,7 +210,9 @@ function generateOpenAPIFromApp(app) {
                           phoneNumber: { type: 'string', example: '5511999999999' },
                           name: { type: 'string', example: 'Atendimento Principal' },
                           status: { type: 'string', example: 'active' },
-                          createdAt: { type: 'string', format: 'date-time' }
+                          webhookUrl: { type: 'string', format: 'url', nullable: true },
+                          webhookSecret: { type: 'string', nullable: true },
+                          createdAt: { type: 'string', format: 'date-time' },
                         }
                       }
                     }
@@ -252,9 +254,360 @@ function generateOpenAPIFromApp(app) {
                     deviceHash: { type: 'string' },
                     phoneNumber: { type: 'string' },
                     name: { type: 'string' },
-                    status: { type: 'string' }
+                    status: { type: 'string' },
+                    webhookUrl: { type: 'string', format: 'url', nullable: true },
+                    webhookSecret: { type: 'string', nullable: true }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/info': {
+      get: {
+        operationId: 'getDeviceInfo',
+        tags: ['Device Management'],
+        summary: 'Obter informações de um dispositivo específico',
+        description: 'Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code (se disponível).',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Informações do dispositivo',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'number', example: 1 },
+                    deviceHash: { type: 'string' },
+                    phoneNumber: { type: 'string', example: '5511999999999' },
+                    name: { type: 'string', example: 'Atendimento Principal' },
+                    status: { type: 'string', example: 'connected' },
+                    processStatus: {
+                      type: 'object',
+                      properties: {
+                        status: { type: 'string', example: 'running' },
+                        containerId: { type: 'string', example: 'a1b2c3d4e5f6' }
+                      }
+                    },
+                    qrCode: { type: 'string', nullable: true, example: 'data:image/png;base64,...' },
+                    lastSeen: { type: 'string', format: 'date-time' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    webhookUrl: { type: 'string', format: 'url', nullable: true },
+                    webhookSecret: { type: 'string', nullable: true }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          }
+        }
+      },
+      put: {
+        operationId: 'updateDeviceInfo',
+        tags: ['Device Management'],
+        summary: 'Atualizar informações de um dispositivo',
+        description: 'Atualiza o nome ou a URL do webhook de um dispositivo.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'Novo Nome do Dispositivo' },
+                  webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://your-webhook.com/new-endpoint' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'your_new_secret_key' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Dispositivo atualizado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Dispositivo atualizado com sucesso' },
+                    data: {
+                      type: 'object',
+                      properties: {
+                        deviceHash: { type: 'string' },
+                        phoneNumber: { type: 'string' },
+                        name: { type: 'string' },
+                        status: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/start': {
+      post: {
+        operationId: 'startDevice',
+        tags: ['Device Management'],
+        summary: 'Iniciar um dispositivo',
+        description: 'Inicia o container Docker associado a um dispositivo.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Dispositivo iniciado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Processo iniciado com sucesso' }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          },
+          '500': {
+            description: 'Erro ao iniciar dispositivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/stop': {
+      post: {
+        operationId: 'stopDevice',
+        tags: ['Device Management'],
+        summary: 'Parar um dispositivo',
+        description: 'Para o container Docker associado a um dispositivo.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Dispositivo parado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Processo parado com sucesso' }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          },
+          '500': {
+            description: 'Erro ao parar dispositivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/restart': {
+      post: {
+        operationId: 'restartDevice',
+        tags: ['Device Management'],
+        summary: 'Reiniciar um dispositivo',
+        description: 'Reinicia o container Docker associado a um dispositivo.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Dispositivo reiniciado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Processo reiniciado com sucesso' }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          },
+          '500': {
+            description: 'Erro ao reiniciar dispositivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/delete': {
+      delete: {
+        operationId: 'deleteDevice',
+        tags: ['Device Management'],
+        summary: 'Remover um dispositivo',
+        description: 'Remove um dispositivo e seu container Docker associado.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          },
+          {
+            name: 'force',
+            in: 'query',
+            required: false,
+            description: 'Forçar a remoção mesmo se o processo não puder ser parado.',
+            schema: {
+              type: 'boolean',
+              default: false
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Dispositivo removido com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Dispositivo removido com sucesso' }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          },
+          '500': {
+            description: 'Erro ao remover dispositivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
               }
             }
           }

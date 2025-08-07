@@ -2,7 +2,6 @@ const cron = require('cron');
 const axios = require('axios');
 const logger = require('../utils/logger');
 const binaryManager = require('./binaryManager');
-const deviceManager = require('./newDeviceManager');
 
 class UpdateManager {
   constructor() {

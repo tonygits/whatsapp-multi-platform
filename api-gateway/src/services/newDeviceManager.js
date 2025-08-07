@@ -93,6 +93,7 @@ class DeviceManager {
         session_id: sessionId,
         container_port: port,
         webhook_url: options.webhook_url,
+        webhook_secret: options.webhook_secret,
         user_id: options.user_id
       });
 
@@ -106,6 +107,7 @@ class DeviceManager {
         status: device.status,
         port: device.container_port,
         webhookUrl: device.webhook_url,
+        webhookSecret: device.webhook_secret,
         createdAt: device.created_at
       };
     } catch (error) {
@@ -173,6 +175,7 @@ class DeviceManager {
         qrCode: device.qr_code,
         qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
+        webhookSecret: device.webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
         lastSeen: device.last_seen
@@ -205,6 +208,7 @@ class DeviceManager {
         qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
         qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
+        webhookSecret: device.webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
         lastSeen: device.last_seen

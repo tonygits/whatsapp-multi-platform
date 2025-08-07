@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS devices (
     qr_code TEXT,
     qr_expires_at DATETIME,
     webhook_url TEXT,
+    webhook_secret TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_seen DATETIME,
