@@ -2,7 +2,6 @@ const express = require('express');
 const { asyncHandler } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const binaryManager = require('../services/binaryManager');
-const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -65,21 +64,6 @@ router.get('/detailed', asyncHandler(async (req, res) => {
     };
   }
 
-  // Check Queue Manager
-  try {
-    const queueStats = queueManager.getOverallStats();
-    checks.queueManager = {
-      status: 'healthy',
-      stats: queueStats,
-      message: 'Queue Manager operacional'
-    };
-  } catch (error) {
-    checks.queueManager = {
-      status: 'unhealthy',
-      error: error.message,
-      message: 'Erro no Queue Manager'
-    };
-  }
 
   // Check WhatsApp binary
   try {
@@ -147,9 +131,6 @@ router.get('/devices', asyncHandler(async (req, res) => {
     try {
       // Check process status
       const processStatus = await binaryManager.getProcessStatus(phoneNumber);
-      
-      // Check queue status
-      const queueStatus = queueManager.getQueueStatus(phoneNumber);
 
       // Try to ping the process
       let processReachable = false;
@@ -173,7 +154,6 @@ router.get('/devices', asyncHandler(async (req, res) => {
           authStatus: device.authStatus
         },
         process: processStatus || { status: 'not_found' },
-        queue: queueStatus || { status: 'no_queue' },
         processReachable,
         lastChecked: new Date().toISOString()
       };
@@ -319,7 +299,7 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
   logger.info('Iniciando processo de auto-healing...');
 
   // Heal specific services or all if none specified
-  const servicesToHeal = services.length > 0 ? services : ['processes', 'queues'];
+  const servicesToHeal = services.length > 0 ? services : ['processes'];
 
   for (const service of servicesToHeal) {
     try {
@@ -349,15 +329,6 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
           };
           break;
 
-        case 'queues':
-          // Clean up inactive queues
-          queueManager.cleanupInactiveQueues();
-          
-          healingResults.queues = {
-            status: 'success',
-            message: 'Limpeza de filas inativas realizada'
-          };
-          break;
 
         default:
           healingResults[service] = {

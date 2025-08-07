@@ -21,7 +21,6 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 // Import routes
 const deviceRoutes = require('./routes/devices');
-const messageRoutes = require('./routes/messages');
 const authRoutes = require('./routes/auth');
 const healthRoutes = require('./routes/health');
 const docsRoutes = require('./routes/docs');
@@ -105,7 +104,6 @@ class APIGateway {
     }
 
     this.app.use('/api/devices', deviceRoutes);
-    this.app.use('/api/messages', messageRoutes);
     
     // New direct API routes with instance_id support
     this.app.use('/api/app', appRoutes);
@@ -130,7 +128,6 @@ class APIGateway {
         endpoints: {
           auth: '/api/auth',
           devices: '/api/devices',
-          messages: '/api/messages',
           app: '/api/app',
           send: '/api/send',
           user: '/api/user',

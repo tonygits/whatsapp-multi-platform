@@ -2,7 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const { asyncHandler, CustomError } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
-const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
 
@@ -146,60 +145,22 @@ const proxyToWhatsApp = asyncHandler(async (req, res) => {
   }
 });
 
+
 /**
- * Proxy para envio de mensagens com fila
+ * Proxy para rotas de envio com fila
  */
-const proxyMessageWithQueue = asyncHandler(async (req, res) => {
-  const { device } = req;
-  const { priority = 5 } = req.body;
+router.post('/send/message', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/image', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/audio', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/video', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/file', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/contact', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/link', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/location', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/poll', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/presence', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
+router.post('/send/chat-presence', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
 
-  // Extrair destino da mensagem
-  const to = req.body.phone || req.body.to;
-  if (!to) {
-    throw new CustomError(
-      'Destinatário da mensagem é obrigatório',
-      400,
-      'RECIPIENT_REQUIRED'
-    );
-  }
-
-  // Criar função de envio para a fila
-  const messageFunction = async () => {
-    const containerUrl = `http://localhost:${device.port}`;
-    const targetPath = req.originalUrl.replace('/proxy/whatsapp', '');
-    const targetUrl = `${containerUrl}${targetPath}`;
-
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      data: req.body,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 25000
-    });
-
-    return response.data;
-  };
-
-  logger.info(`Adicionando mensagem à fila: ${PhoneUtils.maskForLog(req.phoneNumber, 'info')} -> ${PhoneUtils.maskForLog(to, 'info')}`);
-
-  // Adicionar à fila
-  const result = await queueManager.addMessage(req.phoneNumber, messageFunction, priority);
-
-  res.json({
-    success: true,
-    message: 'Mensagem adicionada à fila com sucesso',
-    data: {
-      messageId: `queued_${Date.now()}`,
-      from: PhoneUtils.maskForLog(req.phoneNumber, 'info'),
-      to: PhoneUtils.maskForLog(to, 'info'),
-      queuedAt: new Date().toISOString(),
-      priority,
-      queueStatus: queueManager.getQueueStatus(req.phoneNumber)
-    }
-  });
-});
 
 // ====== ROTAS DE PROXY ======
 
@@ -209,20 +170,6 @@ const proxyMessageWithQueue = asyncHandler(async (req, res) => {
  */
 router.all('/app/*', extractPhoneNumber, checkContainerActive, proxyToWhatsApp);
 
-/**
- * Proxy para rotas de envio com fila
- */
-router.post('/send/message', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/image', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/audio', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/video', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/file', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/contact', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/link', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/location', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/poll', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/presence', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
-router.post('/send/chat-presence', extractPhoneNumber, checkContainerActive, proxyMessageWithQueue);
 
 /**
  * Proxy para outras rotas /send/*

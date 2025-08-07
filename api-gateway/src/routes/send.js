@@ -1,7 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const { asyncHandler } = require('../middleware/errorHandler');
-const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
 const resolveInstance = require('../middleware/resolveInstance');
@@ -9,103 +8,60 @@ const proxyToContainer = require('../middleware/proxyToContainer');
 
 const router = express.Router();
 
-/**
- * Proxy request to WhatsApp container with queue support
- */
-const proxyWithQueue = asyncHandler(async (req, res) => {
-  const { priority = 5 } = req.body;
-  const phoneNumber = req.device.phoneNumber;
-
-  // Create message function for queue
-  const messageFunction = async () => {
-    const containerPort = req.device.containerInfo.port;
-    const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
-
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      data: req.body,
-      params: req.query,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 25000
-    });
-
-    return response.data;
-  };
-
-  logger.info(`Adding message to queue: ${PhoneUtils.maskForLog(phoneNumber, 'info')} -> ${req.originalUrl}`);
-
-  // Add to queue
-  const result = await queueManager.addMessage(phoneNumber, messageFunction, priority);
-
-  res.json({
-    success: true,
-    message: 'Message added to queue successfully',
-    data: {
-      messageId: `queued_${Date.now()}`,
-      queuedAt: new Date().toISOString(),
-      priority,
-      queueStatus: queueManager.getQueueStatus(phoneNumber),
-      result
-    }
-  });
-});
 
 /**
  * POST /api/send/message
  * Send message
  */
-router.post('/message', resolveInstance, proxyWithQueue);
+router.post('/message', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/image
  * Send image
  */
-router.post('/image', resolveInstance, proxyWithQueue);
+router.post('/image', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/audio
  * Send audio
  */
-router.post('/audio', resolveInstance, proxyWithQueue);
+router.post('/audio', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/video
  * Send video
  */
-router.post('/video', resolveInstance, proxyWithQueue);
+router.post('/video', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/file
  * Send file
  */
-router.post('/file', resolveInstance, proxyWithQueue);
+router.post('/file', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/contact
  * Send contact
  */
-router.post('/contact', resolveInstance, proxyWithQueue);
+router.post('/contact', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/link
  * Send link
  */
-router.post('/link', resolveInstance, proxyWithQueue);
+router.post('/link', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/location
  * Send location
  */
-router.post('/location', resolveInstance, proxyWithQueue);
+router.post('/location', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/poll
  * Send poll/vote
  */
-router.post('/poll', resolveInstance, proxyWithQueue);
+router.post('/poll', resolveInstance, proxyToContainer);
 
 /**
  * POST /api/send/presence
