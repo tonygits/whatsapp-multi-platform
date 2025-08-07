@@ -41,21 +41,5 @@ services:
     depends_on:
       api-gateway:
         condition: service_healthy
-
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - WATCHTOWER_SCHEDULE=0 0 2 * * *
-      - WATCHTOWER_CLEANUP=true
-    networks:
-      - whatsapp_network
-    restart: unless-stopped
-
 networks:
   whatsapp_network:
-
-volumes:
-  whatsapp_volumes:
-    driver: local
