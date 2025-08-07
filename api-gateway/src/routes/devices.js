@@ -1,7 +1,7 @@
 const express = require('express');
 const { asyncHandler, CustomError } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
-const containerManager = require('../services/containerManager');
+const binaryManager = require('../services/binaryManager');
 const DeviceRepository = require('../repositories/DeviceRepository');
 const qrcode = require('qrcode');
 const logger = require('../utils/logger');
@@ -39,14 +39,14 @@ router.get('/', asyncHandler(async (req, res) => {
   // Add container status and mask phone numbers
   const devicesWithStatus = await Promise.all(
     paginatedDevices.map(async (device) => {
-      const containerStatus = await containerManager.getContainerStatus(device.phoneNumber || device.phone_number);
+      const processStatus = await binaryManager.getProcessStatus(device.phoneNumber || device.phone_number);
       return {
         id: device.id,
         deviceHash: device.device_hash,
         phoneNumber: PhoneUtils.maskPhoneNumber(device.phoneNumber || device.phone_number, { forceMask: false }),
         name: device.name,
         status: device.status,
-        containerStatus,
+        processStatus,
         lastSeen: device.last_seen,
         createdAt: device.created_at,
         retryCount: device.retry_count || 0
@@ -87,7 +87,7 @@ router.post('/', asyncHandler(async (req, res) => {
 
   try {
     let device = await deviceManager.getDevice(phoneNumber);
-    let container = await containerManager.getContainerStatus(phoneNumber);
+    let process = await binaryManager.getProcessStatus(phoneNumber);
     let wasCreated = false;
 
     // Scenario 1: Device does not exist in DB
@@ -99,25 +99,24 @@ router.post('/', asyncHandler(async (req, res) => {
       logger.info(`Dispositivo ${phoneNumber} já existe no DB.`);
     }
 
-    // Scenario 2: Container does not exist
-    if (!container) {
-      logger.info(`Container para ${phoneNumber} não encontrado. Criando...`);
-      container = await containerManager.createContainer(phoneNumber);
+    // Scenario 2: Process does not exist
+    if (!process) {
+      logger.info(`Processo para ${phoneNumber} não encontrado. Iniciando...`);
       if (autoStart) {
-        await containerManager.startContainer(phoneNumber);
+        process = await binaryManager.startProcess(phoneNumber);
       }
     } else {
-      logger.info(`Container para ${phoneNumber} já existe.`);
-      // Ensure container is started if autoStart is requested
-      if (autoStart && container.status !== 'running') {
-        logger.info(`Container para ${phoneNumber} não está rodando. Iniciando...`);
-        await containerManager.startContainer(phoneNumber);
+      logger.info(`Processo para ${phoneNumber} já existe.`);
+      // Ensure process is started if autoStart is requested
+      if (autoStart && process.status !== 'running') {
+        logger.info(`Processo para ${phoneNumber} não está rodando. Iniciando...`);
+        await binaryManager.startProcess(phoneNumber);
       }
     }
     
     // Final state
     const finalDeviceState = await deviceManager.getDevice(phoneNumber);
-    const finalContainerState = await containerManager.getContainerStatus(phoneNumber);
+    const finalProcessState = await binaryManager.getProcessStatus(phoneNumber);
     const phoneHash = PhoneUtils.hashPhoneNumber(phoneNumber);
 
     logger.info(`Registro para ${phoneNumber} concluído com sucesso.`);
@@ -131,7 +130,7 @@ router.post('/', asyncHandler(async (req, res) => {
         phoneHash: phoneHash,
         name: finalDeviceState.name,
         status: finalDeviceState.status,
-        containerInfo: finalContainerState
+        processInfo: finalProcessState
       }
     });
 
@@ -150,7 +149,7 @@ router.post('/', asyncHandler(async (req, res) => {
 router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  const containerStatus = await containerManager.getContainerStatus(device.phone_number);
+  const processStatus = await binaryManager.getProcessStatus(device.phone_number);
 
   res.json({
     success: true,
@@ -160,7 +159,7 @@ router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
       phoneNumber: PhoneUtils.maskPhoneNumber(device.phone_number, { forceMask: false }),
       name: device.name,
       status: device.status,
-      containerStatus,
+      processStatus,
       qrCode: device.qr_code,
       lastSeen: device.last_seen,
       createdAt: device.created_at
@@ -213,8 +212,13 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
   logger.info(`Removendo dispositivo: ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
   try {
-    // Remove container first
-    await containerManager.removeContainer(device.phone_number, force);
+    // Stop process first
+    try {
+      await binaryManager.stopProcess(device.phone_number);
+    } catch (error) {
+      if (!force) throw error;
+      logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${error.message}`);
+    }
 
     // Remove from device manager
     const removed = await deviceManager.removeDevice(device.phone_number);
@@ -249,11 +253,11 @@ router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
 
   logger.info(`Iniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
-  await containerManager.startContainer(device.phone_number);
+  await binaryManager.startProcess(device.phone_number);
 
   res.json({
     success: true,
-    message: 'Container iniciado com sucesso'
+    message: 'Processo iniciado com sucesso'
   });
 }));
 
@@ -266,11 +270,11 @@ router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
 
   logger.info(`Parando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
-  await containerManager.stopContainer(device.phone_number);
+  await binaryManager.stopProcess(device.phone_number);
 
   res.json({
     success: true,
-    message: 'Container parado com sucesso'
+    message: 'Processo parado com sucesso'
   });
 }));
 
@@ -283,103 +287,12 @@ router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
 
   logger.info(`Reiniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
 
-  await containerManager.restartContainer(device.phone_number);
+  await binaryManager.restartProcess(device.phone_number);
 
   res.json({
     success: true,
-    message: 'Container reiniciado com sucesso'
+    message: 'Processo reiniciado com sucesso'
   });
-}));
-
-/**
- * GET /api/devices/qr
- * Get QR code for device by instance ID
- */
-router.get('/qr', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
-
-  if (!device.qr_code) {
-    // Try to get QR from container
-    try {
-      const containerStatus = await containerManager.getContainerStatus(device.phone_number);
-      if (containerStatus && containerStatus.qr) {
-        // Generate QR code image
-        const qrDataUrl = await qrcode.toDataURL(containerStatus.qr);
-        
-        res.json({
-          success: true,
-          data: {
-            qr: containerStatus.qr,
-            qrImage: qrDataUrl,
-            expiresAt: containerStatus.qrExpires || null,
-            status: device.status
-          }
-        });
-        return;
-      }
-    } catch (error) {
-      logger.error('Erro ao obter QR do container:', error);
-    }
-
-    throw new CustomError(
-      'QR Code não disponível para este dispositivo',
-      404,
-      'QR_NOT_AVAILABLE'
-    );
-  }
-
-  // Generate QR code image from stored data
-  const qrDataUrl = await qrcode.toDataURL(device.qr_code);
-
-  res.json({
-    success: true,
-    data: {
-      qr: device.qr_code,
-      qrImage: qrDataUrl,
-      expiresAt: device.qr_expires_at,
-      status: device.status
-    }
-  });
-}));
-
-/**
- * POST /api/devices/refresh-qr
- * Force refresh QR code by instance ID
- */
-router.post('/refresh-qr', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
-
-  // Force refresh QR by requesting new one from container
-  try {
-    const refreshResult = await containerManager.refreshQR(device.phone_number);
-    
-    if (refreshResult && refreshResult.qr) {
-      const qrDataUrl = await qrcode.toDataURL(refreshResult.qr);
-      
-      res.json({
-        success: true,
-        message: 'QR Code atualizado com sucesso',
-        data: {
-          qr: refreshResult.qr,
-          qrImage: qrDataUrl,
-          expiresAt: refreshResult.expiresAt || null
-        }
-      });
-    } else {
-      throw new CustomError(
-        'Não foi possível obter novo QR Code',
-        500,
-        'QR_REFRESH_FAILED'
-      );
-    }
-  } catch (error) {
-    logger.error(`Erro ao atualizar QR para dispositivo ${PhoneUtils.maskForLog(device.phone_number, 'error')}:`, error);
-    throw new CustomError(
-      'Erro ao atualizar QR Code',
-      500,
-      'QR_REFRESH_ERROR'
-    );
-  }
 }));
 
 module.exports = router;

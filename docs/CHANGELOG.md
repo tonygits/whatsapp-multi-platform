@@ -4,7 +4,6 @@
 
 ### Features
 - ✅ API Gateway para múltiplos dispositivos WhatsApp
-- ✅ Proxy inteligente para containers
 - ✅ Autenticação JWT
 - ✅ Gerenciamento de filas de mensagem
 - ✅ QR Code automático
@@ -19,7 +18,7 @@
 - 🔒 Configuração por ambiente
 
 ### Technical
-- 📦 Container oficial go-whatsapp-web-multidevice
+- 📦 Oficial go-whatsapp-web-multidevice
 - 📦 SQLite para persistência
 - 📦 Docker Compose
 - 📦 Nginx reverse proxy

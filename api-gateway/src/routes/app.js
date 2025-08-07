@@ -1,6 +1,7 @@
 const express = require('express');
 const resolveInstance = require('../middleware/resolveInstance');
 const proxyToContainer = require('../middleware/proxyToContainer');
+const loginHandler = require('../middleware/loginHandler');
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
  * GET /api/app/login
  * Login to WhatsApp server
  */
-router.get('/login', resolveInstance, proxyToContainer);
+router.get('/login', resolveInstance, loginHandler);
 
 /**
  * GET /api/app/login-with-code

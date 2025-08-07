@@ -1,7 +1,7 @@
 const cron = require('cron');
 const axios = require('axios');
 const logger = require('../utils/logger');
-const containerManager = require('./containerManager');
+const binaryManager = require('./binaryManager');
 const deviceManager = require('./newDeviceManager');
 
 class UpdateManager {
@@ -73,8 +73,8 @@ class UpdateManager {
       // Check system packages
       checkResults.checks.systemPackages = await this.checkSystemPackages();
 
-      // Check container health and recommend updates
-      checkResults.checks.containerHealth = await this.checkContainerHealthForUpdates();
+      // Check process health and recommend updates
+      checkResults.checks.processHealth = await this.checkProcessHealthForUpdates();
 
       // Analyze update recommendations
       const recommendations = this.analyzeUpdateRecommendations(checkResults.checks);
@@ -308,25 +308,24 @@ class UpdateManager {
   }
 
   /**
-   * Check container health to recommend updates
+   * Check process health to recommend updates
    */
-  async checkContainerHealthForUpdates() {
+  async checkProcessHealthForUpdates() {
     const results = {
-      containers: [],
+      processes: [],
       recommendations: []
     };
 
     try {
-      const containers = await containerManager.listContainers();
+      const processes = await binaryManager.listProcesses();
       
-      for (const container of containers) {
-        const health = await this.analyzeContainerHealth(container);
+      for (const process of processes) {
+        const health = await this.analyzeProcessHealth(process);
         
-        results.containers.push({
-          phone_number: container.phoneNumber,
+        results.processes.push({
+          phone_number: process.phoneNumber,
           health_score: health.score,
           uptime: health.uptime,
-          memory_usage: health.memoryUsage,
           restart_recommended: health.restartRecommended,
           update_recommended: health.updateRecommended
         });
@@ -334,7 +333,7 @@ class UpdateManager {
         if (health.restartRecommended) {
           results.recommendations.push({
             type: 'restart',
-            container: container.phoneNumber,
+            process: process.phoneNumber,
             reason: health.restartReason
           });
         }
@@ -342,14 +341,14 @@ class UpdateManager {
         if (health.updateRecommended) {
           results.recommendations.push({
             type: 'update',
-            container: container.phoneNumber,
+            process: process.phoneNumber,
             reason: health.updateReason
           });
         }
       }
 
     } catch (error) {
-      logger.error('Erro ao analisar saúde dos containers:', error);
+      logger.error('Erro ao analisar saúde dos processos:', error);
       results.error = error.message;
     }
 
@@ -357,13 +356,12 @@ class UpdateManager {
   }
 
   /**
-   * Analyze container health
+   * Analyze process health
    */
-  async analyzeContainerHealth(container) {
+  async analyzeProcessHealth(process) {
     const health = {
       score: 100,
       uptime: 0,
-      memoryUsage: 0,
       restartRecommended: false,
       updateRecommended: false,
       restartReason: null,
@@ -372,28 +370,28 @@ class UpdateManager {
 
     try {
       // Calculate uptime
-      if (container.startedAt) {
-        health.uptime = Date.now() - new Date(container.startedAt).getTime();
+      if (process.startedAt) {
+        health.uptime = Date.now() - new Date(process.startedAt).getTime();
       }
 
       // Recommend restart if uptime > 7 days
       if (health.uptime > 7 * 24 * 60 * 60 * 1000) {
         health.restartRecommended = true;
-        health.restartReason = 'Container running for more than 7 days';
+        health.restartReason = 'Process running for more than 7 days';
         health.score -= 20;
       }
 
-      // Check if container is healthy
-      if (!container.running) {
+      // Check if process is healthy
+      if (!process.running) {
         health.score = 0;
         health.updateRecommended = true;
-        health.updateReason = 'Container not running';
+        health.updateReason = 'Process not running';
       }
 
       // Additional health checks could be added here
 
     } catch (error) {
-      logger.error(`Erro ao analisar container ${container.phoneNumber}:`, error);
+      logger.error(`Erro ao analisar processo ${process.phoneNumber}:`, error);
       health.score = 0;
     }
 
@@ -419,18 +417,18 @@ class UpdateManager {
       recommendations.securityCritical = true;
     }
 
-    // Check for critical container issues
-    if (checks.containerHealth?.recommendations?.length > 0) {
-      const restartCount = checks.containerHealth.recommendations
+    // Check for critical process issues
+    if (checks.processHealth?.recommendations?.length > 0) {
+      const restartCount = checks.processHealth.recommendations
         .filter(r => r.type === 'restart').length;
       
       if (restartCount > 0) {
         recommendations.priority = 'medium';
         recommendations.autoUpdateActions.push({
-          type: 'restart_containers',
-          containers: checks.containerHealth.recommendations
+          type: 'restart_processes',
+          processes: checks.processHealth.recommendations
             .filter(r => r.type === 'restart')
-            .map(r => r.container)
+            .map(r => r.process)
         });
         recommendations.safeToAutoUpdate = true;
       }
@@ -488,8 +486,8 @@ class UpdateManager {
     for (const action of actions) {
       try {
         switch (action.type) {
-          case 'restart_containers':
-            await this.autoRestartContainers(action.containers);
+          case 'restart_processes':
+            await this.autoRestartProcesses(action.processes);
             break;
 
           default:
@@ -504,18 +502,18 @@ class UpdateManager {
   }
 
   /**
-   * Auto-restart containers
+   * Auto-restart processes
    */
-  async autoRestartContainers(containerPhones) {
-    for (const phoneNumber of containerPhones) {
+  async autoRestartProcesses(processPhones) {
+    for (const phoneNumber of processPhones) {
       try {
-        logger.info(`Auto-reiniciando container: ${phoneNumber}`);
-        await containerManager.restartContainer(phoneNumber);
+        logger.info(`Auto-reiniciando processo: ${phoneNumber}`);
+        await binaryManager.restartProcess(phoneNumber);
         
         // Wait between restarts
         await new Promise(resolve => setTimeout(resolve, 5000));
       } catch (error) {
-        logger.error(`Erro ao reiniciar container ${phoneNumber}:`, error);
+        logger.error(`Erro ao reiniciar processo ${phoneNumber}:`, error);
       }
     }
   }
@@ -525,15 +523,10 @@ class UpdateManager {
    */
   async getLocalImageInfo(imageName) {
     try {
-      const docker = containerManager.docker;
-      const image = docker.getImage(imageName);
-      const inspect = await image.inspect();
-      
-      return {
-        digest: inspect.RepoDigests?.[0]?.split('@')[1],
-        created: inspect.Created,
-        size: inspect.Size
-      };
+      // Since we're not using containers anymore, this would need to be reimplemented
+      // to check binary versions instead
+      logger.warn('Docker image info check not applicable for binary deployment');
+      return null;
     } catch (error) {
       return null;
     }

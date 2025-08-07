@@ -1,6 +1,5 @@
 const logger = require('../utils/logger');
 const deviceRepository = require('../repositories/DeviceRepository');
-const containerManager = require('./containerManager');
 
 class DeviceManager {
   constructor() {
@@ -127,15 +126,6 @@ class DeviceManager {
       const device = await deviceRepository.findByPhoneNumber(phoneNumber);
       if (!device) {
         throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
-      }
-
-      // Stop container if running
-      if (device.container_id) {
-        try {
-          await containerManager.stopContainer(device.container_id);
-        } catch (error) {
-          logger.warn(`Erro ao parar container ${device.container_id}:`, error);
-        }
       }
 
       // Release the port

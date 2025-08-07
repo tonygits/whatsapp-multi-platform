@@ -1,7 +1,7 @@
 const express = require('express');
 const { asyncHandler } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
-const containerManager = require('../services/containerManager');
+const binaryManager = require('../services/binaryManager');
 const queueManager = require('../services/queueManager');
 const logger = require('../utils/logger');
 
@@ -48,20 +48,20 @@ router.get('/detailed', asyncHandler(async (req, res) => {
     };
   }
 
-  // Check Container Manager
+  // Check Binary Manager
   try {
-    const containers = await containerManager.listContainers();
-    checks.containerManager = {
+    const processes = await binaryManager.listProcesses();
+    checks.binaryManager = {
       status: 'healthy',
-      containerCount: containers.length,
-      runningContainers: containers.filter(c => c.running).length,
-      message: 'Container Manager operacional'
+      processCount: processes.length,
+      runningProcesses: processes.filter(p => p.running).length,
+      message: 'Binary Manager operacional'
     };
   } catch (error) {
-    checks.containerManager = {
+    checks.binaryManager = {
       status: 'unhealthy',
       error: error.message,
-      message: 'Erro no Container Manager'
+      message: 'Erro no Binary Manager'
     };
   }
 
@@ -81,21 +81,21 @@ router.get('/detailed', asyncHandler(async (req, res) => {
     };
   }
 
-  // Check Docker connectivity
+  // Check WhatsApp binary
   try {
-    const Docker = require('dockerode');
-    const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock' });
-    await docker.ping();
+    const fs = require('fs').promises;
+    const binaryPath = '/app/whatsapp';
+    await fs.access(binaryPath, fs.constants.F_OK | fs.constants.X_OK);
     
-    checks.docker = {
+    checks.whatsappBinary = {
       status: 'healthy',
-      message: 'Docker conectado'
+      message: 'Binário WhatsApp acessível'
     };
   } catch (error) {
-    checks.docker = {
+    checks.whatsappBinary = {
       status: 'unhealthy',
       error: error.message,
-      message: 'Erro na conexão com Docker'
+      message: 'Erro no binário WhatsApp'
     };
   }
 
@@ -145,36 +145,36 @@ router.get('/devices', asyncHandler(async (req, res) => {
 
   for (const [phoneNumber, device] of Object.entries(devices)) {
     try {
-      // Check container status
-      const containerStatus = await containerManager.getContainerStatus(phoneNumber);
+      // Check process status
+      const processStatus = await binaryManager.getProcessStatus(phoneNumber);
       
       // Check queue status
       const queueStatus = queueManager.getQueueStatus(phoneNumber);
 
-      // Try to ping the container
-      let containerReachable = false;
-      if (containerStatus && containerStatus.running) {
+      // Try to ping the process
+      let processReachable = false;
+      if (processStatus && processStatus.running) {
         try {
           const axios = require('axios');
           const response = await axios.get(`http://localhost:${device.port}/health`, {
             timeout: 5000
           });
-          containerReachable = response.status === 200;
+          processReachable = response.status === 200;
         } catch (error) {
-          containerReachable = false;
+          processReachable = false;
         }
       }
 
       deviceChecks[phoneNumber] = {
-        status: device.status === 'active' && containerReachable ? 'healthy' : 'unhealthy',
+        status: device.status === 'active' && processReachable ? 'healthy' : 'unhealthy',
         device: {
           status: device.status,
           lastActivity: device.lastActivity,
           authStatus: device.authStatus
         },
-        container: containerStatus || { status: 'not_found' },
+        process: processStatus || { status: 'not_found' },
         queue: queueStatus || { status: 'no_queue' },
-        containerReachable,
+        processReachable,
         lastChecked: new Date().toISOString()
       };
     } catch (error) {
@@ -203,39 +203,39 @@ router.get('/devices', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /api/health/containers
- * Health check for all containers
+ * GET /api/health/processes
+ * Health check for all WhatsApp processes
  */
-router.get('/containers', asyncHandler(async (req, res) => {
-  const containers = await containerManager.listContainers();
+router.get('/processes', asyncHandler(async (req, res) => {
+  const processes = await binaryManager.listProcesses();
   
-  const containerChecks = await Promise.all(
-    containers.map(async (container) => {
+  const processChecks = await Promise.all(
+    processes.map(async (process) => {
       try {
-        // Try to reach container health endpoint
+        // Try to reach process health endpoint
         const axios = require('axios');
-        const response = await axios.get(`http://localhost:${container.port}/health`, {
+        const response = await axios.get(`http://localhost:${process.port}/health`, {
           timeout: 3000
         });
         
         return {
-          phoneNumber: container.phoneNumber,
-          containerId: container.id,
+          phoneNumber: process.phoneNumber,
+          pid: process.pid,
           status: 'healthy',
-          containerStatus: container.status,
-          running: container.running,
-          port: container.port,
+          processStatus: process.status,
+          running: process.running,
+          port: process.port,
           healthEndpoint: response.data,
           lastChecked: new Date().toISOString()
         };
       } catch (error) {
         return {
-          phoneNumber: container.phoneNumber,
-          containerId: container.id,
+          phoneNumber: process.phoneNumber,
+          pid: process.pid,
           status: 'unhealthy',
-          containerStatus: container.status,
-          running: container.running,
-          port: container.port,
+          processStatus: process.status,
+          running: process.running,
+          port: process.port,
           error: error.message,
           lastChecked: new Date().toISOString()
         };
@@ -243,18 +243,18 @@ router.get('/containers', asyncHandler(async (req, res) => {
     })
   );
 
-  const healthyContainers = containerChecks.filter(c => c.status === 'healthy').length;
+  const healthyProcesses = processChecks.filter(p => p.status === 'healthy').length;
 
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    containers: containerChecks,
+    processes: processChecks,
     summary: {
-      total: containerChecks.length,
-      healthy: healthyContainers,
-      unhealthy: containerChecks.length - healthyContainers,
-      running: containerChecks.filter(c => c.running).length,
-      stopped: containerChecks.filter(c => !c.running).length
+      total: processChecks.length,
+      healthy: healthyProcesses,
+      unhealthy: processChecks.length - healthyProcesses,
+      running: processChecks.filter(p => p.running).length,
+      stopped: processChecks.filter(p => !p.running).length
     }
   });
 }));
@@ -319,33 +319,33 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
   logger.info('Iniciando processo de auto-healing...');
 
   // Heal specific services or all if none specified
-  const servicesToHeal = services.length > 0 ? services : ['containers', 'queues'];
+  const servicesToHeal = services.length > 0 ? services : ['processes', 'queues'];
 
   for (const service of servicesToHeal) {
     try {
       switch (service) {
-        case 'containers':
+        case 'processes':
           const devices = await deviceManager.getDevicesByStatus('active');
-          let healedContainers = 0;
+          let healedProcesses = 0;
           
           for (const device of devices) {
-            const containerStatus = await containerManager.getContainerStatus(device.phoneNumber);
+            const processStatus = await binaryManager.getProcessStatus(device.phoneNumber);
             
-            if (!containerStatus || !containerStatus.running) {
+            if (!processStatus || !processStatus.running) {
               try {
-                await containerManager.startContainer(device.phoneNumber);
-                healedContainers++;
-                logger.info(`Container ${device.phoneNumber} reiniciado`);
+                await binaryManager.startProcess(device.phoneNumber);
+                healedProcesses++;
+                logger.info(`Processo ${device.phoneNumber} reiniciado`);
               } catch (error) {
-                logger.error(`Erro ao reiniciar container ${device.phoneNumber}:`, error);
+                logger.error(`Erro ao reiniciar processo ${device.phoneNumber}:`, error);
               }
             }
           }
           
-          healingResults.containers = {
+          healingResults.processes = {
             status: 'success',
-            healedCount: healedContainers,
-            message: `${healedContainers} containers reiniciados`
+            healedCount: healedProcesses,
+            message: `${healedProcesses} processos reiniciados`
           };
           break;
 

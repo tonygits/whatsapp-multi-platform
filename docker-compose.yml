@@ -11,6 +11,7 @@ services:
       - ./config:/app/config
       - ./volumes:/app/volumes
       - ./logs:/app/logs
+      - ./sessions:/app/sessions
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - JWT_SECRET=${JWT_SECRET}
@@ -54,10 +55,6 @@ services:
 
 networks:
   whatsapp_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.21.0.0/16
 
 volumes:
   whatsapp_volumes:

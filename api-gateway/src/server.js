@@ -12,7 +12,7 @@ dotenv.config();
 
 // Import custom modules
 const logger = require('./utils/logger');
-const containerManager = require('./services/containerManager');
+const binaryManager = require('./services/binaryManager');
 const deviceManager = require('./services/newDeviceManager');
 const qrManager = require('./services/qrManager');
 const updateManager = require('./services/updateManager');
@@ -196,9 +196,9 @@ class APIGateway {
       await authManager.initialize();
       console.log('✅ authManager inicializado');
       
-      console.log('📦 Inicializando containerManager...');
-      await containerManager.initialize();
-      console.log('✅ containerManager inicializado');
+      console.log('📦 Inicializando binaryManager...');
+      await binaryManager.initialize();
+      console.log('✅ binaryManager inicializado');
       
       console.log('📱 Inicializando deviceManager...');
       await deviceManager.initialize();
@@ -242,8 +242,8 @@ class APIGateway {
         logger.info('Servidor HTTP fechado');
       });
 
-      // Cleanup containers
-      await containerManager.cleanup();
+      // Cleanup processes
+      await binaryManager.cleanup();
       
       logger.info('Shutdown concluído');
       process.exit(0);
