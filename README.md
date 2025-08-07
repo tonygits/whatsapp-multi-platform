@@ -65,8 +65,8 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 
 ```bash
 # Clone o repositório
-git clone https://github.com/your-repo/whatsapp-multi-platform.git
-cd whatsapp-multi-platform
+git clone LuizFelipeNeves/go-whatsapp-web-multidevice.git
+cd go-whatsapp-web-multidevice
 
 # Torne os scripts executáveis
 chmod +x scripts/*.sh scripts/maintenance/*.sh
