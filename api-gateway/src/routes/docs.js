@@ -260,6 +260,10 @@ router.get('/postman', asyncHandler(async (req, res) => {
                 {
                   key: "Content-Type",
                   value: "application/json"
+                },
+                {
+                  key: "Authorization",
+                  value: "Basic {{basic_auth_credentials}}"
                 }
               ],
               body: {

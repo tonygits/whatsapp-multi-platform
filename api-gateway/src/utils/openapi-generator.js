@@ -36,8 +36,8 @@ function generateOpenAPIFromApp(app) {
     { name: 'newsletter', description: 'newsletter setting' }
   ];
 
-  // Alterar security global para bearerAuth apenas
-  baseDoc.security = [{ bearerAuth: [] }];
+  // Alterar security global para basicAuth
+  baseDoc.security = [{ basicAuth: [] }];
 
   // Add /api prefix to all WhatsApp API paths and add x-instance-id parameter
   const whatsappPaths = {};
@@ -65,8 +65,8 @@ function generateOpenAPIFromApp(app) {
           }
         });
 
-        // Add bearerAuth security to WhatsApp API routes
-        pathObj[method].security = [{ bearerAuth: [] }];
+        // Add basicAuth security to WhatsApp API routes
+        pathObj[method].security = [{ basicAuth: [] }];
       }
     });
     
@@ -81,7 +81,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Gateway'],
         summary: 'Verificação de saúde do sistema',
         description: 'Verifica o status de saúde da API e serviços conectados',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         responses: {
           '200': {
             description: 'Sistema saudável',
@@ -131,7 +131,7 @@ function generateOpenAPIFromApp(app) {
             schema: { type: 'integer', default: 0 }
           }
         ],
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         responses: {
           '200': {
             description: 'Lista de dispositivos',
@@ -166,7 +166,7 @@ function generateOpenAPIFromApp(app) {
         operationId: 'createDevice',
         tags: ['Device Management'],
         summary: 'Registrar novo dispositivo',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -210,7 +210,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Obter informações de um dispositivo específico',
         description: 'Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code (se disponível).',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -268,7 +268,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Atualizar informações de um dispositivo',
         description: 'Atualiza o nome ou a URL do webhook de um dispositivo.',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -337,7 +337,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Iniciar um dispositivo',
         description: 'Inicia o container Docker associado a um dispositivo.',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -390,7 +390,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Parar um dispositivo',
         description: 'Para o container Docker associado a um dispositivo.',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -443,7 +443,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Reiniciar um dispositivo',
         description: 'Reinicia o container Docker associado a um dispositivo.',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -496,7 +496,7 @@ function generateOpenAPIFromApp(app) {
         tags: ['Device Management'],
         summary: 'Remover um dispositivo',
         description: 'Remove um dispositivo e seu container Docker associado.',
-        security: [{ bearerAuth: [] }],
+        security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
@@ -593,7 +593,7 @@ function generateOpenAPIFromApp(app) {
 
   baseDoc.paths = orderedPaths;
 
-  // Update security schemes to include only bearer auth
+  // Update security schemes to include only basic auth
   baseDoc.components.securitySchemes = {
     basicAuth: {
       type: 'http',
@@ -626,11 +626,11 @@ function createFallbackStructure() {
       { name: "group", description: "Group setting" },
       { name: "newsletter", description: "newsletter setting" }
     ],
-    security: [{ bearerAuth: [] }],
+    security: [{ basicAuth: [] }],
     paths: {},
     components: {
       securitySchemes: {
-        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
+        basicAuth: { type: "http", scheme: "basic" }
       },
       schemas: {
         LoginResponse: {
