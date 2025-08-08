@@ -21,10 +21,8 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 // Import routes
 const deviceRoutes = require('./routes/devices');
-const authRoutes = require('./routes/auth');
 const healthRoutes = require('./routes/health');
 const docsRoutes = require('./routes/docs');
-const proxyRoutes = require('./routes/proxy');
 
 // Import new direct API routes
 const appRoutes = require('./routes/app');
@@ -93,15 +91,11 @@ class APIGateway {
 
   setupRoutes() {
     // Public routes
-    this.app.use('/api/auth', authRoutes);
     this.app.use('/api/health', healthRoutes);
     this.app.use('/docs', docsRoutes);
 
     // Protected routes
-    if (process.env.API_AUTH_ENABLED === 'true') {
-      this.app.use('/api', authMiddleware);
-      this.app.use('/proxy', authMiddleware);
-    }
+    this.app.use('/api', authMiddleware);
 
     this.app.use('/api/devices', deviceRoutes);
     
@@ -114,9 +108,6 @@ class APIGateway {
     this.app.use('/api/chats', chatRoutes);
     this.app.use('/api/group', groupRoutes);
     this.app.use('/api/newsletter', newsletterRoutes);
-    
-    // WhatsApp Proxy routes (direto para containers)
-    this.app.use('/proxy/whatsapp', proxyRoutes);
 
     // Root endpoint
     this.app.get('/', (req, res) => {
@@ -126,7 +117,6 @@ class APIGateway {
         status: 'running',
         timestamp: new Date().toISOString(),
         endpoints: {
-          auth: '/api/auth',
           devices: '/api/devices',
           app: '/api/app',
           send: '/api/send',
@@ -135,8 +125,7 @@ class APIGateway {
           chat: '/api/chat',
           group: '/api/group',
           health: '/api/health',
-          docs: '/docs',
-          whatsapp_proxy: '/proxy/whatsapp'
+          docs: '/docs'
         },
         links: {
           documentation: '/docs',
@@ -144,11 +133,6 @@ class APIGateway {
           'openapi_json': '/docs/openapi.json',
           postman_collection: '/docs/postman',
           'regenerate_docs': '/docs/generate'
-        },
-        proxy_examples: {
-          login: '/proxy/whatsapp/5511999999999/app/login',
-          send_message: '/proxy/whatsapp/send/message',
-          user_info: '/proxy/whatsapp/5511999999999/user/info'
         }
       });
     });
@@ -187,12 +171,9 @@ class APIGateway {
 
   async start() {
     try {
-      console.log('🚀 INICIANDO start() method...');
       // Initialize services
-      console.log('🔐 Inicializando authManager...');
       await authManager.initialize();
-      console.log('✅ authManager inicializado');
-      
+
       console.log('📦 Inicializando binaryManager...');
       await binaryManager.initialize();
       console.log('✅ binaryManager inicializado');
@@ -200,10 +181,10 @@ class APIGateway {
       console.log('📱 Inicializando deviceManager...');
       await deviceManager.initialize();
       console.log('✅ deviceManager inicializado');
-      
+
       // Initialize QR Manager
       qrManager.startPeriodicCleanup();
-      
+
       // Initialize Update Manager
       updateManager.initialize();
 

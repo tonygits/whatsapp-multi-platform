@@ -13,11 +13,9 @@ class DeviceRepository {
       const {
         phone_number,
         name,
-        session_id,
         container_port,
         webhook_url,
-        webhook_secret,
-        user_id
+        webhook_secret
       } = deviceData;
 
       // Gerar hashes de segurança
@@ -25,9 +23,9 @@ class DeviceRepository {
       const phone_hash = PhoneUtils.hashPhoneNumber(phone_number);
 
       const result = await database.run(
-        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, session_id, container_port, webhook_url, webhook_secret, user_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [device_hash, phone_number, phone_hash, name || null, session_id || null, container_port || null, webhook_url || null, webhook_secret || null, user_id || null]
+        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, container_port, webhook_url, webhook_secret)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [device_hash, phone_number, phone_hash, name || null, container_port || null, webhook_url || null, webhook_secret || null]
       );
 
       const device = await this.findById(result.lastID);
@@ -95,24 +93,6 @@ class DeviceRepository {
   }
 
   /**
-   * Find device by session ID
-   * @param {string} sessionId - Session ID
-   * @returns {Promise<Object|null>} - Device or null
-   */
-  async findBySessionId(sessionId) {
-    try {
-      const device = await database.get(
-        'SELECT * FROM devices WHERE session_id = ?',
-        [sessionId]
-      );
-      return device;
-    } catch (error) {
-      logger.error('Erro ao buscar dispositivo por session ID:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Get all devices
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} - Array of devices
@@ -126,11 +106,6 @@ class DeviceRepository {
       if (filters.status) {
         conditions.push('status = ?');
         params.push(filters.status);
-      }
-
-      if (filters.user_id) {
-        conditions.push('user_id = ?');
-        params.push(filters.user_id);
       }
 
       if (conditions.length > 0) {

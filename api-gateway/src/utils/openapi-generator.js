@@ -75,67 +75,6 @@ function generateOpenAPIFromApp(app) {
 
   // Add Gateway Management routes
   const gatewayPaths = {
-    '/api/auth/login': {
-      post: {
-        operationId: 'gatewayLogin',
-        tags: ['Gateway'],
-        summary: 'Login no API Gateway',
-        description: 'Autentica um usuário no gateway e retorna um token JWT',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['username', 'password'],
-                properties: {
-                  username: { type: 'string', example: 'admin', description: 'Nome de usuário' },
-                  password: { type: 'string', example: 'admin123', description: 'Senha do usuário' }
-                }
-              }
-            }
-          }
-        },
-        responses: {
-          '200': {
-            description: 'Login realizado com sucesso',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Login realizado com sucesso' },
-                    data: {
-                      type: 'object',
-                      properties: {
-                        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-                        user: {
-                          type: 'object',
-                          properties: {
-                            username: { type: 'string', example: 'admin' },
-                            role: { type: 'string', example: 'admin' }
-                          }
-                        },
-                        expiresIn: { type: 'string', example: '24h' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            description: 'Credenciais inválidas',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
-              }
-            }
-          }
-        }
-      }
-    },
     '/api/health': {
       get: {
         operationId: 'healthCheck',
@@ -656,10 +595,9 @@ function generateOpenAPIFromApp(app) {
 
   // Update security schemes to include only bearer auth
   baseDoc.components.securitySchemes = {
-    bearerAuth: {
+    basicAuth: {
       type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT'
+      scheme: 'basic'
     }
   };
 

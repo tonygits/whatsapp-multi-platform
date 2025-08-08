@@ -90,11 +90,9 @@ class DeviceManager {
       const device = await deviceRepository.create({
         phone_number: phoneNumber,
         name: options.name || `Device ${phoneNumber}`,
-        session_id: sessionId,
         container_port: port,
         webhook_url: options.webhook_url,
-        webhook_secret: options.webhook_secret,
-        user_id: options.user_id
+        webhook_secret: options.webhook_secret
       });
 
       logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id, port });
@@ -103,7 +101,6 @@ class DeviceManager {
         id: device.id,
         phoneNumber: device.phone_number,
         name: device.name,
-        sessionId: device.session_id,
         status: device.status,
         port: device.container_port,
         webhookUrl: device.webhook_url,
@@ -166,7 +163,6 @@ class DeviceManager {
         id: device.id,
         phoneNumber: device.phone_number,
         name: device.name,
-        sessionId: device.session_id,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,
@@ -199,7 +195,6 @@ class DeviceManager {
         id: device.id,
         phoneNumber: device.phone_number,
         name: device.name,
-        sessionId: device.session_id,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,

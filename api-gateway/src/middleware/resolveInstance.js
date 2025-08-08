@@ -33,7 +33,6 @@ const resolveInstance = asyncHandler(async (req, res, next) => {
         id: device.id,
         phoneNumber: device.phone_number,
         name: device.name,
-        sessionId: device.session_id,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,
