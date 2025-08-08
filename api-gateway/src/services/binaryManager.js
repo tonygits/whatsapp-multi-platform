@@ -246,9 +246,9 @@ class BinaryManager {
 
       logger.info(`Processo WhatsApp iniciado para ${phoneNumber} (PID: ${childProcess.pid})`);
       
-      // Connect to container WebSocket after a delay to ensure container is ready
+      // Connect to container WebSocket
       setTimeout(() => {
-        this.connectToContainerWebSocket(phoneNumber, devicePort);
+        this.connectToContainerWebSocketWithRetry(phoneNumber, devicePort);
       }, 5000);
       
       return {
@@ -469,99 +469,113 @@ class BinaryManager {
   }
 
   /**
-   * Connect to container WebSocket and mirror messages to global socket
+   * Connect to container WebSocket
    * @param {string} phoneNumber - Phone number
    * @param {number} port - Container port
    */
-  connectToContainerWebSocket(phoneNumber, port) {
+  connectToContainerWebSocketWithRetry(phoneNumber, port) {
     const wsUrl = `ws://localhost:${port}/ws`;
     
     try {
-      logger.info(`Conectando ao WebSocket do container ${phoneNumber} em ${wsUrl}`);
+      logger.info(`Conectando ao WebSocket ${phoneNumber} em ${wsUrl}`);
       
-      const ws = new WebSocket(wsUrl);
-      
-      ws.on('open', () => {
-        logger.info(`WebSocket conectado para ${phoneNumber} em ${wsUrl}`);
-        this.websocketConnections.set(phoneNumber, ws);
-        
-        // Notify global socket about connection
-        if (global.socketIO) {
-          global.socketIO.emit('container-websocket-connected', {
-            phoneNumber,
-            port,
-            timestamp: new Date().toISOString()
-          });
+      const ws = new WebSocket(wsUrl, {
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${this.basicAuthUsername}:${this.basicAuthPassword}`).toString('base64')}`
         }
       });
       
-      ws.on('message', (data) => {
-        try {
-          const message = JSON.parse(data.toString());
-          
-          // Mirror message to global socket
-          if (global.socketIO) {
-            global.socketIO.emit('whatsapp-websocket-message', {
-              phoneNumber,
-              port,
-              message,
-              timestamp: new Date().toISOString()
-            });
-            
-            // Also emit to device-specific room
-            global.socketIO.to(`device-${phoneNumber}`).emit('device-websocket-message', {
-              message,
-              timestamp: new Date().toISOString()
-            });
-          }
-          
-          logger.debug(`WebSocket message from ${phoneNumber}:`, message);
-        } catch (error) {
-          logger.error(`Erro ao processar mensagem WebSocket de ${phoneNumber}:`, error);
-        }
+      ws.on('open', () => {
+        logger.info(`WebSocket conectado: ${phoneNumber}`);
+        this.websocketConnections.set(phoneNumber, ws);
+        this.setupWebSocketEvents(ws, phoneNumber, port);
       });
       
       ws.on('error', (error) => {
-        logger.error(`Erro no WebSocket do container ${phoneNumber}:`, error.message);
-        
-        if (global.socketIO) {
-          global.socketIO.emit('container-websocket-error', {
-            phoneNumber,
-            port,
-            error: error.message,
-            timestamp: new Date().toISOString()
-          });
-        }
-      });
-      
-      ws.on('close', (code, reason) => {
-        logger.info(`WebSocket do container ${phoneNumber} fechado. Código: ${code}, Razão: ${reason}`);
+        logger.warn(`WebSocket error ${phoneNumber}: ${error.message}`);
         this.websocketConnections.delete(phoneNumber);
-        
-        if (global.socketIO) {
-          global.socketIO.emit('container-websocket-closed', {
-            phoneNumber,
-            port,
-            code,
-            reason: reason?.toString(),
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        // Try to reconnect after a delay if process is still running
-        const processInfo = this.processes.get(phoneNumber);
-        if (processInfo && processInfo.status === 'running') {
-          setTimeout(() => {
-            logger.info(`Tentando reconectar WebSocket para ${phoneNumber}`);
-            this.connectToContainerWebSocket(phoneNumber, port);
-          }, 10000);
-        }
       });
       
     } catch (error) {
-      logger.error(`Erro ao conectar WebSocket do container ${phoneNumber}:`, error);
+      logger.error(`Erro ao conectar WebSocket ${phoneNumber}:`, error);
     }
   }
+
+  setupWebSocketEvents(ws, phoneNumber, port) {
+    // Notify WebSocket clients
+    if (global.webSocketServer) {
+      const connectMessage = JSON.stringify({
+        type: 'container-websocket-connected',
+        phoneNumber,
+        port,
+        timestamp: new Date().toISOString()
+      });
+      
+      global.webSocketServer.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(connectMessage);
+        }
+      });
+    }
+    
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        // Mirror to WebSocket clients
+        if (global.webSocketServer) {
+          const wsMessage = JSON.stringify({
+            type: 'whatsapp-websocket-message',
+            phoneNumber,
+            port,
+            message,
+            timestamp: new Date().toISOString()
+          });
+          
+          global.webSocketServer.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              // Send to all clients, or filter by device if they joined a specific device
+              if (!client.deviceFilter || client.deviceFilter === phoneNumber) {
+                client.send(wsMessage);
+              }
+            }
+          });
+        }
+        
+        logger.debug(`WebSocket message from ${phoneNumber}:`, message);
+      } catch (error) {
+        logger.error(`Erro ao processar mensagem WebSocket de ${phoneNumber}:`, error);
+      }
+    });
+    
+    ws.on('error', (error) => {
+      logger.warn(`WebSocket error ${phoneNumber}: ${error.message}`);
+      this.websocketConnections.delete(phoneNumber);
+    });
+    
+    ws.on('close', (code, reason) => {
+      logger.info(`WebSocket ${phoneNumber} fechado (${code}: ${reason})`);
+      this.websocketConnections.delete(phoneNumber);
+      
+      if (global.webSocketServer) {
+        const closeMessage = JSON.stringify({
+          type: 'container-websocket-closed',
+          phoneNumber,
+          port,
+          code,
+          reason: reason?.toString(),
+          timestamp: new Date().toISOString()
+        });
+        
+        global.webSocketServer.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(closeMessage);
+          }
+        });
+      }
+    });
+  }
+
 
   /**
    * Disconnect container WebSocket

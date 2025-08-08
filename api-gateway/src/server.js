@@ -4,8 +4,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const winston = require('winston');
-const { Server } = require('socket.io');
 const http = require('http');
+const WebSocket = require('ws');
 
 // Load environment variables
 dotenv.config();
@@ -38,14 +38,8 @@ class APIGateway {
     console.log('🏗️ Iniciando constructor...');
     this.app = express();
     this.server = http.createServer(this.app);
-    this.io = new Server(this.server, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      }
-    });
     this.port = process.env.API_PORT || 3000;
-    console.log('✅ Express, server e Socket.IO criados');
+    console.log('✅ Express e server criados');
     
     console.log('⚙️ Configurando middleware...');
     this.setupMiddleware();
@@ -55,9 +49,9 @@ class APIGateway {
     this.setupRoutes();
     console.log('✅ Rotas configuradas');
     
-    console.log('🔌 Configurando Socket.IO...');
-    this.setupSocketIO();
-    console.log('✅ Socket.IO configurado');
+    console.log('🔌 Configurando WebSocket...');
+    this.setupWebSocket();
+    console.log('✅ WebSocket configurado');
     
     console.log('❌ Configurando error handling...');
     this.setupErrorHandling();
@@ -138,22 +132,69 @@ class APIGateway {
     });
   }
 
-  setupSocketIO() {
-    this.io.on('connection', (socket) => {
-      logger.info(`Socket client connected: ${socket.id}`);
 
-      socket.on('join-device', (phoneNumber) => {
-        socket.join(`device-${phoneNumber}`);
-        logger.info(`Socket ${socket.id} joined room device-${phoneNumber}`);
+  setupWebSocket() {
+    // Create WebSocket server
+    this.wss = new WebSocket.Server({ 
+      server: this.server,
+      path: '/ws'
+    });
+
+    this.wss.on('connection', (ws, req) => {
+      logger.info(`WebSocket client connected: ${req.socket.remoteAddress}`);
+
+      // Send welcome message
+      ws.send(JSON.stringify({
+        type: 'welcome',
+        message: 'Connected to WhatsApp Gateway WebSocket',
+        timestamp: new Date().toISOString()
+      }));
+
+      // Handle messages from client
+      ws.on('message', (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          logger.info(`WebSocket message received:`, message);
+          
+          // Handle different message types
+          if (message.type === 'join-device') {
+            ws.deviceFilter = message.phoneNumber;
+            ws.send(JSON.stringify({
+              type: 'joined-device',
+              phoneNumber: message.phoneNumber,
+              timestamp: new Date().toISOString()
+            }));
+          } else {
+            // Echo back for other messages
+            ws.send(JSON.stringify({
+              type: 'echo',
+              originalMessage: message,
+              timestamp: new Date().toISOString()
+            }));
+          }
+        } catch (error) {
+          logger.error('Error parsing WebSocket message:', error);
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Invalid JSON message',
+            timestamp: new Date().toISOString()
+          }));
+        }
       });
 
-      socket.on('disconnect', () => {
-        logger.info(`Socket client disconnected: ${socket.id}`);
+      ws.on('close', (code, reason) => {
+        logger.info(`WebSocket client disconnected: ${code} ${reason}`);
+      });
+
+      ws.on('error', (error) => {
+        logger.error('WebSocket error:', error);
       });
     });
 
-    // Make io available globally for other modules
-    global.socketIO = this.io;
+    // Make WebSocket server available globally
+    global.webSocketServer = this.wss;
+    
+    logger.info('WebSocket server configured on path /ws');
   }
 
   setupErrorHandling() {
@@ -174,26 +215,32 @@ class APIGateway {
       // Initialize services
       await authManager.initialize();
 
-      console.log('📦 Inicializando binaryManager...');
-      await binaryManager.initialize();
-      console.log('✅ binaryManager inicializado');
-      
-      console.log('📱 Inicializando deviceManager...');
-      await deviceManager.initialize();
-      console.log('✅ deviceManager inicializado');
-
       // Initialize QR Manager
       qrManager.startPeriodicCleanup();
 
       // Initialize Update Manager
       updateManager.initialize();
 
-      // Start server
-      this.server.listen(this.port, () => {
+      // Start server first
+      this.server.listen(this.port, async () => {
         logger.info(`🚀 API Gateway rodando na porta ${this.port}`);
         logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
         logger.info(`🔐 Autenticação: ${process.env.API_AUTH_ENABLED === 'true' ? 'Ativada' : 'Desativada'}`);
         logger.info(`🔄 Verificações de atualização: ${process.env.UPDATE_CHECK_CRON || '0 2 * * *'}`);
+        
+        // Now initialize managers that need the server running
+        try {
+          console.log('📱 Inicializando deviceManager...');
+          await deviceManager.initialize();
+          console.log('✅ deviceManager inicializado');
+          
+          console.log('📦 Inicializando binaryManager...');
+          await binaryManager.initialize();
+          console.log('✅ binaryManager inicializado');
+          
+        } catch (error) {
+          logger.error('Erro ao inicializar managers após server start:', error);
+        }
       });
 
       // Graceful shutdown
