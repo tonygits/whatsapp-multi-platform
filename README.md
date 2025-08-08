@@ -21,6 +21,7 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 - ✅ **Monitoramento de processos** - Health checks e controle de PIDs
 - ✅ **Auto-restart inteligente** - Recuperação automática de sessões ativas
 - ✅ **QR Code via Base64** - QR codes servidos diretamente como base64
+- ✅ **WebSocket Mirroring** - Espelhamento de mensagens WebSocket dos containers para socket global
 - ✅ **Auto-updates** - Verificação inteligente de atualizações
 - ✅ **Persistência de sessões** - Sessions sobrevivem a restarts de containers
 
@@ -127,6 +128,23 @@ Quando o container inicia, o sistema automaticamente:
 - **Sem exposição de arquivos**: Não há necessidade de servir arquivos estáticos
 - **Compatibilidade total**: Funciona com qualquer frontend ou aplicação client
 
+### WebSocket Mirroring
+O sistema automaticamente espelha mensagens WebSocket de cada container individual para o socket global:
+
+- **Conexão automática**: Cada processo WhatsApp conecta automaticamente ao WebSocket do container (`ws://localhost:8000/ws`)
+- **Espelhamento em tempo real**: Todas as mensagens WebSocket são replicadas para o socket global do servidor
+- **Eventos globais**: Clientes podem escutar mensagens de todos os containers via socket principal
+- **Eventos específicos**: Clientes podem entrar em rooms específicos (`device-${phoneNumber}`) para escutar apenas um dispositivo
+- **Reconexão automática**: Se o WebSocket do container cair, tenta reconectar automaticamente
+- **Logs centralizados**: Todos os eventos WebSocket são logados centralmente
+
+#### Eventos Disponíveis:
+- `whatsapp-websocket-message` - Mensagens de todos os containers
+- `container-websocket-connected` - Quando container conecta
+- `container-websocket-closed` - Quando container desconecta
+- `device-websocket-message` - Mensagens de dispositivo específico (room: `device-${phoneNumber}`)
+- `process-stopped` - Quando processo para inesperadamente
+
 ## 💡 Exemplos de Uso
 
 ### Registrar um Novo Número
@@ -179,19 +197,63 @@ curl -X POST http://localhost:3000/proxy/whatsapp/send/message \
 ```javascript
 const socket = io('http://localhost:3000');
 
-// Entrar na sala do dispositivo
-socket.emit('join-device', '5511999999999');
+// === EVENTOS GLOBAIS ===
 
-// Escutar QR Code
-socket.on('qr-code', (data) => {
-  console.log('QR Code:', data.qrImage);
-  // Exibir QR Code para escaneamento
+// Escutar mensagens WebSocket de todos os containers
+socket.on('whatsapp-websocket-message', (data) => {
+  console.log(`Mensagem do container ${data.phoneNumber}:`, data.message);
+  // data: { phoneNumber, port, message, timestamp }
 });
 
-// Escutar autenticação
-socket.on('auth-success', (data) => {
-  console.log('WhatsApp conectado!', data.phoneNumber);
+// Escutar conexões de containers WebSocket
+socket.on('container-websocket-connected', (data) => {
+  console.log(`Container ${data.phoneNumber} conectado na porta ${data.port}`);
 });
+
+socket.on('container-websocket-closed', (data) => {
+  console.log(`Container ${data.phoneNumber} desconectado (código: ${data.code})`);
+});
+
+// === EVENTOS ESPECÍFICOS DE DISPOSITIVO ===
+
+// Entrar na sala de um dispositivo específico
+socket.emit('join', `device-${phoneNumber}`);
+
+// Escutar mensagens WebSocket apenas deste dispositivo
+socket.on('device-websocket-message', (data) => {
+  console.log('Mensagem do dispositivo:', data.message);
+  // data: { message, timestamp }
+});
+
+// Escutar quando processo para inesperadamente
+socket.on('process-stopped', (data) => {
+  console.log('Processo parou:', data.phoneNumber);
+});
+
+// === EXEMPLO DE USO PRÁTICO ===
+
+// Monitor global - escuta todos os containers
+socket.on('whatsapp-websocket-message', (data) => {
+  const { phoneNumber, message } = data;
+  
+  // Processar mensagens específicas
+  if (message.type === 'qr') {
+    showQRCode(phoneNumber, message.qr);
+  } else if (message.type === 'ready') {
+    markDeviceAsReady(phoneNumber);
+  } else if (message.type === 'message') {
+    handleIncomingMessage(phoneNumber, message);
+  }
+});
+
+// Monitor de dispositivo específico
+const monitorDevice = (phoneNumber) => {
+  socket.emit('join', `device-${phoneNumber}`);
+  
+  socket.on('device-websocket-message', (data) => {
+    updateDeviceStatus(phoneNumber, data.message);
+  });
+};
 ```
 
 ## 🛠️ Scripts de Manutenção
