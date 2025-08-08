@@ -3,7 +3,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
-const winston = require('winston');
 const http = require('http');
 const WebSocket = require('ws');
 
@@ -14,7 +13,6 @@ dotenv.config();
 const logger = require('./utils/logger');
 const binaryManager = require('./services/binaryManager');
 const deviceManager = require('./services/newDeviceManager');
-const qrManager = require('./services/qrManager');
 const updateManager = require('./services/updateManager');
 const { authMiddleware, authManager } = require('./middleware/auth');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -214,9 +212,6 @@ class APIGateway {
     try {
       // Initialize services
       await authManager.initialize();
-
-      // Initialize QR Manager
-      qrManager.startPeriodicCleanup();
 
       // Initialize Update Manager
       updateManager.initialize();

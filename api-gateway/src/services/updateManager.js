@@ -460,13 +460,20 @@ class UpdateManager {
     if (recommendations.priority === 'high' || recommendations.securityCritical) {
       logger.warn('ATENÇÃO: Atualizações críticas de segurança disponíveis!');
       
-      // Send via webhook/socket if configured
-      if (global.socketIO) {
-        global.socketIO.emit('security-update-alert', {
+      // Send via WebSocket if configured
+      if (global.webSocketServer) {
+        const message = JSON.stringify({
+          type: 'security-update-alert',
           severity: 'high',
           message: 'Atualizações críticas de segurança disponíveis',
           details: checkResults,
           timestamp: new Date().toISOString()
+        });
+        
+        global.webSocketServer.clients.forEach((client) => {
+          if (client.readyState === 1) { // WebSocket.OPEN
+            client.send(message);
+          }
         });
       }
     }

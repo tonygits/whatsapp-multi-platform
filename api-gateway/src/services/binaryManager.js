@@ -423,10 +423,19 @@ class BinaryManager {
           });
           
           // Emit event for monitoring
-          if (global.socketIO) {
-            global.socketIO.to(`device-${phoneNumber}`).emit('process-stopped', {
+          if (global.webSocketServer) {
+            const message = JSON.stringify({
+              type: 'process-stopped',
               phoneNumber,
               timestamp: new Date().toISOString()
+            });
+            
+            global.webSocketServer.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                if (!client.deviceFilter || client.deviceFilter === phoneNumber) {
+                  client.send(message);
+                }
+              }
             });
           }
         }
