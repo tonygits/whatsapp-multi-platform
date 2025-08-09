@@ -176,7 +176,12 @@ function generateOpenAPIFromApp(app) {
                 required: ['phoneNumber'],
                 properties: {
                   phoneNumber: { type: 'string', example: '5511999999999' },
-                  name: { type: 'string', example: 'Atendimento Principal' }
+                  name: { type: 'string', example: 'Atendimento Principal' },
+                  webhook: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'meu-secret-mensagens' },
+                  statusWebhook: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
+                  statusWebhookSecret: { type: 'string', nullable: true, example: 'meu-secret-status' },
+                  autoStart: { type: 'boolean', default: true, example: true }
                 }
               }
             }
@@ -195,7 +200,9 @@ function generateOpenAPIFromApp(app) {
                     name: { type: 'string' },
                     status: { type: 'string' },
                     webhookUrl: { type: 'string', format: 'url', nullable: true },
-                    webhookSecret: { type: 'string', nullable: true }
+                    webhookSecret: { type: 'string', nullable: true },
+                    statusWebhookUrl: { type: 'string', format: 'url', nullable: true },
+                    statusWebhookSecret: { type: 'string', nullable: true }
                   }
                 }
               }
@@ -267,7 +274,7 @@ function generateOpenAPIFromApp(app) {
         operationId: 'updateDeviceInfo',
         tags: ['Device Management'],
         summary: 'Atualizar informações de um dispositivo',
-        description: 'Atualiza o nome ou a URL do webhook de um dispositivo.',
+        description: 'Atualiza o nome, webhooks de mensagens e webhooks de status de um dispositivo.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
@@ -289,8 +296,10 @@ function generateOpenAPIFromApp(app) {
                 type: 'object',
                 properties: {
                   name: { type: 'string', example: 'Novo Nome do Dispositivo' },
-                  webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://your-webhook.com/new-endpoint' },
-                  webhookSecret: { type: 'string', nullable: true, example: 'your_new_secret_key' }
+                  webhook_url: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
+                  webhook_secret: { type: 'string', nullable: true, example: 'novo-secret-mensagens' },
+                  status_webhook_url: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
+                  status_webhook_secret: { type: 'string', nullable: true, example: 'novo-secret-status' }
                 }
               }
             }
@@ -610,7 +619,7 @@ function createFallbackStructure() {
     info: {
       title: "WhatsApp API MultiDevice",
       version: "6.9.0",
-      description: "This API is used for sending whatsapp via API"
+      description: "API para envio de mensagens WhatsApp com suporte a múltiplos dispositivos e webhooks de status.\n\n## Webhooks de Status\n\nEste sistema suporta webhooks para notificações de status dos dispositivos:\n\n### Configuração\n- `statusWebhook`: URL para receber notificações de status\n- `statusWebhookSecret`: Chave secreta para assinatura HMAC-SHA256\n\n### Eventos Suportados\n- **login_success**: Dispositivo conectado com sucesso\n- **connected**: Dispositivo pronto para uso\n- **disconnected**: Dispositivo desconectado\n- **qr_code_required**: QR Code necessário para autenticação\n- **auth_failed**: Falha na autenticação\n- **container_event**: Outros eventos do container\n\n### Formato do Webhook\n```json\n{\n  \"device\": {\n    \"phoneNumber\": \"5511999999999\",\n    \"name\": \"Dispositivo Teste\",\n    \"status\": \"active\"\n  },\n  \"event\": {\n    \"type\": \"connected\",\n    \"code\": \"LIST_DEVICES\",\n    \"message\": \"Device connected and ready\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Verificação de Assinatura\nSe `statusWebhookSecret` foi configurado, o header `X-Webhook-Signature` conterá a assinatura HMAC-SHA256 do payload."
     },
     servers: [
       { url: "http://localhost:3000" }

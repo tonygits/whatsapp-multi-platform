@@ -4,8 +4,8 @@ const path = require('path');
 const { asyncHandler, CustomError } = require('./errorHandler');
 const logger = require('../utils/logger');
 
-const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
-const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
+const DEFAULT_ADMIN_USER = process.env.DEFAULT_ADMIN_USER || 'admin';
+const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 
 /**
  * Handle login request and intercept QR code generation
@@ -18,7 +18,7 @@ const loginHandler = asyncHandler(async (req, res) => {
   // Add basic auth header
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Basic ${Buffer.from(`${BASIC_AUTH_USERNAME}:${BASIC_AUTH_PASSWORD}`).toString('base64')}`,
+    'Authorization': `Basic ${Buffer.from(`${DEFAULT_ADMIN_USER}:${DEFAULT_ADMIN_PASS}`).toString('base64')}`,
   };
 
   try {

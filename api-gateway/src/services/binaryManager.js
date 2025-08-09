@@ -4,14 +4,15 @@ const fs = require('fs').promises;
 const WebSocket = require('ws');
 const logger = require('../utils/logger');
 const deviceManager = require('./newDeviceManager');
+const statusWebhookManager = require('./statusWebhookManager');
 
 class BinaryManager {
   constructor() {
     this.binaryPath = '/app/whatsapp';
     this.processes = new Map(); // phoneNumber -> process info
     this.websocketConnections = new Map(); // phoneNumber -> websocket connection
-    this.basicAuthUsername = process.env.BASIC_AUTH_USERNAME || 'admin';
-    this.basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || 'admin';
+    this.basicAuthUsername = process.env.DEFAULT_ADMIN_USER || 'admin';
+    this.basicAuthPassword = process.env.DEFAULT_ADMIN_PASS || 'admin';
   }
 
   /**
@@ -527,7 +528,7 @@ class BinaryManager {
       });
     }
     
-    ws.on('message', (data) => {
+    ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
         
@@ -550,6 +551,11 @@ class BinaryManager {
             }
           });
         }
+        
+        // Send to status webhook if configured (non-blocking)
+        statusWebhookManager.handleContainerEvent(phoneNumber, message).catch(error => {
+          logger.error(`Webhook error for ${phoneNumber}:`, error.message);
+        });
         
         logger.debug(`WebSocket message from ${phoneNumber}:`, message);
       } catch (error) {

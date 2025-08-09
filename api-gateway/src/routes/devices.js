@@ -73,7 +73,7 @@ router.get('/', asyncHandler(async (req, res) => {
  * Register a new device (idempotent)
  */
 router.post('/', asyncHandler(async (req, res) => {
-  const { phoneNumber, name, autoStart = true, webhook, webhookSecret } = req.body;
+  const { phoneNumber, name, autoStart = true, webhook, webhookSecret, statusWebhook, statusWebhookSecret } = req.body;
 
   if (!phoneNumber) {
     throw new CustomError('Número de telefone é obrigatório', 400, 'MISSING_PHONE_NUMBER');
@@ -93,7 +93,13 @@ router.post('/', asyncHandler(async (req, res) => {
     // Scenario 1: Device does not exist in DB
     if (!device) {
       logger.info(`Dispositivo ${phoneNumber} não encontrado no DB. Criando...`);
-      device = await deviceManager.registerDevice(phoneNumber, { name, webhook_url: webhook, webhook_secret: webhookSecret });
+      device = await deviceManager.registerDevice(phoneNumber, { 
+        name, 
+        webhook_url: webhook, 
+        webhook_secret: webhookSecret,
+        status_webhook_url: statusWebhook,
+        status_webhook_secret: statusWebhookSecret
+      });
       wasCreated = true;
     } else {
       logger.info(`Dispositivo ${phoneNumber} já existe no DB.`);
@@ -176,7 +182,7 @@ router.put('/info', resolveInstance, asyncHandler(async (req, res) => {
   const updates = req.body;
 
   // Filter allowed updates (não permitir alteração de phone_number, hashes, etc.)
-  const allowedFields = ['name', 'webhook_url', 'webhook_secret'];
+  const allowedFields = ['name', 'webhook_url', 'webhook_secret', 'status_webhook_url', 'status_webhook_secret'];
   const filteredUpdates = {};
   
   for (const [key, value] of Object.entries(updates)) {
