@@ -1,6 +1,10 @@
 # API Gateway Dockerfile - Using debian base for glibc compatibility
 FROM node:18-slim
 
+# Build args to handle arch-aware download of WhatsApp binary
+ARG TARGETARCH
+ARG WHATSAPP_VERSION=7.4.0
+
 # Install system dependencies including unzip and wget for binary download
 RUN apt-get update && apt-get install -y \
     docker.io \
@@ -19,12 +23,20 @@ COPY package*.json ./
 # Install Node.js dependencies
 RUN npm ci --only=production
 
-# Download and setup go-whatsapp-web-multidevice binary
-RUN wget -O whatsapp_linux_amd64.zip https://github.com/aldinokemal/go-whatsapp-web-multidevice/releases/download/v7.4.0/whatsapp_7.4.0_linux_amd64.zip && \
-    unzip whatsapp_linux_amd64.zip && \
-    mv linux-amd64 whatsapp && \
-    chmod +x whatsapp && \
-    rm whatsapp_linux_amd64.zip readme.md
+# Download and setup go-whatsapp-web-multidevice binary (arch-aware)
+# TARGETARCH values are typically: amd64 | arm64
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+      amd64) ARCH_SUFFIX=amd64; FOLDER_NAME=linux-amd64 ;; \
+      arm64) ARCH_SUFFIX=arm64; FOLDER_NAME=linux-arm64 ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac; \
+    wget -O whatsapp_linux_${ARCH_SUFFIX}.zip \
+      https://github.com/aldinokemal/go-whatsapp-web-multidevice/releases/download/v${WHATSAPP_VERSION}/whatsapp_${WHATSAPP_VERSION}_linux_${ARCH_SUFFIX}.zip; \
+    unzip whatsapp_linux_${ARCH_SUFFIX}.zip; \
+    mv ${FOLDER_NAME} whatsapp; \
+    chmod +x whatsapp; \
+    rm -f whatsapp_linux_${ARCH_SUFFIX}.zip readme.md
 
 # Copy application source
 COPY api-gateway/src ./src
