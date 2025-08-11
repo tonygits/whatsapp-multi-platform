@@ -17,7 +17,7 @@ class StatusWebhookManager {
   async sendStatusUpdate(phoneNumber, statusData) {
     try {
       const device = await deviceManager.getDevice(phoneNumber);
-      if (!device || !device.status_webhook_url) {
+      if (!device || !device.statusWebhookUrl) {
         return; // No webhook configured
       }
 
@@ -31,7 +31,7 @@ class StatusWebhookManager {
         timestamp: new Date().toISOString()
       };
 
-      await this.sendWebhook(device.status_webhook_url, device.status_webhook_secret, payload);
+      await this.sendWebhook(device.statusWebhookUrl, device.statusWebhookSecret, payload);
       
       logger.info(`Status webhook enviado para ${phoneNumber}: ${statusData.type}`);
       

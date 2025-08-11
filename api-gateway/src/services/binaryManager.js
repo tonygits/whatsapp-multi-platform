@@ -188,6 +188,8 @@ class BinaryManager {
         APP_OS: 'Chrome',
         APP_ACCOUNT_VALIDATION: 'false',
         DB_URI: `file:${sessionPath}/whatsapp.db?_foreign_keys=on`,
+        WHATSAPP_WEBHOOK: device.webhookUrl || '',
+        WHATSAPP_WEBHOOK_SECRET: device.webhookSecret || '',
         ...this.getEnvironmentVariables(options)
       };
 
