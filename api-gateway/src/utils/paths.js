@@ -1,0 +1,29 @@
+const path = require('path');
+const fs = require('fs');
+
+// Decide base directory
+// Priority: env APP_BASE_DIR -> '/app' if exists -> api-gateway root (dev)
+const explicitBase = process.env.APP_BASE_DIR;
+const dockerBase = '/app';
+// __dirname = api-gateway/src/utils → subir dois níveis para a raiz de api-gateway
+const apiGatewayRoot = path.resolve(__dirname, '..', '..');
+
+const BASE_DIR = explicitBase
+  ? explicitBase
+  : fs.existsSync(dockerBase)
+    ? dockerBase
+    : apiGatewayRoot;
+
+// Standardized paths
+const BIN_PATH = path.join(BASE_DIR, 'whatsapp');
+const SESSIONS_DIR = path.join(BASE_DIR, 'sessions');
+const VOLUMES_DIR = path.join(BASE_DIR, 'volumes');
+
+module.exports = {
+  BASE_DIR,
+  BIN_PATH,
+  SESSIONS_DIR,
+  VOLUMES_DIR,
+};
+
+

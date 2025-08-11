@@ -3,12 +3,13 @@ const path = require('path');
 const fs = require('fs').promises;
 const WebSocket = require('ws');
 const logger = require('../utils/logger');
+const { BIN_PATH, SESSIONS_DIR } = require('../utils/paths');
 const deviceManager = require('./newDeviceManager');
 const statusWebhookManager = require('./statusWebhookManager');
 
 class BinaryManager {
   constructor() {
-    this.binaryPath = '/app/whatsapp';
+    this.binaryPath = BIN_PATH;
     this.processes = new Map(); // phoneNumber -> process info
     this.websocketConnections = new Map(); // phoneNumber -> websocket connection
     this.basicAuthUsername = process.env.DEFAULT_ADMIN_USER || 'admin';
@@ -105,7 +106,7 @@ class BinaryManager {
    */
   async restartSessionIfExists(device) {
     try {
-      const sessionPath = path.join('/app/sessions', device.phoneNumber);
+      const sessionPath = path.join(SESSIONS_DIR, device.phoneNumber);
       const sessionDbPath = path.join(sessionPath, 'whatsapp.db');
       
       // Check if session database exists (indicates previous session)
@@ -176,7 +177,7 @@ class BinaryManager {
 
     try {
       // Create session directory for this phone number
-      const sessionPath = path.join('/app/sessions', phoneNumber);
+      const sessionPath = path.join(SESSIONS_DIR, phoneNumber);
       await this.ensureSessionDirectory(sessionPath);
 
       // Prepare environment variables

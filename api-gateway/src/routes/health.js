@@ -3,6 +3,11 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const binaryManager = require('../services/binaryManager');
 const logger = require('../utils/logger');
+const fsPromises = require('fs').promises;
+const database = require('../database/database');
+const { BIN_PATH } = require('../utils/paths');
+const axios = require('axios');
+const os = require('os');
 
 const router = express.Router();
 
@@ -67,9 +72,7 @@ router.get('/detailed', asyncHandler(async (req, res) => {
 
   // Check WhatsApp binary
   try {
-    const fs = require('fs').promises;
-    const binaryPath = '/app/whatsapp';
-    await fs.access(binaryPath, fs.constants.F_OK | fs.constants.X_OK);
+    await fsPromises.access(BIN_PATH, fsPromises.constants.F_OK | fsPromises.constants.X_OK);
     
     checks.whatsappBinary = {
       status: 'healthy',
@@ -85,10 +88,7 @@ router.get('/detailed', asyncHandler(async (req, res) => {
 
   // Check database file access
   try {
-    const fs = require('fs').promises;
-    const database = require('../database/database');
-    const testPath = database.dbPath || './volumes/whatsapp.db';
-    await fs.access(testPath);
+    await fsPromises.access(database.dbPath);
     
     checks.fileSystem = {
       status: 'healthy',
@@ -136,10 +136,7 @@ router.get('/devices', asyncHandler(async (req, res) => {
       let processReachable = false;
       if (processStatus && processStatus.running) {
         try {
-          const axios = require('axios');
-          const response = await axios.get(`http://localhost:${device.port}/health`, {
-            timeout: 5000
-          });
+          const response = await axios.get(`http://localhost:${device.port}/health`, { timeout: 5000 });
           processReachable = response.status === 200;
         } catch (error) {
           processReachable = false;
@@ -193,10 +190,7 @@ router.get('/processes', asyncHandler(async (req, res) => {
     processes.map(async (process) => {
       try {
         // Try to reach process health endpoint
-        const axios = require('axios');
-        const response = await axios.get(`http://localhost:${process.port}/health`, {
-          timeout: 3000
-        });
+        const response = await axios.get(`http://localhost:${process.port}/health`, { timeout: 3000 });
         
         return {
           phoneNumber: process.phoneNumber,
@@ -244,8 +238,6 @@ router.get('/processes', asyncHandler(async (req, res) => {
  * System health metrics
  */
 router.get('/system', asyncHandler(async (req, res) => {
-  const os = require('os');
-  
   const memoryUsage = process.memoryUsage();
   const systemMemory = {
     total: os.totalmem(),

@@ -2,11 +2,12 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs').promises;
 const logger = require('../utils/logger');
+const { VOLUMES_DIR } = require('../utils/paths');
 
 class Database {
   constructor() {
     this.db = null;
-    this.dbPath = '/app/volumes/whatsapp.db';
+    this.dbPath = path.join(VOLUMES_DIR, 'whatsapp.db');
     this.isConnected = false;
     this.initialized = false;
   }

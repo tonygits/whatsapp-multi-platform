@@ -17,7 +17,7 @@ case "$uname_m" in
   x86_64|amd64) arch="amd64" ;;
   arm64|aarch64) arch="arm64" ;;
   *) echo "Arquitetura não suportada: $uname_m" >&2; exit 1 ;;
-case_end
+esac
 
 ZIP="whatsapp_${VER}_${os}_${arch}.zip"
 URL="https://github.com/aldinokemal/go-whatsapp-web-multidevice/releases/download/v${VER}/${ZIP}"
