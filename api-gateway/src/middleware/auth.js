@@ -32,7 +32,7 @@ class AuthManager {
       }
 
       const defaultUser = process.env.DEFAULT_ADMIN_USER || 'admin';
-      const defaultPass = process.env.DEFAULT_ADMIN_PASS || 'admin123';
+      const defaultPass = process.env.DEFAULT_ADMIN_PASS || 'admin';
 
       if (username === defaultUser && password === defaultPass) {
         logger.info(`Usuário autenticado: ${username}`);

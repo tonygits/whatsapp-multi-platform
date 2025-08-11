@@ -83,9 +83,17 @@ const swaggerOptions = {
   customSiteTitle: "WhatsApp Multi-Platform API Documentation",
   swaggerOptions: {
     tryItOutEnabled: true,
+    persistAuthorization: true,
     requestInterceptor: (req) => {
-      const token = req.headers?.Authorization || localStorage?.getItem?.('jwt_token');
-      if (token) {
+      // Preserve Basic auth if Swagger UI already set it
+      const existingAuth = req.headers?.Authorization || req.headers?.authorization;
+      if (existingAuth && existingAuth.startsWith('Basic ')) {
+        return req;
+      }
+
+      // Otherwise, if no Authorization yet, optionally apply Bearer from localStorage
+      const token = (typeof localStorage !== 'undefined' && localStorage.getItem && localStorage.getItem('jwt_token')) || null;
+      if (!existingAuth && token) {
         req.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       }
       return req;
@@ -196,7 +204,7 @@ router.get('/postman', asyncHandler(async (req, res) => {
                 mode: "raw",
                 raw: JSON.stringify({
                   username: "admin",
-                  password: "admin123"
+                  password: "admin"
                 }, null, 2)
               },
               url: {

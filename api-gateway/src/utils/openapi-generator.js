@@ -6,15 +6,31 @@ const path = require('path');
  * Generate complete OpenAPI documentation with Gateway/Device Management first
  */
 function generateOpenAPIFromApp(app) {
-  // Load original openapi.yaml as template - Docker path
-  const originalPath = path.join(__dirname, '../../openapi.yaml');
+  // Tenta carregar openapi.yaml de caminhos conhecidos; cai para estrutura padrão se não achar
+  const candidatePaths = [
+    path.join(__dirname, '../../openapi.yaml'),      // api-gateway/openapi.yaml (Docker)
+    path.join(__dirname, '../../../openapi.yaml'),   // raiz do projeto
+    path.join(__dirname, '../../docs/openapi.yaml')  // api-gateway/docs/openapi.yaml
+  ];
+
   let baseDoc;
-  
-  try {
-    const originalContent = fs.readFileSync(originalPath, 'utf8');
-    baseDoc = yaml.load(originalContent);
-  } catch (error) {
-    console.warn('Could not load original openapi.yaml, using fallback structure');
+  let loaded = false;
+
+  for (const p of candidatePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const originalContent = fs.readFileSync(p, 'utf8');
+        baseDoc = yaml.load(originalContent);
+        loaded = true;
+        break;
+      }
+    } catch (_) {
+      // continua tentando próximos caminhos
+    }
+  }
+
+  if (!loaded) {
+    console.warn('Could not load original openapi.yaml from known locations, using fallback structure');
     baseDoc = createFallbackStructure();
   }
 

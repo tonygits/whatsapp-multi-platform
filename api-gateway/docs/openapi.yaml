@@ -26,71 +26,8 @@ tags:
   - name: newsletter
     description: newsletter setting
 security:
-  - bearerAuth: []
+  - basicAuth: []
 paths:
-  /api/auth/login:
-    post:
-      operationId: gatewayLogin
-      tags:
-        - Gateway
-      summary: Login no API Gateway
-      description: Autentica um usuário no gateway e retorna um token JWT
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - username
-                - password
-              properties:
-                username:
-                  type: string
-                  example: admin
-                  description: Nome de usuário
-                password:
-                  type: string
-                  example: admin
-                  description: Senha do usuário
-      responses:
-        '200':
-          description: Login realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: Login realizado com sucesso
-                  data:
-                    type: object
-                    properties:
-                      token:
-                        type: string
-                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-                      user:
-                        type: object
-                        properties:
-                          username:
-                            type: string
-                            example: admin
-                          role:
-                            type: string
-                            example: admin
-                      expiresIn:
-                        type: string
-                        example: 24h
-        '401':
-          description: Credenciais inválidas
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
   /api/health:
     get:
       operationId: healthCheck
@@ -99,7 +36,7 @@ paths:
       summary: Verificação de saúde do sistema
       description: Verifica o status de saúde da API e serviços conectados
       security:
-        - bearerAuth: []
+        - basicAuth: []
       responses:
         '200':
           description: Sistema saudável
@@ -153,7 +90,7 @@ paths:
             type: integer
             default: 0
       security:
-        - bearerAuth: []
+        - basicAuth: []
       responses:
         '200':
           description: Lista de dispositivos
@@ -179,6 +116,13 @@ paths:
                         status:
                           type: string
                           example: active
+                        webhookUrl:
+                          type: string
+                          format: url
+                          nullable: true
+                        webhookSecret:
+                          type: string
+                          nullable: true
                         createdAt:
                           type: string
                           format: date-time
@@ -188,7 +132,7 @@ paths:
         - Device Management
       summary: Registrar novo dispositivo
       security:
-        - bearerAuth: []
+        - basicAuth: []
       requestBody:
         required: true
         content:
@@ -204,6 +148,28 @@ paths:
                 name:
                   type: string
                   example: Atendimento Principal
+                webhook:
+                  type: string
+                  format: url
+                  nullable: true
+                  example: https://meusite.com/webhook/messages
+                webhookSecret:
+                  type: string
+                  nullable: true
+                  example: meu-secret-mensagens
+                statusWebhook:
+                  type: string
+                  format: url
+                  nullable: true
+                  example: https://meusite.com/webhook/status
+                statusWebhookSecret:
+                  type: string
+                  nullable: true
+                  example: meu-secret-status
+                autoStart:
+                  type: boolean
+                  default: true
+                  example: true
       responses:
         '201':
           description: Dispositivo criado
@@ -220,6 +186,349 @@ paths:
                     type: string
                   status:
                     type: string
+                  webhookUrl:
+                    type: string
+                    format: url
+                    nullable: true
+                  webhookSecret:
+                    type: string
+                    nullable: true
+                  statusWebhookUrl:
+                    type: string
+                    format: url
+                    nullable: true
+                  statusWebhookSecret:
+                    type: string
+                    nullable: true
+    put:
+      operationId: updateDeviceInfo
+      tags:
+        - Device Management
+      summary: Atualizar informações de um dispositivo
+      description: >-
+        Atualiza o nome, webhooks de mensagens e webhooks de status de um
+        dispositivo.
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Novo Nome do Dispositivo
+                webhook_url:
+                  type: string
+                  format: url
+                  nullable: true
+                  example: https://meusite.com/webhook/messages
+                webhook_secret:
+                  type: string
+                  nullable: true
+                  example: novo-secret-mensagens
+                status_webhook_url:
+                  type: string
+                  format: url
+                  nullable: true
+                  example: https://meusite.com/webhook/status
+                status_webhook_secret:
+                  type: string
+                  nullable: true
+                  example: novo-secret-status
+      responses:
+        '200':
+          description: Dispositivo atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Dispositivo atualizado com sucesso
+                  data:
+                    type: object
+                    properties:
+                      deviceHash:
+                        type: string
+                      phoneNumber:
+                        type: string
+                      name:
+                        type: string
+                      status:
+                        type: string
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+  /api/devices/delete:
+    delete:
+      operationId: deleteDevice
+      tags:
+        - Device Management
+      summary: Remover um dispositivo
+      description: Remove um dispositivo e seu container Docker associado.
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+        - name: force
+          in: query
+          required: false
+          description: Forçar a remoção mesmo se o processo não puder ser parado.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Dispositivo removido com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Dispositivo removido com sucesso
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        '500':
+          description: Erro ao remover dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+  /api/devices/info:
+    get:
+      operationId: getDeviceInfo
+      tags:
+        - Device Management
+      summary: Obter informações de um dispositivo específico
+      description: >-
+        Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code
+        (se disponível).
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+      responses:
+        '200':
+          description: Informações do dispositivo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  deviceHash:
+                    type: string
+                  phoneNumber:
+                    type: string
+                    example: '5511999999999'
+                  name:
+                    type: string
+                    example: Atendimento Principal
+                  status:
+                    type: string
+                    example: connected
+                  processStatus:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: running
+                      containerId:
+                        type: string
+                        example: a1b2c3d4e5f6
+                  qrCode:
+                    type: string
+                    nullable: true
+                    example: data:image/png;base64,...
+                  lastSeen:
+                    type: string
+                    format: date-time
+                  createdAt:
+                    type: string
+                    format: date-time
+                  webhookUrl:
+                    type: string
+                    format: url
+                    nullable: true
+                  webhookSecret:
+                    type: string
+                    nullable: true
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+  /api/devices/restart:
+    post:
+      operationId: restartDevice
+      tags:
+        - Device Management
+      summary: Reiniciar um dispositivo
+      description: Reinicia o container Docker associado a um dispositivo.
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+      responses:
+        '200':
+          description: Dispositivo reiniciado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Processo reiniciado com sucesso
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        '500':
+          description: Erro ao reiniciar dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+  /api/devices/start:
+    post:
+      operationId: startDevice
+      tags:
+        - Device Management
+      summary: Iniciar um dispositivo
+      description: Inicia o container Docker associado a um dispositivo.
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+      responses:
+        '200':
+          description: Dispositivo iniciado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Processo iniciado com sucesso
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        '500':
+          description: Erro ao iniciar dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+  /api/devices/stop:
+    post:
+      operationId: stopDevice
+      tags:
+        - Device Management
+      summary: Parar um dispositivo
+      description: Para o container Docker associado a um dispositivo.
+      security:
+        - basicAuth: []
+      parameters:
+        - name: x-instance-id
+          in: header
+          required: true
+          description: 'O número de telefone da instância (ex: 5511999999999)'
+          schema:
+            type: string
+            example: '5511999999999'
+      responses:
+        '200':
+          description: Dispositivo parado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Processo parado com sucesso
+        '404':
+          description: Dispositivo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        '500':
+          description: Erro ao parar dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
   /api/app/devices:
     get:
       operationId: appDevices
@@ -248,7 +557,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/app/login:
     get:
       operationId: appLogin
@@ -277,7 +586,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/app/login-with-code:
     get:
       operationId: appLoginWithCode
@@ -312,7 +621,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/app/logout:
     get:
       operationId: appLogout
@@ -341,7 +650,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/app/reconnect:
     get:
       operationId: appReconnect
@@ -370,7 +679,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/avatar:
     get:
       operationId: userAvatar
@@ -423,7 +732,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
     post:
       operationId: userChangeAvatar
       tags:
@@ -467,7 +776,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/business-profile:
     get:
       operationId: userBusinessProfile
@@ -512,7 +821,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/check:
     get:
       operationId: userCheck
@@ -553,7 +862,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/info:
     get:
       operationId: userInfo
@@ -594,7 +903,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/my/contacts:
     get:
       operationId: userMyContacts
@@ -623,7 +932,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/my/groups:
     get:
       operationId: userMyGroups
@@ -652,7 +961,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/my/newsletters:
     get:
       operationId: userMyNewsletter
@@ -681,7 +990,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/my/privacy:
     get:
       operationId: userMyPrivacy
@@ -710,7 +1019,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/user/pushname:
     post:
       operationId: userChangePushName
@@ -758,7 +1067,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/audio:
     post:
       operationId: sendAudio
@@ -819,7 +1128,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/chat-presence:
     post:
       operationId: sendChatPresence
@@ -880,7 +1189,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/contact:
     post:
       operationId: sendContact
@@ -941,7 +1250,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/file:
     post:
       operationId: sendFile
@@ -1002,7 +1311,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/image:
     post:
       operationId: sendImage
@@ -1075,7 +1384,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/link:
     post:
       operationId: sendLink
@@ -1136,7 +1445,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/location:
     post:
       operationId: sendLocation
@@ -1197,7 +1506,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/message:
     post:
       operationId: sendMessage
@@ -1258,7 +1567,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/poll:
     post:
       operationId: sendPoll
@@ -1332,7 +1641,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/presence:
     post:
       operationId: sendPresence
@@ -1387,7 +1696,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/send/video:
     post:
       operationId: sendVideo
@@ -1460,7 +1769,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/delete:
     post:
       operationId: deleteMessage
@@ -1511,7 +1820,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/reaction:
     post:
       operationId: reactMessage
@@ -1566,7 +1875,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/read:
     post:
       operationId: readMessage
@@ -1619,7 +1928,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/revoke:
     post:
       operationId: revokeMessage
@@ -1670,7 +1979,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/star:
     post:
       operationId: starMessage
@@ -1723,7 +2032,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/unstar:
     post:
       operationId: unstarMessage
@@ -1776,7 +2085,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/message/{message_id}/update:
     post:
       operationId: updateMessage
@@ -1834,7 +2143,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/chats:
     get:
       operationId: listChats
@@ -1900,7 +2209,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/chat/{chat_jid}/label:
     post:
       operationId: labelChat
@@ -1979,7 +2288,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/chat/{chat_jid}/messages:
     get:
       operationId: getChatMessages
@@ -2083,7 +2392,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/chat/{chat_jid}/pin:
     post:
       operationId: pinChat
@@ -2152,7 +2461,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group:
     post:
       operationId: createGroup
@@ -2208,7 +2517,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/announce:
     post:
       operationId: setGroupAnnounce
@@ -2261,7 +2570,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/info:
     get:
       operationId: groupInfo
@@ -2302,7 +2611,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/info-from-link:
     get:
       operationId: getGroupInfoFromLink
@@ -2347,7 +2656,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/join-with-link:
     post:
       operationId: joinGroupWithLink
@@ -2391,7 +2700,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/leave:
     post:
       operationId: leaveGroup
@@ -2435,7 +2744,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/locked:
     post:
       operationId: setGroupLocked
@@ -2488,7 +2797,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/name:
     post:
       operationId: setGroupName
@@ -2541,7 +2850,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participant-requests:
     get:
       operationId: getGroupParticipantRequests
@@ -2583,7 +2892,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participant-requests/approve:
     post:
       operationId: approveGroupParticipantRequest
@@ -2638,7 +2947,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participant-requests/reject:
     post:
       operationId: rejectGroupParticipantRequest
@@ -2693,7 +3002,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participants:
     post:
       operationId: addParticipantToGroup
@@ -2733,7 +3042,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participants/demote:
     post:
       operationId: demoteParticipantToMember
@@ -2773,7 +3082,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participants/promote:
     post:
       operationId: promoteParticipantToAdmin
@@ -2813,7 +3122,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/participants/remove:
     post:
       operationId: removeParticipantFromGroup
@@ -2853,7 +3162,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/photo:
     post:
       operationId: setGroupPhoto
@@ -2906,7 +3215,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/group/topic:
     post:
       operationId: setGroupTopic
@@ -2960,7 +3269,7 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
   /api/newsletter/unfollow:
     post:
       operationId: unfollowNewsletter
@@ -3004,13 +3313,12 @@ paths:
             type: string
             example: '5511999999999'
       security:
-        - bearerAuth: []
+        - basicAuth: []
 components:
   securitySchemes:
-    bearerAuth:
+    basicAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: basic
   schemas:
     CreateGroupResponse:
       type: object
