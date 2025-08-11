@@ -3,7 +3,6 @@ const { asyncHandler, CustomError } = require('../middleware/errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const binaryManager = require('../services/binaryManager');
 const DeviceRepository = require('../repositories/DeviceRepository');
-const qrcode = require('qrcode');
 const logger = require('../utils/logger');
 const PhoneUtils = require('../utils/phoneUtils');
 const resolveInstance = require('../middleware/resolveInstance');
@@ -149,35 +148,10 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /api/devices/info
- * Get specific device information by instance ID
- */
-router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
-
-  const processStatus = await binaryManager.getProcessStatus(device.phone_number);
-
-  res.json({
-    success: true,
-    data: {
-      id: device.id,
-      deviceHash: device.device_hash,
-      phoneNumber: PhoneUtils.maskPhoneNumber(device.phone_number, { forceMask: false }),
-      name: device.name,
-      status: device.status,
-      processStatus,
-      qrCode: device.qr_code,
-      lastSeen: device.last_seen,
-      createdAt: device.created_at
-    }
-  });
-}));
-
-/**
- * PUT /api/devices/info
+ * PUT /api/devices
  * Update device information by instance ID
  */
-router.put('/info', resolveInstance, asyncHandler(async (req, res) => {
+router.put('/', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
   const updates = req.body;
 
@@ -248,6 +222,33 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
     logger.error(`Erro ao remover dispositivo ${PhoneUtils.maskForLog(device.phone_number, 'error')}:`, error);
     throw error;
   }
+}));
+
+
+
+/**
+ * GET /api/devices/info
+ * Get specific device information by instance ID
+ */
+router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
+  const { device } = req;
+
+  const processStatus = await binaryManager.getProcessStatus(device.phone_number);
+
+  res.json({
+    success: true,
+    data: {
+      id: device.id,
+      deviceHash: device.device_hash,
+      phoneNumber: PhoneUtils.maskPhoneNumber(device.phone_number, { forceMask: false }),
+      name: device.name,
+      status: device.status,
+      processStatus,
+      qrCode: device.qr_code,
+      lastSeen: device.last_seen,
+      createdAt: device.created_at
+    }
+  });
 }));
 
 /**

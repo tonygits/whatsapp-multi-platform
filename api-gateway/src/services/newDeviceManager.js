@@ -83,16 +83,15 @@ class DeviceManager {
       // Allocate port for the device
       const port = this.getNextAvailablePort();
 
-      // Generate session ID
-      const sessionId = `session_${phoneNumber}_${Date.now()}`;
-
       // Create device record
       const device = await deviceRepository.create({
         phone_number: phoneNumber,
         name: options.name || `Device ${phoneNumber}`,
         container_port: port,
         webhook_url: options.webhook_url,
-        webhook_secret: options.webhook_secret
+        webhook_secret: options.webhook_secret,
+        status_webhook_url: options.status_webhook_url,
+        status_webhook_secret: options.status_webhook_secret
       });
 
       logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id, port });
@@ -105,6 +104,8 @@ class DeviceManager {
         port: device.container_port,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
+        statusWebhookUrl: device.status_webhook_url,
+        statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at
       };
     } catch (error) {
@@ -172,6 +173,8 @@ class DeviceManager {
         qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
+        statusWebhookUrl: device.status_webhook_url,
+        statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
         lastSeen: device.last_seen
@@ -204,6 +207,8 @@ class DeviceManager {
         qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
+        statusWebhookUrl: device.status_webhook_url,
+        statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
         lastSeen: device.last_seen

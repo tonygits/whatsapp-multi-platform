@@ -209,66 +209,6 @@ function generateOpenAPIFromApp(app) {
             }
           }
         }
-      }
-    },
-    '/api/devices/info': {
-      get: {
-        operationId: 'getDeviceInfo',
-        tags: ['Device Management'],
-        summary: 'Obter informações de um dispositivo específico',
-        description: 'Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code (se disponível).',
-        security: [{ basicAuth: [] }],
-        parameters: [
-          {
-            name: 'x-instance-id',
-            in: 'header',
-            required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
-            schema: {
-              type: 'string',
-              example: '5511999999999'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Informações do dispositivo',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'number', example: 1 },
-                    deviceHash: { type: 'string' },
-                    phoneNumber: { type: 'string', example: '5511999999999' },
-                    name: { type: 'string', example: 'Atendimento Principal' },
-                    status: { type: 'string', example: 'connected' },
-                    processStatus: {
-                      type: 'object',
-                      properties: {
-                        status: { type: 'string', example: 'running' },
-                        containerId: { type: 'string', example: 'a1b2c3d4e5f6' }
-                      }
-                    },
-                    qrCode: { type: 'string', nullable: true, example: 'data:image/png;base64,...' },
-                    lastSeen: { type: 'string', format: 'date-time' },
-                    createdAt: { type: 'string', format: 'date-time' },
-                    webhookUrl: { type: 'string', format: 'url', nullable: true },
-                    webhookSecret: { type: 'string', nullable: true }
-                  }
-                }
-              }
-            }
-          },
-          '404': {
-            description: 'Dispositivo não encontrado',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
-              }
-            }
-          }
-        }
       },
       put: {
         operationId: 'updateDeviceInfo',
@@ -324,6 +264,66 @@ function generateOpenAPIFromApp(app) {
                         status: { type: 'string' }
                       }
                     }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/devices/info': {
+      get: {
+        operationId: 'getDeviceInfo',
+        tags: ['Device Management'],
+        summary: 'Obter informações de um dispositivo específico',
+        description: 'Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code (se disponível).',
+        security: [{ basicAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Informações do dispositivo',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'number', example: 1 },
+                    deviceHash: { type: 'string' },
+                    phoneNumber: { type: 'string', example: '5511999999999' },
+                    name: { type: 'string', example: 'Atendimento Principal' },
+                    status: { type: 'string', example: 'connected' },
+                    processStatus: {
+                      type: 'object',
+                      properties: {
+                        status: { type: 'string', example: 'running' },
+                        containerId: { type: 'string', example: 'a1b2c3d4e5f6' }
+                      }
+                    },
+                    qrCode: { type: 'string', nullable: true, example: 'data:image/png;base64,...' },
+                    lastSeen: { type: 'string', format: 'date-time' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    webhookUrl: { type: 'string', format: 'url', nullable: true },
+                    webhookSecret: { type: 'string', nullable: true }
                   }
                 }
               }
