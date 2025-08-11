@@ -8,42 +8,42 @@ const router = express.Router();
  * POST /api/message/:message_id/revoke
  * Revoke Message
  */
-router.post('/:message_id/revoke', resolveInstance, proxyToContainer);
+router.post('/:message_id/revoke', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/delete
  * Delete Message
  */
-router.post('/:message_id/delete', resolveInstance, proxyToContainer);
+router.post('/:message_id/delete', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/reaction
  * Send reaction to message
  */
-router.post('/:message_id/reaction', resolveInstance, proxyToContainer);
+router.post('/:message_id/reaction', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/update
  * Edit message by message ID before 15 minutes
  */
-router.post('/:message_id/update', resolveInstance, proxyToContainer);
+router.post('/:message_id/update', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/read
  * Mark as read message
  */
-router.post('/:message_id/read', resolveInstance, proxyToContainer);
+router.post('/:message_id/read', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/star
  * Star message
  */
-router.post('/:message_id/star', resolveInstance, proxyToContainer);
+router.post('/:message_id/star', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/message/:message_id/unstar
  * Unstar message
  */
-router.post('/:message_id/unstar', resolveInstance, proxyToContainer);
+router.post('/:message_id/unstar', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 module.exports = router;

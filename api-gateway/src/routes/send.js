@@ -13,66 +13,66 @@ const router = express.Router();
  * POST /api/send/message
  * Send message
  */
-router.post('/message', resolveInstance, proxyToContainer);
+router.post('/message', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/image
  * Send image
  */
-router.post('/image', resolveInstance, proxyToContainer);
+router.post('/image', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/audio
  * Send audio
  */
-router.post('/audio', resolveInstance, proxyToContainer);
+router.post('/audio', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/video
  * Send video
  */
-router.post('/video', resolveInstance, proxyToContainer);
+router.post('/video', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/file
  * Send file
  */
-router.post('/file', resolveInstance, proxyToContainer);
+router.post('/file', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/contact
  * Send contact
  */
-router.post('/contact', resolveInstance, proxyToContainer);
+router.post('/contact', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/link
  * Send link
  */
-router.post('/link', resolveInstance, proxyToContainer);
+router.post('/link', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/location
  * Send location
  */
-router.post('/location', resolveInstance, proxyToContainer);
+router.post('/location', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/poll
  * Send poll/vote
  */
-router.post('/poll', resolveInstance, proxyToContainer);
+router.post('/poll', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/presence
  * Send presence status
  */
-router.post('/presence', resolveInstance, proxyToContainer);
+router.post('/presence', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/send/chat-presence
  * Send chat presence (typing indicator)
  */
-router.post('/chat-presence', resolveInstance, proxyToContainer);
+router.post('/chat-presence', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 module.exports = router;

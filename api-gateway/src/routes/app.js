@@ -21,18 +21,18 @@ router.get('/login-with-code', resolveInstance, proxyToContainer);
  * GET /api/app/logout
  * Remove database and logout
  */
-router.get('/logout', resolveInstance, proxyToContainer);
+router.get('/logout', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/app/reconnect
  * Reconnecting to WhatsApp server
  */
-router.get('/reconnect', resolveInstance, proxyToContainer);
+router.get('/reconnect', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/app/devices
  * Get list connected devices
  */
-router.get('/devices', resolveInstance, proxyToContainer);
+router.get('/devices', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 module.exports = router;

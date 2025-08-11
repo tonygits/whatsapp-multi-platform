@@ -8,60 +8,60 @@ const router = express.Router();
  * GET /api/user/info
  * User Info
  */
-router.get('/info', resolveInstance, proxyToContainer);
+router.get('/info', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/avatar
  * User Avatar
  */
-router.get('/avatar', resolveInstance, proxyToContainer);
+router.get('/avatar', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/user/avatar
  * User Change Avatar
  */
-router.post('/avatar', resolveInstance, proxyToContainer);
+router.post('/avatar', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * POST /api/user/pushname
  * User Change Push Name
  */
-router.post('/pushname', resolveInstance, proxyToContainer);
+router.post('/pushname', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/my/privacy
  * User My Privacy Setting
  */
-router.get('/my/privacy', resolveInstance, proxyToContainer);
+router.get('/my/privacy', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/my/groups
  * User My List Groups
  */
-router.get('/my/groups', resolveInstance, proxyToContainer);
+router.get('/my/groups', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/my/newsletters
  * User My List Newsletters
  */
-router.get('/my/newsletters', resolveInstance, proxyToContainer);
+router.get('/my/newsletters', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/my/contacts
  * Get list of user contacts
  */
-router.get('/my/contacts', resolveInstance, proxyToContainer);
+router.get('/my/contacts', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/check
  * Check if user is on WhatsApp
  */
-router.get('/check', resolveInstance, proxyToContainer);
+router.get('/check', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 /**
  * GET /api/user/business-profile
  * Get Business Profile Information
  */
-router.get('/business-profile', resolveInstance, proxyToContainer);
+router.get('/business-profile', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 module.exports = router;

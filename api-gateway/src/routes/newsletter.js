@@ -8,6 +8,6 @@ const router = express.Router();
  * POST /api/newsletter/unfollow
  * Unfollow newsletter
  */
-router.post('/unfollow', resolveInstance, proxyToContainer);
+router.post('/unfollow', [resolveInstance, resolveInstance.ensureActive], proxyToContainer);
 
 module.exports = router;
