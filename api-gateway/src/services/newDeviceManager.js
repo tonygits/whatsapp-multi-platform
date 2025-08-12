@@ -3,7 +3,6 @@ const deviceRepository = require('../repositories/DeviceRepository');
 
 class DeviceManager {
   constructor() {
-    this.cleanupInterval = null;
     this.basePort = 8000; // Starting port for WhatsApp containers
     this.usedPorts = new Set();
   }
@@ -18,8 +17,6 @@ class DeviceManager {
       // Load existing ports to avoid conflicts
       await this.loadUsedPorts();
       
-      // Start periodic QR cleanup
-      this.startQRCleanup();
       
       logger.info('Device Manager inicializado com sucesso');
     } catch (error) {
@@ -187,141 +184,10 @@ class DeviceManager {
     }
   }
 
-  /**
-   * List all devices
-   * @param {Object} filters - Optional filters
-   * @returns {Promise<Array>} - Array of devices
-   */
-  async listDevices(filters = {}) {
-    try {
-      const devices = await deviceRepository.findAll(filters);
-      
-      return devices.map(device => ({
-        id: device.id,
-        deviceHash: device.device_hash,
-        phoneNumber: device.phone_number,
-        name: device.name,
-        status: device.status,
-        containerInfo: {
-          containerId: device.container_id,
-          port: device.container_port
-        },
-        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
-        qrExpiresAt: device.qr_expires_at,
-        webhookUrl: device.webhook_url,
-        webhookSecret: device.webhook_secret,
-        statusWebhookUrl: device.status_webhook_url,
-        statusWebhookSecret: device.status_webhook_secret,
-        createdAt: device.created_at,
-        updatedAt: device.updated_at,
-        lastSeen: device.last_seen,
-        retryCount: device.retry_count
-      }));
-    } catch (error) {
-      logger.error('Erro ao listar dispositivos:', error);
-      throw error;
-    }
-  }
 
-  /**
-   * Update device status
-   * @param {string} phoneNumber - Phone number
-   * @param {string} status - New status
-   * @param {Object} additionalData - Additional data to update
-   * @returns {Promise<Object|null>} - Updated device
-   */
-  async updateDeviceStatus(phoneNumber, status, additionalData = {}) {
-    try {
-      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
-      if (!device) {
-        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
-      }
 
-      const updateData = {
-        status,
-        last_seen: new Date().toISOString(),
-        ...additionalData
-      };
 
-      const updatedDevice = await deviceRepository.update(device.id, updateData);
-      
-      logger.info(`Status do dispositivo ${phoneNumber} atualizado para: ${status}`);
-      
-      return updatedDevice;
-    } catch (error) {
-      logger.error(`Erro ao atualizar status do dispositivo ${phoneNumber}:`, error);
-      throw error;
-    }
-  }
 
-  /**
-   * Set QR code for device
-   * @param {string} phoneNumber - Phone number
-   * @param {string} qrCode - QR code data
-   * @param {number} expiresInMinutes - QR expiration time in minutes
-   * @returns {Promise<Object|null>} - Updated device
-   */
-  async setDeviceQRCode(phoneNumber, qrCode, expiresInMinutes = 5) {
-    try {
-      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
-      if (!device) {
-        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
-      }
-
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
-
-      const updatedDevice = await deviceRepository.setQRCode(device.id, qrCode, expiresAt);
-      
-      logger.info(`QR Code definido para dispositivo ${phoneNumber}, expira em: ${expiresAt.toISOString()}`);
-      
-      return updatedDevice;
-    } catch (error) {
-      logger.error(`Erro ao definir QR Code para dispositivo ${phoneNumber}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get device statistics
-   * @returns {Promise<Object>} - Device statistics
-   */
-  async getStatistics() {
-    try {
-      const stats = await deviceRepository.getStatistics();
-      return stats;
-    } catch (error) {
-      logger.error('Erro ao obter estatísticas:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Start periodic QR code cleanup
-   */
-  startQRCleanup() {
-    // Clean expired QR codes every 5 minutes
-    this.cleanupInterval = setInterval(async () => {
-      try {
-        await deviceRepository.clearExpiredQRCodes();
-      } catch (error) {
-        logger.error('Erro na limpeza automática de QR codes:', error);
-      }
-    }, 5 * 60 * 1000);
-
-    logger.info('Limpeza automática de QR codes iniciada (5 min)');
-  }
-
-  /**
-   * Stop QR cleanup interval
-   */
-  stopQRCleanup() {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-      logger.info('Limpeza automática de QR codes parada');
-    }
-  }
 
   /**
    * Update device (alias for updateDeviceStatus with more flexibility)
@@ -353,32 +219,85 @@ class DeviceManager {
    * @returns {Promise<Array>} - Array of devices
    */
   async getDevicesByStatus(status) {
-    return this.listDevices({ status });
+    try {
+      const devices = await deviceRepository.findAll({ status });
+      
+      return devices.map(device => ({
+        id: device.id,
+        deviceHash: device.device_hash,
+        phoneNumber: device.phone_number,
+        name: device.name,
+        status: device.status,
+        containerInfo: {
+          containerId: device.container_id,
+          port: device.container_port
+        },
+        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
+        qrExpiresAt: device.qr_expires_at,
+        webhookUrl: device.webhook_url,
+        webhookSecret: device.webhook_secret,
+        statusWebhookUrl: device.status_webhook_url,
+        statusWebhookSecret: device.status_webhook_secret,
+        createdAt: device.created_at,
+        updatedAt: device.updated_at,
+        lastSeen: device.last_seen,
+        retryCount: device.retry_count
+      }));
+    } catch (error) {
+      logger.error('Erro ao listar dispositivos por status:', error);
+      throw error;
+    }
   }
 
   /**
-   * Get all devices (alias for listDevices)
+   * Get all devices
    * @returns {Promise<Array>} - Array of devices
    */
   async getAllDevices() {
-    return this.listDevices();
+    try {
+      const devices = await deviceRepository.findAll();
+      
+      return devices.map(device => ({
+        id: device.id,
+        deviceHash: device.device_hash,
+        phoneNumber: device.phone_number,
+        name: device.name,
+        status: device.status,
+        containerInfo: {
+          containerId: device.container_id,
+          port: device.container_port
+        },
+        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
+        qrExpiresAt: device.qr_expires_at,
+        webhookUrl: device.webhook_url,
+        webhookSecret: device.webhook_secret,
+        statusWebhookUrl: device.status_webhook_url,
+        statusWebhookSecret: device.status_webhook_secret,
+        createdAt: device.created_at,
+        updatedAt: device.updated_at,
+        lastSeen: device.last_seen,
+        retryCount: device.retry_count
+      }));
+    } catch (error) {
+      logger.error('Erro ao listar dispositivos:', error);
+      throw error;
+    }
   }
 
   /**
-   * Get statistics (alias for getStatistics)
+   * Get statistics
    * @returns {Promise<Object>} - Device statistics
    */
   async getStats() {
-    return this.getStatistics();
+    try {
+      const stats = await deviceRepository.getStatistics();
+      return stats;
+    } catch (error) {
+      logger.error('Erro ao obter estatísticas:', error);
+      throw error;
+    }
   }
 
-  /**
-   * Cleanup on shutdown
-   */
-  async cleanup() {
-    this.stopQRCleanup();
-    logger.info('Device Manager cleanup concluído');
-  }
 }
 
 module.exports = new DeviceManager();

@@ -109,8 +109,9 @@ class StatusWebhookManager {
   async handleContainerEvent(phoneNumber, containerEvent) {
     try {
       let statusData = null;
+      let deviceStatus = null;
 
-      // Parse different container events
+      // Parse different container events and determine device status
       switch (containerEvent.code) {
         case 'LOGIN_SUCCESS':
           statusData = {
@@ -119,6 +120,7 @@ class StatusWebhookManager {
             message: containerEvent.message,
             device_info: containerEvent.result
           };
+          deviceStatus = 'connected';
           break;
 
         case 'LIST_DEVICES':
@@ -129,23 +131,16 @@ class StatusWebhookManager {
               message: 'Device connected and ready',
               devices: containerEvent.result
             };
-          } else if (containerEvent.result === null) {
+            deviceStatus = 'connected';
+          } else if (containerEvent.result === null || containerEvent.result.length === 0) {
             statusData = {
               type: 'disconnected',
               code: containerEvent.code,
               message: 'Device disconnected',
               devices: []
             };
+            deviceStatus = 'disconnected';
           }
-          break;
-
-        case 'QR_CODE':
-          statusData = {
-            type: 'qr_code_required',
-            code: containerEvent.code,
-            message: containerEvent.message,
-            qr_data: containerEvent.result
-          };
           break;
 
         case 'AUTH_FAILURE':
@@ -155,6 +150,27 @@ class StatusWebhookManager {
             message: containerEvent.message,
             error: containerEvent.result
           };
+          deviceStatus = 'error';
+          break;
+
+        case 'CONTAINER_START':
+          statusData = {
+            type: 'container_event',
+            code: containerEvent.code,
+            message: 'WhatsApp container started successfully',
+            data: containerEvent.result
+          };
+          deviceStatus = 'running';
+          break;
+
+        case 'CONTAINER_STOP':
+          statusData = {
+            type: 'container_event',
+            code: containerEvent.code,
+            message: 'WhatsApp container stopped',
+            data: containerEvent.result
+          };
+          deviceStatus = 'stopped';
           break;
 
         default:
@@ -168,6 +184,16 @@ class StatusWebhookManager {
           break;
       }
 
+      // Update device status in database if status changed
+      if (deviceStatus) {
+        await deviceManager.updateDevice(phoneNumber, { 
+          status: deviceStatus,
+          lastSeen: new Date().toISOString()
+        });
+        logger.info(`Status do dispositivo ${phoneNumber} atualizado para: ${deviceStatus}`);
+      }
+
+      // Send webhook notification
       if (statusData) {
         await this.sendStatusUpdate(phoneNumber, statusData);
       }

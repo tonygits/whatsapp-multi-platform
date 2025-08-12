@@ -52,23 +52,6 @@ class DeviceRepository {
     }
   }
 
-  /**
-   * Find device by ID
-   * @param {number} id - Device ID
-   * @returns {Promise<Object|null>} - Device or null
-   */
-  async findById(id) {
-    try {
-      const device = await database.get(
-        'SELECT * FROM devices WHERE id = ?',
-        [id]
-      );
-      return device;
-    } catch (error) {
-      logger.error('Erro ao buscar dispositivo por ID:', error);
-      throw error;
-    }
-  }
 
   /**
    * Find device by phone number
@@ -187,7 +170,11 @@ class DeviceRepository {
         params
       );
 
-      const updatedDevice = await this.findById(id);
+      // Get the updated device directly
+      const updatedDevice = await database.get(
+        'SELECT * FROM devices WHERE id = ?',
+        [id]
+      );
       logger.info(`Dispositivo atualizado: ${id}`);
       
       return updatedDevice;
@@ -221,57 +208,8 @@ class DeviceRepository {
     }
   }
 
-  /**
-   * Update device status
-   * @param {number} id - Device ID
-   * @param {string} status - New status
-   * @returns {Promise<Object|null>} - Updated device
-   */
-  async updateStatus(id, status) {
-    return this.update(id, { 
-      status, 
-      last_seen: new Date().toISOString() 
-    });
-  }
 
-  /**
-   * Set QR code for device
-   * @param {number} id - Device ID
-   * @param {string} qrCode - QR code data
-   * @param {Date} expiresAt - QR expiration time
-   * @returns {Promise<Object|null>} - Updated device
-   */
-  async setQRCode(id, qrCode, expiresAt) {
-    return this.update(id, {
-      qr_code: qrCode,
-      qr_expires_at: expiresAt.toISOString(),
-      status: 'waiting_qr'
-    });
-  }
 
-  /**
-   * Clear expired QR codes
-   * @returns {Promise<number>} - Number of cleared QR codes
-   */
-  async clearExpiredQRCodes() {
-    try {
-      const result = await database.run(
-        `UPDATE devices 
-         SET qr_code = NULL, qr_expires_at = NULL 
-         WHERE qr_expires_at < datetime('now')`,
-        []
-      );
-
-      if (result.changes > 0) {
-        logger.info(`${result.changes} QR codes expirados limpos`);
-      }
-
-      return result.changes;
-    } catch (error) {
-      logger.error('Erro ao limpar QR codes expirados:', error);
-      throw error;
-    }
-  }
 
   /**
    * Get device statistics
