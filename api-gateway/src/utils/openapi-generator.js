@@ -162,11 +162,12 @@ function generateOpenAPIFromApp(app) {
                         type: 'object',
                         properties: {
                           id: { type: 'number', example: 1 },
-                          phoneNumber: { type: 'string', example: '5511999999999' },
-                          name: { type: 'string', example: 'Atendimento Principal' },
+                          deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
                           status: { type: 'string', example: 'active' },
                           webhookUrl: { type: 'string', format: 'url', nullable: true },
                           webhookSecret: { type: 'string', nullable: true },
+                          statusWebhookUrl: { type: 'string', format: 'url', nullable: true },
+                          statusWebhookSecret: { type: 'string', nullable: true },
                           createdAt: { type: 'string', format: 'date-time' },
                         }
                       }
@@ -189,10 +190,7 @@ function generateOpenAPIFromApp(app) {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['phoneNumber'],
                 properties: {
-                  phoneNumber: { type: 'string', example: '5511999999999' },
-                  name: { type: 'string', example: 'Atendimento Principal' },
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
                   webhookSecret: { type: 'string', nullable: true, example: 'meu-secret-mensagens' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
@@ -212,7 +210,6 @@ function generateOpenAPIFromApp(app) {
                   type: 'object',
                   properties: {
                     deviceHash: { type: 'string' },
-                    phoneNumber: { type: 'string' },
                     name: { type: 'string' },
                     status: { type: 'string' },
                     webhookUrl: { type: 'string', format: 'url', nullable: true },
@@ -275,7 +272,6 @@ function generateOpenAPIFromApp(app) {
                       type: 'object',
                       properties: {
                         deviceHash: { type: 'string' },
-                        phoneNumber: { type: 'string' },
                         name: { type: 'string' },
                         status: { type: 'string' }
                       }
@@ -324,8 +320,7 @@ function generateOpenAPIFromApp(app) {
                   type: 'object',
                   properties: {
                     id: { type: 'number', example: 1 },
-                    deviceHash: { type: 'string' },
-                    phoneNumber: { type: 'string', example: '5511999999999' },
+                    deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
                     name: { type: 'string', example: 'Atendimento Principal' },
                     status: { type: 'string', example: 'connected' },
                     processStatus: {
@@ -335,7 +330,6 @@ function generateOpenAPIFromApp(app) {
                         containerId: { type: 'string', example: 'a1b2c3d4e5f6' }
                       }
                     },
-                    qrCode: { type: 'string', nullable: true, example: 'data:image/png;base64,...' },
                     lastSeen: { type: 'string', format: 'date-time' },
                     createdAt: { type: 'string', format: 'date-time' },
                     webhookUrl: { type: 'string', format: 'url', nullable: true },
@@ -635,7 +629,7 @@ function createFallbackStructure() {
     info: {
       title: "WhatsApp API MultiDevice",
       version: "6.9.0",
-      description: "API para envio de mensagens WhatsApp com suporte a múltiplos dispositivos e webhooks de status.\n\n## Webhooks de Status\n\nEste sistema suporta webhooks para notificações de status dos dispositivos:\n\n### Configuração\n- `statusWebhook`: URL para receber notificações de status\n- `statusWebhookSecret`: Chave secreta para assinatura HMAC-SHA256\n\n### Eventos Suportados\n- **login_success**: Dispositivo conectado com sucesso\n- **connected**: Dispositivo pronto para uso\n- **disconnected**: Dispositivo desconectado\n- **qr_code_required**: QR Code necessário para autenticação\n- **auth_failed**: Falha na autenticação\n- **container_event**: Outros eventos do container\n\n### Formato do Webhook\n```json\n{\n  \"device\": {\n    \"phoneNumber\": \"5511999999999\",\n    \"name\": \"Dispositivo Teste\",\n    \"status\": \"active\"\n  },\n  \"event\": {\n    \"type\": \"connected\",\n    \"code\": \"LIST_DEVICES\",\n    \"message\": \"Device connected and ready\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Verificação de Assinatura\nSe `statusWebhookSecret` foi configurado, o header `X-Webhook-Signature` conterá a assinatura HMAC-SHA256 do payload."
+      description: "API para envio de mensagens WhatsApp com suporte a múltiplos dispositivos e webhooks de status.\n\n## Webhooks de Status\n\nEste sistema suporta webhooks para notificações de status dos dispositivos:\n\n### Configuração\n- `statusWebhook`: URL para receber notificações de status\n- `statusWebhookSecret`: Chave secreta para assinatura HMAC-SHA256\n\n### Eventos Suportados\n- **login_success**: Dispositivo conectado com sucesso\n- **connected**: Dispositivo pronto para uso\n- **disconnected**: Dispositivo desconectado\n\n- **auth_failed**: Falha na autenticação\n- **container_event**: Outros eventos do container\n\n### Formato do Webhook\n```json\n{\n  \"device\": {\n    \"deviceHash\": \"a1b2c3d4e5f67890\",\n    \"status\": \"active\"\n  },\n  \"event\": {\n    \"type\": \"connected\",\n    \"code\": \"LIST_DEVICES\",\n    \"message\": \"Device connected and ready\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Verificação de Assinatura\nSe `statusWebhookSecret` foi configurado, o header `X-Webhook-Signature` conterá a assinatura HMAC-SHA256 do payload."
     },
     servers: [
       { url: "http://localhost:3000" }

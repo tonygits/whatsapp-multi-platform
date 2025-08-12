@@ -168,13 +168,9 @@
                             "type": "number",
                             "example": 1
                           },
-                          "phoneNumber": {
+                          "deviceHash": {
                             "type": "string",
-                            "example": "5511999999999"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Atendimento Principal"
+                            "example": "a1b2c3d4e5f67890"
                           },
                           "status": {
                             "type": "string",
@@ -186,6 +182,15 @@
                             "nullable": true
                           },
                           "webhookSecret": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "statusWebhookUrl": {
+                            "type": "string",
+                            "format": "url",
+                            "nullable": true
+                          },
+                          "statusWebhookSecret": {
                             "type": "string",
                             "nullable": true
                           },
@@ -220,18 +225,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "phoneNumber"
-                ],
                 "properties": {
-                  "phoneNumber": {
-                    "type": "string",
-                    "example": "5511999999999"
-                  },
-                  "name": {
-                    "type": "string",
-                    "example": "Atendimento Principal"
-                  },
                   "webhookUrl": {
                     "type": "string",
                     "format": "url",
@@ -273,9 +267,6 @@
                   "type": "object",
                   "properties": {
                     "deviceHash": {
-                      "type": "string"
-                    },
-                    "phoneNumber": {
                       "type": "string"
                     },
                     "name": {
@@ -391,9 +382,6 @@
                       "type": "object",
                       "properties": {
                         "deviceHash": {
-                          "type": "string"
-                        },
-                        "phoneNumber": {
                           "type": "string"
                         },
                         "name": {
@@ -539,11 +527,8 @@
                       "example": 1
                     },
                     "deviceHash": {
-                      "type": "string"
-                    },
-                    "phoneNumber": {
                       "type": "string",
-                      "example": "5511999999999"
+                      "example": "a1b2c3d4e5f67890"
                     },
                     "name": {
                       "type": "string",
@@ -565,11 +550,6 @@
                           "example": "a1b2c3d4e5f6"
                         }
                       }
-                    },
-                    "qrCode": {
-                      "type": "string",
-                      "nullable": true,
-                      "example": "data:image/png;base64,..."
                     },
                     "lastSeen": {
                       "type": "string",

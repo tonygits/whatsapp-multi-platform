@@ -170,9 +170,9 @@ paths:
                         id:
                           type: number
                           example: 1
-                        phoneNumber:
+                        deviceHash:
                           type: string
-                          example: '5511999999999'
+                          example: 'a1b2c3d4e5f67890'
                         name:
                           type: string
                           example: Atendimento Principal
@@ -195,12 +195,17 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - phoneNumber
               properties:
-                phoneNumber:
+                webhookUrl:
                   type: string
-                  example: '5511999999999'
+                  format: url
+                  nullable: true
+                  example: 'https://meusite.com/webhook'
+                statusWebhookUrl:
+                  type: string
+                  format: url
+                  nullable: true
+                  example: 'https://meusite.com/status'
                 name:
                   type: string
                   example: Atendimento Principal
@@ -214,8 +219,10 @@ paths:
                 properties:
                   deviceHash:
                     type: string
-                  phoneNumber:
+                    example: 'a1b2c3d4e5f67890'
+                  status:
                     type: string
+                    example: 'active'
                   name:
                     type: string
                   status:

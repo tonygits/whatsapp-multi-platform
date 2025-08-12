@@ -11,20 +11,19 @@ class StatusWebhookManager {
 
   /**
    * Send status update to device webhook
-   * @param {string} phoneNumber - Phone number
+   * @param {string} deviceHash - Device hash
    * @param {Object} statusData - Status data to send
    */
-  async sendStatusUpdate(phoneNumber, statusData) {
+  async sendStatusUpdate(deviceHash, statusData) {
     try {
-      const device = await deviceManager.getDevice(phoneNumber);
+      const device = await deviceManager.getDevice(deviceHash);
       if (!device || !device.statusWebhookUrl) {
         return; // No webhook configured
       }
 
       const payload = {
         device: {
-          phoneNumber: device.phoneNumber,
-          name: device.name,
+          deviceHash: device.deviceHash,
           status: device.status
         },
         event: statusData,
@@ -33,10 +32,10 @@ class StatusWebhookManager {
 
       await this.sendWebhook(device.statusWebhookUrl, device.statusWebhookSecret, payload);
       
-      logger.info(`Status webhook enviado para ${phoneNumber}: ${statusData.type}`);
+      logger.info(`Status webhook enviado para ${deviceHash}: ${statusData.type}`);
       
     } catch (error) {
-      logger.error(`Erro ao enviar status webhook para ${phoneNumber}:`, error.message);
+      logger.error(`Erro ao enviar status webhook para ${deviceHash}:`, error.message);
     }
   }
 
@@ -103,10 +102,10 @@ class StatusWebhookManager {
 
   /**
    * Handle WhatsApp container events and send appropriate webhooks
-   * @param {string} phoneNumber - Phone number
+   * @param {string} deviceHash - Device hash
    * @param {Object} containerEvent - Event from container
    */
-  async handleContainerEvent(phoneNumber, containerEvent) {
+  async handleContainerEvent(deviceHash, containerEvent) {
     try {
       let statusData = null;
       let deviceStatus = null;
@@ -186,20 +185,20 @@ class StatusWebhookManager {
 
       // Update device status in database if status changed
       if (deviceStatus) {
-        await deviceManager.updateDevice(phoneNumber, { 
+        await deviceManager.updateDevice(deviceHash, { 
           status: deviceStatus,
           lastSeen: new Date().toISOString()
         });
-        logger.info(`Status do dispositivo ${phoneNumber} atualizado para: ${deviceStatus}`);
+        logger.info(`Status do dispositivo ${deviceHash} atualizado para: ${deviceStatus}`);
       }
 
       // Send webhook notification
       if (statusData) {
-        await this.sendStatusUpdate(phoneNumber, statusData);
+        await this.sendStatusUpdate(deviceHash, statusData);
       }
 
     } catch (error) {
-      logger.error(`Erro ao processar evento do container ${phoneNumber}:`, error);
+      logger.error(`Erro ao processar evento do container ${deviceHash}:`, error);
     }
   }
 }

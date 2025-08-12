@@ -19,16 +19,16 @@ Auth     Queues       Official Library
 - **Message queuing** system
 - **Container management**
 
-### WhatsApp Containers
-- **Official image**: `aldinokemal2104/go-whatsapp-web-multidevice`
-- **Isolated** per phone number
+### WhatsApp Processes
+- **Official binary**: `go-whatsapp-web-multidevice`
+- **Isolated** per device
 - **Dynamic port** allocation
 - **Health monitoring**
 
-### Proxy Routes
-Direct access to container APIs:
+### API Routes
+Direct access to device APIs:
 ```
-/proxy/whatsapp/{phoneNumber}/* → Container:port/*
+/api/{endpoint} + x-instance-id: deviceHash → Process:port/{endpoint}
 ```
 
 ## Security Features
@@ -38,10 +38,10 @@ Direct access to container APIs:
 - No phone numbers in URLs
 - Generated automatically
 
-### Phone Number Masking
-- **Development**: Full numbers for debugging
-- **Production**: Masked numbers (`5511*****9999`)
-- **Debug logs**: Always full numbers
+### Device Identification
+- **All environments**: deviceHash only
+- **No phone data exposure**: Privacy by design
+- **Consistent**: Same identifier across all logs and APIs
 
 ## Database Schema
 
@@ -49,16 +49,17 @@ Direct access to container APIs:
 devices:
   - id (primary)
   - device_hash (unique)
-  - phone_number
-  - phone_hash
   - status
   - container_port
+  - webhook_url
+  - status_webhook_url
+  - created_at
 ```
 
-## Container Management
+## Process Management
 
-1. **Register**: Create device + container
-2. **Start**: Launch container on dynamic port
+1. **Register**: Create device with auto-generated deviceHash
+2. **Start**: Launch WhatsApp process on dynamic port
 3. **Monitor**: Health checks + auto-restart
 4. **Stop**: Graceful shutdown
 5. **Remove**: Cleanup resources

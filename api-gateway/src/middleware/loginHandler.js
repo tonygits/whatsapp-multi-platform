@@ -12,7 +12,7 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
  */
 const loginHandler = asyncHandler(async (req, res) => {
   const containerPort = req.device.containerInfo.port;
-  const phoneNumber = req.device.phoneNumber;
+  const deviceHash = req.device.deviceHash;
   const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
 
   // Add basic auth header
@@ -22,7 +22,7 @@ const loginHandler = asyncHandler(async (req, res) => {
   };
 
   try {
-    logger.info(`Fazendo login para dispositivo ${phoneNumber} na porta ${containerPort}`);
+    logger.info(`Fazendo login para dispositivo ${deviceHash} na porta ${containerPort}`);
     
     const response = await axios({
       method: req.method,
@@ -37,12 +37,12 @@ const loginHandler = asyncHandler(async (req, res) => {
     
     // Check if response contains QR code information in results
     if (responseData && responseData.results && responseData.results.qr_link && responseData.results.qr_link.includes('/statics/')) {
-      logger.info(`QR code detectado no response para ${phoneNumber}`);
+      logger.info(`QR code detectado no response para ${deviceHash}`);
       
       try {
         // Extract QR file path from the link
         const qrFileName = responseData.results.qr_link.split('/').pop();
-        const sessionPath = `/app/sessions/${phoneNumber}`;
+        const sessionPath = `/app/sessions/${deviceHash}`;
         const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
         
         logger.info(`Tentando ler arquivo QR: ${qrFilePath}`);
@@ -64,14 +64,14 @@ const loginHandler = asyncHandler(async (req, res) => {
           // Remove the old qr_link field
           delete responseData.results.qr_link;
           
-          logger.info(`QR code convertido para base64 para ${phoneNumber}`);
+          logger.info(`QR code convertido para base64 para ${deviceHash}`);
         } else {
           logger.warn(`Arquivo QR não encontrado: ${qrFilePath}`);
           // Keep original response if file doesn't exist
         }
         
       } catch (qrError) {
-        logger.error(`Erro ao processar QR code para ${phoneNumber}:`, qrError);
+        logger.error(`Erro ao processar QR code para ${deviceHash}:`, qrError);
         // Continue with original response if QR processing fails
       }
     }

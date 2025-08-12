@@ -30,8 +30,6 @@ curl -X POST http://localhost:3000/api/devices \
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
   -d '{
-    "phoneNumber": "5511999999999",
-    "name": "Meu Dispositivo",
     "statusWebhookUrl": "https://meusite.com/webhook/status",
     "statusWebhookSecret": "meu-secret-super-seguro"
   }'
@@ -44,7 +42,7 @@ Atualize o webhook de um dispositivo existente:
 curl -X PUT http://localhost:3000/api/devices \
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
-  -H "x-instance-id: DEVICE_HASH_OU_PHONE" \
+  -H "x-instance-id: a1b2c3d4e5f67890" \
   -d '{
     "statusWebhookUrl": "https://novosite.com/webhook/status",
     "statusWebhookSecret": "novo-secret"
@@ -67,8 +65,7 @@ curl -X PUT http://localhost:3000/api/devices \
 ```json
 {
   "device": {
-    "phoneNumber": "string",
-    "name": "string", 
+    "deviceHash": "string",
     "status": "string"
   },
   "event": {
@@ -84,8 +81,7 @@ curl -X PUT http://localhost:3000/api/devices \
 ### Campos Detalhados
 
 #### Device Object
-- `phoneNumber`: Número do telefone do dispositivo (formato: `5511999999999`)
-- `name`: Nome amigável do dispositivo configurado
+- `deviceHash`: Hash único do dispositivo (formato: `a1b2c3d4e5f67890`)
 - `status`: Status atual do dispositivo (ver tabela de status abaixo)
 
 #### Status do Dispositivo
@@ -164,17 +160,15 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999",
-    "name": "Atendimento Principal",
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "connected"
   },
   "event": {
     "type": "login_success",
     "code": "LOGIN_SUCCESS",
-    "message": "Successfully pair with 5511999999999:12@s.whatsapp.net",
+    "message": "Successfully pair with WhatsApp device",
     "device_info": {
-      "id": "5511999999999:12@s.whatsapp.net",
-      "name": ""
+      "id": "device-12@s.whatsapp.net"
     }
   },
   "timestamp": "2025-08-12T15:30:45.123Z"
@@ -185,8 +179,7 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999", 
-    "name": "Atendimento Principal",
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "connected"
   },
   "event": {
@@ -195,8 +188,7 @@ def validate_webhook(payload, signature, secret):
     "message": "Device connected and ready",
     "devices": [
       {
-        "name": "",
-        "device": "5511999999999:12@s.whatsapp.net"
+        "device": "device-12@s.whatsapp.net"
       }
     ]
   },
@@ -208,8 +200,7 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999",
-    "name": "Atendimento Principal",
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "disconnected"
   },
   "event": {
@@ -226,8 +217,7 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999",
-    "name": "Dispositivo Problema",
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "error"
   },
   "event": {
@@ -247,8 +237,7 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999",
-    "name": "Atendimento Principal",
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "running"
   },
   "event": {
@@ -256,7 +245,7 @@ def validate_webhook(payload, signature, secret):
     "code": "CONTAINER_START",
     "message": "WhatsApp container started successfully",
     "data": {
-      "container_id": "whatsapp-5511999999999",
+      "container_id": "whatsapp-a1b2c3d4e5f67890",
       "port": 8000
     }
   },
@@ -268,8 +257,7 @@ def validate_webhook(payload, signature, secret):
 ```json
 {
   "device": {
-    "phoneNumber": "5511999999999",
-    "name": "Atendimento Principal", 
+    "deviceHash": "a1b2c3d4e5f67890",
     "status": "stopped"
   },
   "event": {
@@ -299,7 +287,7 @@ O sistema implementa retry automático com as seguintes características:
 Erros são logados automaticamente:
 ```
 2025-08-12T15:30:45.123Z [WARN] Webhook falhou (tentativa 1/3), tentando novamente em 1000ms
-2025-08-12T15:30:46.456Z [ERROR] Erro ao enviar webhook para 5511999999999: timeout
+2025-08-12T15:30:46.456Z [ERROR] Erro ao enviar webhook para a1b2c3d4e5f67890: timeout
 ```
 
 ### Endpoint de Depuração
@@ -373,7 +361,7 @@ Implemente idempotência usando o timestamp:
 const processedEvents = new Set();
 
 function processWebhook(event) {
-  const eventId = `${event.device.phoneNumber}-${event.timestamp}`;
+  const eventId = `${event.device.deviceHash}-${event.timestamp}`;
   
   if (processedEvents.has(eventId)) {
     console.log('Event already processed, skipping');

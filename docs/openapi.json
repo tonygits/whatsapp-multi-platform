@@ -262,9 +262,9 @@
                             "type": "number",
                             "example": 1
                           },
-                          "phoneNumber": {
+                          "deviceHash": {
                             "type": "string",
-                            "example": "5511999999999"
+                            "example": "a1b2c3d4e5f67890"
                           },
                           "name": {
                             "type": "string",
@@ -306,12 +306,12 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "phoneNumber"
+                  "deviceHash"
                 ],
                 "properties": {
-                  "phoneNumber": {
+                  "deviceHash": {
                     "type": "string",
-                    "example": "5511999999999"
+                    "example": "a1b2c3d4e5f67890"
                   },
                   "name": {
                     "type": "string",
@@ -333,7 +333,7 @@
                     "deviceHash": {
                       "type": "string"
                     },
-                    "phoneNumber": {
+                    "deviceHash": {
                       "type": "string"
                     },
                     "name": {
@@ -387,7 +387,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -435,7 +435,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -461,7 +461,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -540,7 +540,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -588,7 +588,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -614,7 +614,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -745,7 +745,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -772,7 +772,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -840,7 +840,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -907,7 +907,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -996,7 +996,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1044,7 +1044,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1092,7 +1092,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1140,7 +1140,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1218,7 +1218,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1312,7 +1312,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1401,7 +1401,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1495,7 +1495,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1589,7 +1589,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1698,7 +1698,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1792,7 +1792,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1886,7 +1886,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -1980,7 +1980,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -2088,7 +2088,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -2175,7 +2175,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -2284,7 +2284,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -2310,7 +2310,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2393,7 +2393,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2481,7 +2481,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2567,7 +2567,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2650,7 +2650,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2736,7 +2736,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2822,7 +2822,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -2915,7 +2915,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3020,7 +3020,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3140,7 +3140,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3291,7 +3291,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3461,7 +3461,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -3545,7 +3545,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -3571,7 +3571,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3639,7 +3639,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -3754,7 +3754,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -3827,7 +3827,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -3911,7 +3911,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -3995,7 +3995,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4021,7 +4021,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           },
           {
@@ -4151,7 +4151,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4239,7 +4239,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4306,7 +4306,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4373,7 +4373,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4440,7 +4440,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4507,7 +4507,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4589,7 +4589,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4672,7 +4672,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],
@@ -4745,7 +4745,7 @@
             "description": "O número de telefone da instância (ex: 5511999999999)",
             "schema": {
               "type": "string",
-              "example": "5511999999999"
+              "example": "a1b2c3d4e5f67890"
             }
           }
         ],

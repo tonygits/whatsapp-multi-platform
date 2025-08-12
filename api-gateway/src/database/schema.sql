@@ -4,14 +4,9 @@
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_hash VARCHAR(16) NOT NULL UNIQUE,
-    phone_number VARCHAR(20) NOT NULL UNIQUE,
-    phone_hash VARCHAR(64),
-    name VARCHAR(100),
     container_id VARCHAR(100),
     container_port INTEGER,
     status VARCHAR(20) DEFAULT 'disconnected',
-    qr_code TEXT,
-    qr_expires_at DATETIME,
     webhook_url TEXT,
     webhook_secret TEXT,
     status_webhook_url TEXT,
@@ -40,8 +35,6 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_devices_hash ON devices(device_hash);
-CREATE INDEX IF NOT EXISTS idx_devices_phone ON devices(phone_number);
-CREATE INDEX IF NOT EXISTS idx_devices_phone_hash ON devices(phone_hash);
 CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status);
 CREATE INDEX IF NOT EXISTS idx_messages_device ON messages(device_id);
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);

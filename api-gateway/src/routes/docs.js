@@ -244,8 +244,8 @@ router.get('/postman', asyncHandler(async (req, res) => {
               body: {
                 mode: "raw",
                 raw: JSON.stringify({
-                  phoneNumber: "5511999999999",
-                  name: "Atendimento Principal"
+                  statusWebhookUrl: "https://webhook.site/unique-url",
+                  statusWebhookSecret: "my-secret-key"
                 }, null, 2)
               },
               url: {

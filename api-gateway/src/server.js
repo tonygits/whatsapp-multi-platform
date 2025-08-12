@@ -156,10 +156,10 @@ class APIGateway {
           
           // Handle different message types
           if (message.type === 'join-device') {
-            ws.deviceFilter = message.phoneNumber;
+            ws.deviceFilter = message.deviceHash;
             ws.send(JSON.stringify({
               type: 'joined-device',
-              phoneNumber: message.phoneNumber,
+              deviceHash: message.deviceHash,
               timestamp: new Date().toISOString()
             }));
           } else {
@@ -210,32 +210,31 @@ class APIGateway {
 
   async start() {
     try {
-      // Initialize services
+      // Initialize services in correct order
+      console.log('🔐 Inicializando authManager...');
       await authManager.initialize();
+      console.log('✅ authManager inicializado');
 
-      // Initialize Update Manager
+      console.log('📱 Inicializando deviceManager...');
+      await deviceManager.initialize();
+      console.log('✅ deviceManager inicializado');
+      
+      console.log('📦 Inicializando binaryManager...');
+      await binaryManager.initialize();
+      console.log('✅ binaryManager inicializado');
+
+      // Initialize Update Manager (non-async)
+      console.log('🔄 Inicializando updateManager...');
       updateManager.initialize();
+      console.log('✅ updateManager inicializado');
 
-      // Start server first
-      this.server.listen(this.port, async () => {
+      // Start server last
+      this.server.listen(this.port, () => {
         logger.info(`🚀 API Gateway rodando na porta ${this.port}`);
         logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
         logger.info(`🔐 Autenticação: ${process.env.API_AUTH_ENABLED === 'true' ? 'Ativada' : 'Desativada'}`);
         logger.info(`🔄 Verificações de atualização: ${process.env.UPDATE_CHECK_CRON || '0 2 * * *'}`);
-        
-        // Now initialize managers that need the server running
-        try {
-          console.log('📱 Inicializando deviceManager...');
-          await deviceManager.initialize();
-          console.log('✅ deviceManager inicializado');
-          
-          console.log('📦 Inicializando binaryManager...');
-          await binaryManager.initialize();
-          console.log('✅ binaryManager inicializado');
-          
-        } catch (error) {
-          logger.error('Erro ao inicializar managers após server start:', error);
-        }
+        logger.info('✅ Todos os serviços inicializados com sucesso!');
       });
 
       // Graceful shutdown

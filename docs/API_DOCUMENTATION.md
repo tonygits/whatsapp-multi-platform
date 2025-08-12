@@ -27,29 +27,32 @@ Content-Type: application/json
 ```http
 POST /api/devices
 {
-  "phoneNumber": "5511999999999",
-  "name": "Device Name"
+  "webhookUrl": "https://meusite.com/webhook",
+  "statusWebhookUrl": "https://meusite.com/status"
 }
 ```
-**Returns:** `deviceHash` for future operations
+**Returns:** Auto-generated `deviceHash` for future operations
 
-### Device Operations
+### Device Operations (using x-instance-id header)
 ```http
-GET    /api/devices/{deviceHash}     # Get device info
-POST   /api/devices/{deviceHash}/start    # Start container
-POST   /api/devices/{deviceHash}/stop     # Stop container
-GET    /api/devices/{deviceHash}/qr       # Get QR code
-DELETE /api/devices/{deviceHash}          # Remove device
+GET    /api/devices/info              # Get device info
+POST   /api/devices/start             # Start container
+POST   /api/devices/stop              # Stop container
+GET    /api/login                     # Get QR code
+DELETE /api/devices                   # Remove device
+
+# All operations require:
+x-instance-id: a1b2c3d4e5f67890
 ```
 
 ## Messages
 
 ### Send Message
 ```http
-POST /api/messages/send
+POST /api/send/message
+x-instance-id: a1b2c3d4e5f67890
 {
-  "from": "5511999999999",
-  "to": "5511888888888", 
+  "phone": "+5511888888888@s.whatsapp.net",
   "message": "Hello World"
 }
 ```
@@ -59,9 +62,9 @@ POST /api/messages/send
 ## Environment Configuration
 
 ```bash
-NODE_ENV=development  # Full phone numbers in logs
-NODE_ENV=production   # Masked phone numbers
-MASK_PHONE_NUMBERS=true   # Force masking
+NODE_ENV=development  # Development environment
+NODE_ENV=production   # Production environment
+# System uses deviceHash for all identification
 ```
 
 ## OpenAPI Documentation

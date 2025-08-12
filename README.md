@@ -13,11 +13,11 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 
 ### 🌟 Características Principais
 
-- ✅ **Múltiplos números simultâneos** - Gerenciamento ilimitado de instâncias WhatsApp
-- ✅ **Isolamento por processo** - Cada número roda em processo separado com sessão própria
+- ✅ **Múltiplos dispositivos simultâneos** - Gerenciamento ilimitado de instâncias WhatsApp
+- ✅ **Isolamento por processo** - Cada dispositivo roda em processo separado com sessão própria
 - ✅ **Sessões persistentes** - Dados salvos em volumes dedicados para cada instância
 - ✅ **API RESTful completa** - Endpoints para todas as operações
-- ✅ **Sistema de filas inteligente** - Controle de concorrência por número
+- ✅ **Sistema de filas inteligente** - Controle de concorrência por dispositivo
 - ✅ **Monitoramento de processos** - Health checks e controle de PIDs
 - ✅ **Auto-restart inteligente** - Recuperação automática de sessões ativas
 - ✅ **QR Code via Base64** - QR codes servidos diretamente como base64
@@ -27,7 +27,7 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 
 ## 🏗️ Arquitetura
 
-> 🔄 **Arquitetura Atual:** Utilizamos o binário oficial do go-whatsapp-web-multidevice executando múltiplos processos dentro do container da API Gateway. Cada número de telefone roda como um processo separado com sua própria sessão.
+> 🔄 **Arquitetura Atual:** Utilizamos o binário oficial do go-whatsapp-web-multidevice executando múltiplos processos dentro do container da API Gateway. Cada dispositivo roda como um processo separado com sua própria sessão.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
@@ -48,7 +48,7 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
          ▼                       ▼                         ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
 │   SQLite DB     │    │  Binary Manager  │    │   Session Volumes   │
-│ (whatsapp.db)   │    │ (PID Tracking)   │    │  (Per Phone Number) │
+│ (whatsapp.db)   │    │ (PID Tracking)   │    │   (Per Device)      │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
 ```
 
@@ -99,7 +99,7 @@ DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
 1. **API Gateway**: http://localhost:3000
 2. **Login**: `POST /api/auth/login`
 3. **Registrar dispositivo**: `POST /api/devices`
-4. **Obter QR Code**: `GET /api/devices/{numero}/qr`
+4. **Obter QR Code**: `GET /api/login` (via header x-instance-id)
 
 ## 📖 Documentação
 
@@ -113,7 +113,7 @@ DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
 ### Sessões Persistentes
 - **Volume mapping**: `./sessions:/app/sessions` garante que as sessões sobrevivem a restarts de containers
 - **SQLite Database**: Armazenado em `/app/volumes/whatsapp.db` com path absoluto para máxima compatibilidade
-- **Session files**: Cada dispositivo tem sua própria pasta em `/app/sessions/{phoneNumber}/`
+- **Session files**: Cada dispositivo tem sua própria pasta em `/app/sessions/{deviceHash}/`
 
 ### Auto-Restart Inteligente
 Quando o container inicia, o sistema automaticamente:
@@ -134,7 +134,7 @@ O sistema automaticamente espelha mensagens WebSocket de cada container individu
 - **Conexão automática**: Cada processo WhatsApp conecta automaticamente ao WebSocket do container (`ws://localhost:8000/ws`)
 - **Espelhamento em tempo real**: Todas as mensagens WebSocket são replicadas para o socket global do servidor
 - **Eventos globais**: Clientes podem escutar mensagens de todos os containers via socket principal
-- **Eventos específicos**: Clientes podem entrar em rooms específicos (`device-${phoneNumber}`) para escutar apenas um dispositivo
+- **Eventos específicos**: Clientes podem entrar em rooms específicos (`device-${deviceHash}`) para escutar apenas um dispositivo
 - **Reconexão automática**: Se o WebSocket do container cair, tenta reconectar automaticamente
 - **Logs centralizados**: Todos os eventos WebSocket são logados centralmente
 
@@ -142,12 +142,12 @@ O sistema automaticamente espelha mensagens WebSocket de cada container individu
 - `whatsapp-websocket-message` - Mensagens de todos os containers
 - `container-websocket-connected` - Quando container conecta
 - `container-websocket-closed` - Quando container desconecta
-- `device-websocket-message` - Mensagens de dispositivo específico (room: `device-${phoneNumber}`)
+- `device-websocket-message` - Mensagens de dispositivo específico (room: `device-${deviceHash}`)
 - `process-stopped` - Quando processo para inesperadamente
 
 ## 💡 Exemplos de Uso
 
-### Registrar um Novo Número
+### Registrar um Novo Dispositivo
 
 ```bash
 # 1. Fazer login
@@ -155,40 +155,32 @@ curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"sua_senha"}'
 
-# 2. Registrar número
+# 2. Registrar dispositivo
 curl -X POST http://localhost:3000/api/devices \
   -H "Authorization: Bearer <seu_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "phoneNumber": "5511999999999",
-    "name": "Atendimento Principal"
+    "webhookUrl": "https://meusite.com/webhook",
+    "statusWebhookUrl": "https://meusite.com/status"
   }'
 
-# 3. Obter QR Code
-curl -X GET http://localhost:3000/api/devices/5511999999999/qr \
-  -H "Authorization: Bearer <seu_token>"
+# 3. Obter QR Code (use o deviceHash retornado no passo 2)
+curl -X GET http://localhost:3000/api/login \
+  -H "Authorization: Bearer <seu_token>" \
+  -H "x-instance-id: a1b2c3d4e5f67890"
 ```
 
 ### Enviar Mensagem
 
 ```bash
-# Via API tradicional (nossa interface)
-curl -X POST http://localhost:3000/api/messages/send \
+# Enviar mensagem via API oficial
+curl -X POST http://localhost:3000/api/send/message \
   -H "Authorization: Bearer <seu_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "from": "5511999999999",
-    "to": "5511888888888",
-    "message": "Olá! Como posso ajudar?"
-  }'
-
-# OU via proxy direto (API oficial)
-curl -X POST http://localhost:3000/proxy/whatsapp/send/message \
-  -H "Authorization: Bearer <seu_token>" \
+  -H "x-instance-id: a1b2c3d4e5f67890" \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+5511888888888@s.whatsapp.net",
-    "message": "Mensagem via proxy!"
+    "message": "Olá! Como posso ajudar?"
   }'
 ```
 
@@ -201,23 +193,23 @@ const socket = io('http://localhost:3000');
 
 // Escutar mensagens WebSocket de todos os containers
 socket.on('whatsapp-websocket-message', (data) => {
-  console.log(`Mensagem do container ${data.phoneNumber}:`, data.message);
-  // data: { phoneNumber, port, message, timestamp }
+  console.log(`Mensagem do container ${data.deviceHash}:`, data.message);
+  // data: { deviceHash, port, message, timestamp }
 });
 
 // Escutar conexões de containers WebSocket
 socket.on('container-websocket-connected', (data) => {
-  console.log(`Container ${data.phoneNumber} conectado na porta ${data.port}`);
+  console.log(`Container ${data.deviceHash} conectado na porta ${data.port}`);
 });
 
 socket.on('container-websocket-closed', (data) => {
-  console.log(`Container ${data.phoneNumber} desconectado (código: ${data.code})`);
+  console.log(`Container ${data.deviceHash} desconectado (código: ${data.code})`);
 });
 
 // === EVENTOS ESPECÍFICOS DE DISPOSITIVO ===
 
 // Entrar na sala de um dispositivo específico
-socket.emit('join', `device-${phoneNumber}`);
+socket.emit('join', `device-${deviceHash}`);
 
 // Escutar mensagens WebSocket apenas deste dispositivo
 socket.on('device-websocket-message', (data) => {
@@ -227,31 +219,31 @@ socket.on('device-websocket-message', (data) => {
 
 // Escutar quando processo para inesperadamente
 socket.on('process-stopped', (data) => {
-  console.log('Processo parou:', data.phoneNumber);
+  console.log('Processo parou:', data.deviceHash);
 });
 
 // === EXEMPLO DE USO PRÁTICO ===
 
 // Monitor global - escuta todos os containers
 socket.on('whatsapp-websocket-message', (data) => {
-  const { phoneNumber, message } = data;
+  const { deviceHash, message } = data;
   
   // Processar mensagens específicas
   if (message.type === 'qr') {
-    showQRCode(phoneNumber, message.qr);
+    showQRCode(deviceHash, message.qr);
   } else if (message.type === 'ready') {
-    markDeviceAsReady(phoneNumber);
+    markDeviceAsReady(deviceHash);
   } else if (message.type === 'message') {
-    handleIncomingMessage(phoneNumber, message);
+    handleIncomingMessage(deviceHash, message);
   }
 });
 
 // Monitor de dispositivo específico
-const monitorDevice = (phoneNumber) => {
-  socket.emit('join', `device-${phoneNumber}`);
+const monitorDevice = (deviceHash) => {
+  socket.emit('join', `device-${deviceHash}`);
   
   socket.on('device-websocket-message', (data) => {
-    updateDeviceStatus(phoneNumber, data.message);
+    updateDeviceStatus(deviceHash, data.message);
   });
 };
 ```
@@ -301,7 +293,7 @@ docker-compose logs -f
 docker-compose logs -f api-gateway
 
 # Logs do processo específico (via API Gateway)
-curl http://localhost:3000/api/devices/5511999999999/logs
+curl -H "x-instance-id: a1b2c3d4e5f67890" http://localhost:3000/api/devices/info
 ```
 
 ### Métricas Importantes

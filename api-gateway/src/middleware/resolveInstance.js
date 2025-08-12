@@ -2,11 +2,10 @@ const { asyncHandler, CustomError } = require('./errorHandler');
 const deviceManager = require('../services/newDeviceManager');
 const DeviceRepository = require('../repositories/DeviceRepository');
 const logger = require('../utils/logger');
-const PhoneUtils = require('../utils/phoneUtils');
 
 // Core resolver reused by both middlewares
 const resolveInstanceCore = async (instanceId) => {
-  // Try to find device by phone number or device_hash
+  // Try to find device by device_hash
   let device = await deviceManager.getDevice(instanceId);
 
   if (!device) {
@@ -15,15 +14,11 @@ const resolveInstanceCore = async (instanceId) => {
       device = {
         id: dbDevice.id,
         deviceHash: dbDevice.device_hash,
-        phoneNumber: dbDevice.phone_number,
-        name: dbDevice.name,
         status: dbDevice.status,
         containerInfo: {
           containerId: dbDevice.container_id,
           port: dbDevice.container_port
         },
-        qrCode: dbDevice.qr_code,
-        qrExpiresAt: dbDevice.qr_expires_at,
         webhookUrl: dbDevice.webhook_url,
         webhookSecret: dbDevice.webhook_secret,
         statusWebhookUrl: dbDevice.status_webhook_url,
@@ -56,7 +51,7 @@ const resolveInstance = asyncHandler(async (req, res, next) => {
 
   if (!device) {
     throw new CustomError(
-      `Dispositivo com instance ID ${PhoneUtils.maskForLog(instanceId, 'error')} não encontrado`,
+      `Dispositivo com device hash ${instanceId} não encontrado`,
       404,
       'DEVICE_NOT_FOUND'
     );
@@ -76,9 +71,9 @@ const ensureActive = asyncHandler(async (req, res, next) => {
     throw new CustomError('Dispositivo não resolvido', 500, 'DEVICE_NOT_RESOLVED');
   }
 
-  if (device.status !== 'active' && device.status !== 'waiting_qr') {
+  if (device.status !== 'active' && device.status !== 'connected') {
     throw new CustomError(
-      `Dispositivo com instance ID ${PhoneUtils.maskForLog(req.instanceId || device.phoneNumber, 'error')} não está ativo. Status atual: ${device.status}`,
+      `Dispositivo com device hash ${req.instanceId || device.deviceHash} não está ativo. Status atual: ${device.status}`,
       400,
       'DEVICE_NOT_ACTIVE'
     );

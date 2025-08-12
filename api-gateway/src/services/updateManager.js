@@ -23,7 +23,7 @@ class UpdateManager {
     // Check on startup (delayed)
     setTimeout(() => {
       this.performUpdateCheck();
-    }, 30000); // Wait 30 seconds after startup
+     }, 30000); // Wait 30 seconds after startup
 
     logger.info('Update Manager inicializado');
   }
@@ -322,17 +322,17 @@ class UpdateManager {
         const health = await this.analyzeProcessHealth(process);
         
         results.processes.push({
-          phone_number: process.phoneNumber,
-          health_score: health.score,
+          deviceHash: process.deviceHash,
+          healthScore: health.score,
           uptime: health.uptime,
-          restart_recommended: health.restartRecommended,
-          update_recommended: health.updateRecommended
+          restartRecommended: health.restartRecommended,
+          updateRecommended: health.updateRecommended
         });
 
         if (health.restartRecommended) {
           results.recommendations.push({
             type: 'restart',
-            process: process.phoneNumber,
+            process: process.deviceHash,
             reason: health.restartReason
           });
         }
@@ -340,7 +340,7 @@ class UpdateManager {
         if (health.updateRecommended) {
           results.recommendations.push({
             type: 'update',
-            process: process.phoneNumber,
+            process: process.deviceHash,
             reason: health.updateReason
           });
         }
@@ -390,7 +390,7 @@ class UpdateManager {
       // Additional health checks could be added here
 
     } catch (error) {
-      logger.error(`Erro ao analisar processo ${process.phoneNumber}:`, error);
+      logger.error(`Erro ao analisar processo ${process.deviceHash}:`, error);
       health.score = 0;
     }
 
@@ -510,16 +510,16 @@ class UpdateManager {
   /**
    * Auto-restart processes
    */
-  async autoRestartProcesses(processPhones) {
-    for (const phoneNumber of processPhones) {
+  async autoRestartProcesses(deviceHashes) {
+    for (const deviceHash of deviceHashes) {
       try {
-        logger.info(`Auto-reiniciando processo: ${phoneNumber}`);
-        await binaryManager.restartProcess(phoneNumber);
+        logger.info(`Auto-reiniciando processo: ${deviceHash}`);
+        await binaryManager.restartProcess(deviceHash);
         
         // Wait between restarts
         await new Promise(resolve => setTimeout(resolve, 5000));
       } catch (error) {
-        logger.error(`Erro ao reiniciar processo ${phoneNumber}:`, error);
+        logger.error(`Erro ao reiniciar processo ${deviceHash}:`, error);
       }
     }
   }

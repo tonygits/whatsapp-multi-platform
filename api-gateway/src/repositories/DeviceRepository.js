@@ -1,18 +1,16 @@
 const database = require('../database/database');
 const logger = require('../utils/logger');
-const PhoneUtils = require('../utils/phoneUtils');
 
 class DeviceRepository {
   /**
-   * Create a new device
+   * Create a new device by device hash
    * @param {Object} deviceData - Device data
    * @returns {Promise<Object>} - Created device with ID
    */
   async create(deviceData) {
     try {
       const {
-        phone_number,
-        name,
+        device_hash,
         container_port,
         webhook_url,
         webhook_secret,
@@ -20,20 +18,17 @@ class DeviceRepository {
         status_webhook_secret
       } = deviceData;
 
-      // Gerar hashes de segurança
-      const device_hash = PhoneUtils.generateDeviceId(phone_number);
-      const phone_hash = PhoneUtils.hashPhoneNumber(phone_number);
+      if (!device_hash) {
+        throw new Error('Device hash é obrigatório');
+      }
 
       const result = await database.run(
         `INSERT INTO devices (
-           device_hash, phone_number, phone_hash, name, container_port,
+           device_hash, container_port,
            webhook_url, webhook_secret, status_webhook_url, status_webhook_secret
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         ) VALUES (?, ?, ?, ?, ?, ?)`,
         [
           device_hash,
-          phone_number,
-          phone_hash,
-          name || null,
           container_port || null,
           webhook_url || null,
           webhook_secret || null,
@@ -42,8 +37,11 @@ class DeviceRepository {
         ]
       );
 
-      const device = await this.findById(result.lastID);
-      logger.info(`Dispositivo criado: ${PhoneUtils.maskForLog(phone_number, 'info')}`, { deviceId: result.lastID, deviceHash: device_hash });
+      const device = await database.get(
+        'SELECT * FROM devices WHERE id = ?',
+        [result.lastID]
+      );
+      logger.info(`Dispositivo criado com hash: ${device_hash}`, { deviceId: result.lastID, deviceHash: device_hash });
       
       return device;
     } catch (error) {
@@ -53,23 +51,6 @@ class DeviceRepository {
   }
 
 
-  /**
-   * Find device by phone number
-   * @param {string} phoneNumber - Phone number
-   * @returns {Promise<Object|null>} - Device or null
-   */
-  async findByPhoneNumber(phoneNumber) {
-    try {
-      const device = await database.get(
-        'SELECT * FROM devices WHERE phone_number = ?',
-        [phoneNumber]
-      );
-      return device;
-    } catch (error) {
-      logger.error('Erro ao buscar dispositivo por número:', error);
-      throw error;
-    }
-  }
 
   /**
    * Find device by device hash
@@ -128,8 +109,8 @@ class DeviceRepository {
   async update(id, updateData) {
     try {
       const allowedFields = [
-        'name', 'status', 'container_id', 'container_port',
-        'qr_code', 'qr_expires_at', 'webhook_url', 'webhook_secret',
+        'status', 'container_id', 'container_port',
+        'webhook_url', 'webhook_secret',
         'status_webhook_url', 'status_webhook_secret', 'last_seen'
       ];
 
@@ -141,8 +122,6 @@ class DeviceRepository {
         'statusWebhookSecret': 'status_webhook_secret',
         'containerId': 'container_id',
         'containerPort': 'container_port',
-        'qrCode': 'qr_code',
-        'qrExpiresAt': 'qr_expires_at',
         'lastSeen': 'last_seen'
       };
 
@@ -245,22 +224,16 @@ class DeviceRepository {
     return {
       id: device.id,
       deviceHash: device.device_hash,
-      phoneNumber: device.phone_number,
-      phoneHash: device.phone_hash,
-      name: device.name,
       status: device.status,
       containerId: device.container_id,
       containerPort: device.container_port,
-      qrCode: device.qr_code,
-      qrExpiresAt: device.qr_expires_at,
       webhookUrl: device.webhook_url,
       webhookSecret: device.webhook_secret,
       statusWebhookUrl: device.status_webhook_url,
       statusWebhookSecret: device.status_webhook_secret,
       createdAt: device.created_at,
       updatedAt: device.updated_at,
-      lastSeen: device.last_seen,
-      retryCount: device.retry_count || 0
+      lastSeen: device.last_seen
     };
   }
 }

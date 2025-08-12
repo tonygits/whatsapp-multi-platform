@@ -62,19 +62,19 @@ class DeviceManager {
   }
 
   /**
-   * Register a new device
-   * @param {string} phoneNumber - Phone number
+   * Register a new device by hash
+   * @param {string} deviceHash - Device hash
    * @param {Object} options - Additional options
    * @returns {Promise<Object>} - Device configuration
    */
-  async registerDevice(phoneNumber, options = {}) {
+  async registerDevice(deviceHash, options = {}) {
     try {
-      logger.info(`Registrando dispositivo: ${phoneNumber}`);
+      logger.info(`Registrando dispositivo: ${deviceHash}`);
 
       // Check if device already exists
-      const existingDevice = await deviceRepository.findByPhoneNumber(phoneNumber);
+      const existingDevice = await deviceRepository.findByDeviceHash(deviceHash);
       if (existingDevice) {
-        throw new Error(`Dispositivo ${phoneNumber} já registrado`);
+        throw new Error(`Dispositivo ${deviceHash} já registrado`);
       }
 
       // Allocate port for the device
@@ -82,8 +82,7 @@ class DeviceManager {
 
       // Create device record
       const device = await deviceRepository.create({
-        phone_number: phoneNumber,
-        name: options.name || `Device ${phoneNumber}`,
+        device_hash: deviceHash,
         container_port: port,
         webhook_url: options.webhookUrl,
         webhook_secret: options.webhookSecret,
@@ -91,13 +90,11 @@ class DeviceManager {
         status_webhook_secret: options.statusWebhookSecret
       });
 
-      logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id, port });
+      logger.info(`Dispositivo registrado com sucesso: ${deviceHash}`, { deviceId: device.id, port });
       
       return {
         id: device.id,
         deviceHash: device.device_hash,
-        phoneNumber: device.phone_number,
-        name: device.name,
         status: device.status,
         port: device.container_port,
         webhookUrl: device.webhook_url,
@@ -107,23 +104,23 @@ class DeviceManager {
         createdAt: device.created_at
       };
     } catch (error) {
-      logger.error(`Erro ao registrar dispositivo ${phoneNumber}:`, error);
+      logger.error(`Erro ao registrar dispositivo ${deviceHash}:`, error);
       throw error;
     }
   }
 
   /**
-   * Remove a device
-   * @param {string} phoneNumber - Phone number
+   * Remove a device by hash
+   * @param {string} deviceHash - Device hash
    * @returns {Promise<boolean>} - Success status
    */
-  async removeDevice(phoneNumber) {
+  async removeDevice(deviceHash) {
     try {
-      logger.info(`Removendo dispositivo: ${phoneNumber}`);
+      logger.info(`Removendo dispositivo: ${deviceHash}`);
 
-      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      const device = await deviceRepository.findByDeviceHash(deviceHash);
       if (!device) {
-        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+        throw new Error(`Dispositivo ${deviceHash} não encontrado`);
       }
 
       // Release the port
@@ -135,24 +132,24 @@ class DeviceManager {
       const success = await deviceRepository.delete(device.id);
       
       if (success) {
-        logger.info(`Dispositivo removido com sucesso: ${phoneNumber}`);
+        logger.info(`Dispositivo removido com sucesso: ${deviceHash}`);
       }
       
       return success;
     } catch (error) {
-      logger.error(`Erro ao remover dispositivo ${phoneNumber}:`, error);
+      logger.error(`Erro ao remover dispositivo ${deviceHash}:`, error);
       throw error;
     }
   }
 
   /**
-   * Get device information
-   * @param {string} phoneNumber - Phone number
+   * Get device information by hash
+   * @param {string} deviceHash - Device hash
    * @returns {Promise<Object|null>} - Device information
    */
-  async getDevice(phoneNumber) {
+  async getDevice(deviceHash) {
     try {
-      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      const device = await deviceRepository.findByDeviceHash(deviceHash);
       
       if (!device) {
         return null;
@@ -161,15 +158,11 @@ class DeviceManager {
       return {
         id: device.id,
         deviceHash: device.device_hash,
-        phoneNumber: device.phone_number,
-        name: device.name,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,
           port: device.container_port
         },
-        qrCode: device.qr_code,
-        qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
         statusWebhookUrl: device.status_webhook_url,
@@ -179,36 +172,31 @@ class DeviceManager {
         lastSeen: device.last_seen
       };
     } catch (error) {
-      logger.error(`Erro ao buscar dispositivo ${phoneNumber}:`, error);
+      logger.error(`Erro ao buscar dispositivo ${deviceHash}:`, error);
       throw error;
     }
   }
 
-
-
-
-
-
   /**
-   * Update device (alias for updateDeviceStatus with more flexibility)
-   * @param {string} phoneNumber - Phone number
+   * Update device by hash
+   * @param {string} deviceHash - Device hash
    * @param {Object} updateData - Data to update
    * @returns {Promise<Object|null>} - Updated device
    */
-  async updateDevice(phoneNumber, updateData) {
+  async updateDevice(deviceHash, updateData) {
     try {
-      const device = await deviceRepository.findByPhoneNumber(phoneNumber);
+      const device = await deviceRepository.findByDeviceHash(deviceHash);
       if (!device) {
-        throw new Error(`Dispositivo ${phoneNumber} não encontrado`);
+        throw new Error(`Dispositivo ${deviceHash} não encontrado`);
       }
 
       const updatedDevice = await deviceRepository.update(device.id, updateData);
       
-      logger.info(`Dispositivo ${phoneNumber} atualizado`);
+      logger.info(`Dispositivo ${deviceHash} atualizado`);
       
       return updatedDevice;
     } catch (error) {
-      logger.error(`Erro ao atualizar dispositivo ${phoneNumber}:`, error);
+      logger.error(`Erro ao atualizar dispositivo ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -225,23 +213,18 @@ class DeviceManager {
       return devices.map(device => ({
         id: device.id,
         deviceHash: device.device_hash,
-        phoneNumber: device.phone_number,
-        name: device.name,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,
           port: device.container_port
         },
-        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
-        qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
         statusWebhookUrl: device.status_webhook_url,
         statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
-        lastSeen: device.last_seen,
-        retryCount: device.retry_count
+        lastSeen: device.last_seen
       }));
     } catch (error) {
       logger.error('Erro ao listar dispositivos por status:', error);
@@ -260,23 +243,18 @@ class DeviceManager {
       return devices.map(device => ({
         id: device.id,
         deviceHash: device.device_hash,
-        phoneNumber: device.phone_number,
-        name: device.name,
         status: device.status,
         containerInfo: {
           containerId: device.container_id,
           port: device.container_port
         },
-        qrCode: device.qr_code ? 'present' : null, // Don't expose QR data in lists
-        qrExpiresAt: device.qr_expires_at,
         webhookUrl: device.webhook_url,
         webhookSecret: device.webhook_secret,
         statusWebhookUrl: device.status_webhook_url,
         statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
-        lastSeen: device.last_seen,
-        retryCount: device.retry_count
+        lastSeen: device.last_seen
       }));
     } catch (error) {
       logger.error('Erro ao listar dispositivos:', error);

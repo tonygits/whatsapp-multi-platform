@@ -127,10 +127,10 @@ router.get('/devices', asyncHandler(async (req, res) => {
   const devices = await deviceManager.getAllDevices();
   const deviceChecks = {};
 
-  for (const [phoneNumber, device] of Object.entries(devices)) {
+  for (const [deviceHash, device] of Object.entries(devices)) {
     try {
       // Check process status
-      const processStatus = await binaryManager.getProcessStatus(phoneNumber);
+      const processStatus = await binaryManager.getProcessStatus(deviceHash);
 
       // Try to ping the process
       let processReachable = false;
@@ -143,7 +143,7 @@ router.get('/devices', asyncHandler(async (req, res) => {
         }
       }
 
-      deviceChecks[phoneNumber] = {
+      deviceChecks[deviceHash] = {
         status: device.status === 'active' && processReachable ? 'healthy' : 'unhealthy',
         device: {
           status: device.status,
@@ -155,7 +155,7 @@ router.get('/devices', asyncHandler(async (req, res) => {
         lastChecked: new Date().toISOString()
       };
     } catch (error) {
-      deviceChecks[phoneNumber] = {
+      deviceChecks[deviceHash] = {
         status: 'error',
         error: error.message,
         lastChecked: new Date().toISOString()
@@ -193,7 +193,7 @@ router.get('/processes', asyncHandler(async (req, res) => {
         const response = await axios.get(`http://localhost:${process.port}/health`, { timeout: 3000 });
         
         return {
-          phoneNumber: process.phoneNumber,
+          deviceHash: process.deviceHash,
           pid: process.pid,
           status: 'healthy',
           processStatus: process.status,
@@ -204,7 +204,7 @@ router.get('/processes', asyncHandler(async (req, res) => {
         };
       } catch (error) {
         return {
-          phoneNumber: process.phoneNumber,
+          deviceHash: process.deviceHash,
           pid: process.pid,
           status: 'unhealthy',
           processStatus: process.status,
@@ -301,15 +301,15 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
           let healedProcesses = 0;
           
           for (const device of devices) {
-            const processStatus = await binaryManager.getProcessStatus(device.phoneNumber);
+            const processStatus = await binaryManager.getProcessStatus(device.deviceHash);
             
             if (!processStatus || !processStatus.running) {
               try {
-                await binaryManager.startProcess(device.phoneNumber);
+                await binaryManager.startProcess(device.deviceHash);
                 healedProcesses++;
-                logger.info(`Processo ${device.phoneNumber} reiniciado`);
+                logger.info(`Processo ${device.deviceHash} reiniciado`);
               } catch (error) {
-                logger.error(`Erro ao reiniciar processo ${device.phoneNumber}:`, error);
+                logger.error(`Erro ao reiniciar processo ${device.deviceHash}:`, error);
               }
             }
           }
