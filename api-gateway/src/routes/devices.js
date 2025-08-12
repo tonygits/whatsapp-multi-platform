@@ -35,20 +35,51 @@ router.get('/', asyncHandler(async (req, res) => {
     paginatedDevices = devicesArray.slice(offsetNum, offsetNum + limitNum);
   }
 
-  // Add container status and mask phone numbers
+  // Add container/process status e enriquecer dados de saída
   const devicesWithStatus = await Promise.all(
     paginatedDevices.map(async (device) => {
-      const processStatus = await binaryManager.getProcessStatus(device.phoneNumber || device.phone_number);
+      const phone = device.phoneNumber;
+      const process = await binaryManager.getProcessStatus(phone);
+      const containerPort = device.port || device.containerInfo?.port || process?.port || null;
+      const containerId = device.containerInfo?.containerId || null;
+      const qrPresent = Boolean(device.qrCode);
+      const messagesWebhookUrl = device.webhookUrl || null;
+      const statusWebhookUrl = device.statusWebhookUrl || null;
+      const webhookConfigured = Boolean(messagesWebhookUrl);
+      const statusWebhookConfigured = Boolean(statusWebhookUrl);
+
       return {
         id: device.id,
-        deviceHash: device.device_hash,
-        phoneNumber: PhoneUtils.maskPhoneNumber(device.phoneNumber || device.phone_number, { forceMask: false }),
+        deviceHash: device.deviceHash,
+        phoneNumber: PhoneUtils.maskPhoneNumber(phone, { forceMask: false }),
         name: device.name,
         status: device.status,
-        processStatus,
-        lastSeen: device.last_seen,
-        createdAt: device.created_at,
-        retryCount: device.retry_count || 0
+        container: {
+          id: containerId,
+          port: containerPort
+        },
+        process: process || null,
+        webhooks: {
+          messages: webhookConfigured,
+          status: statusWebhookConfigured,
+          messagesUrl: messagesWebhookUrl,
+          statusUrl: statusWebhookUrl,
+          hasMessagesSecret: Boolean(device.webhookSecret),
+          hasStatusSecret: Boolean(device.statusWebhookSecret)
+        },
+        qr: {
+          present: qrPresent,
+          expiresAt: device.qrExpiresAt || null
+        },
+        createdAt: device.createdAt || null,
+        updatedAt: device.updatedAt || null,
+        lastSeen: device.lastSeen || null,
+        retryCount: device.retryCount || 0,
+        endpoints: containerPort ? {
+          restBase: `http://localhost:${containerPort}`,
+          health: `http://localhost:${containerPort}/health`,
+          ws: `ws://localhost:${containerPort}/ws`
+        } : null
       };
     })
   );
@@ -72,7 +103,7 @@ router.get('/', asyncHandler(async (req, res) => {
  * Register a new device (idempotent)
  */
 router.post('/', asyncHandler(async (req, res) => {
-  const { phoneNumber, name, autoStart = true, webhook, webhookSecret, statusWebhook, statusWebhookSecret } = req.body;
+  const { phoneNumber, name, autoStart = true, webhookUrl, webhookSecret, statusWebhookUrl, statusWebhookSecret } = req.body;
 
   if (!phoneNumber) {
     throw new CustomError('Número de telefone é obrigatório', 400, 'MISSING_PHONE_NUMBER');
@@ -94,10 +125,10 @@ router.post('/', asyncHandler(async (req, res) => {
       logger.info(`Dispositivo ${phoneNumber} não encontrado no DB. Criando...`);
       device = await deviceManager.registerDevice(phoneNumber, { 
         name, 
-        webhook_url: webhook, 
-        webhook_secret: webhookSecret,
-        status_webhook_url: statusWebhook,
-        status_webhook_secret: statusWebhookSecret
+        webhookUrl, 
+        webhookSecret,
+        statusWebhookUrl,
+        statusWebhookSecret
       });
       wasCreated = true;
     } else {
@@ -130,7 +161,7 @@ router.post('/', asyncHandler(async (req, res) => {
       success: true,
       message: `Dispositivo ${wasCreated ? 'registrado' : 'já existente'} e verificado com sucesso.`,
       data: {
-        deviceHash: finalDeviceState.device_hash || PhoneUtils.generateDeviceId(phoneNumber),
+        deviceHash: finalDeviceState.deviceHash || PhoneUtils.generateDeviceId(phoneNumber),
         phoneNumber: phoneNumber, // Return original number
         phoneHash: phoneHash,
         name: finalDeviceState.name,
@@ -156,7 +187,7 @@ router.put('/', resolveInstance, asyncHandler(async (req, res) => {
   const updates = req.body;
 
   // Filter allowed updates (não permitir alteração de phone_number, hashes, etc.)
-  const allowedFields = ['name', 'webhook_url', 'webhook_secret', 'status_webhook_url', 'status_webhook_secret'];
+  const allowedFields = ['name', 'webhookUrl', 'webhookSecret', 'statusWebhookUrl', 'statusWebhookSecret'];
   const filteredUpdates = {};
   
   for (const [key, value] of Object.entries(updates)) {
@@ -167,14 +198,14 @@ router.put('/', resolveInstance, asyncHandler(async (req, res) => {
 
   const updatedDevice = await DeviceRepository.update(device.id, filteredUpdates);
 
-  logger.info(`Dispositivo ${PhoneUtils.maskForLog(device.phone_number, 'info')} atualizado`);
+  logger.info(`Dispositivo ${PhoneUtils.maskForLog(device.phoneNumber, 'info')} atualizado`);
 
   res.json({
     success: true,
     message: 'Dispositivo atualizado com sucesso',
     data: {
-      deviceHash: updatedDevice.device_hash,
-      phoneNumber: PhoneUtils.maskPhoneNumber(updatedDevice.phone_number, { forceMask: false }),
+      deviceHash: updatedDevice.deviceHash,
+      phoneNumber: PhoneUtils.maskPhoneNumber(updatedDevice.phoneNumber, { forceMask: false }),
       name: updatedDevice.name,
       status: updatedDevice.status
     }
@@ -189,19 +220,19 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
   const { force = false } = req.query;
 
-  logger.info(`Removendo dispositivo: ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
+  logger.info(`Removendo dispositivo: ${PhoneUtils.maskForLog(device.phoneNumber, 'info')}`);
 
   try {
     // Stop process first
     try {
-      await binaryManager.stopProcess(device.phone_number);
+      await binaryManager.stopProcess(device.phoneNumber);
     } catch (error) {
       if (!force) throw error;
       logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${error.message}`);
     }
 
     // Remove from device manager
-    const removed = await deviceManager.removeDevice(device.phone_number);
+    const removed = await deviceManager.removeDevice(device.phoneNumber);
 
     if (!removed) {
       throw new CustomError(
@@ -211,7 +242,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
       );
     }
 
-    logger.info(`Dispositivo ${PhoneUtils.maskForLog(device.phone_number, 'info')} removido com sucesso`);
+    logger.info(`Dispositivo ${PhoneUtils.maskForLog(device.phoneNumber, 'info')} removido com sucesso`);
 
     res.json({
       success: true,
@@ -219,7 +250,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Erro ao remover dispositivo ${PhoneUtils.maskForLog(device.phone_number, 'error')}:`, error);
+    logger.error(`Erro ao remover dispositivo ${PhoneUtils.maskForLog(device.phoneNumber, 'error')}:`, error);
     throw error;
   }
 }));
@@ -232,21 +263,44 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
  */
 router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
-
-  const processStatus = await binaryManager.getProcessStatus(device.phone_number);
+  const phone = device.phoneNumber;
+  const process = await binaryManager.getProcessStatus(phone);
+  const containerPort = device.containerInfo?.port || process?.port || null;
+  const containerId = device.containerInfo?.containerId || null;
+  const messagesWebhookUrl = device.webhookUrl || null;
+  const statusWebhookUrl = device.statusWebhookUrl || null;
 
   res.json({
     success: true,
     data: {
       id: device.id,
-      deviceHash: device.device_hash,
-      phoneNumber: PhoneUtils.maskPhoneNumber(device.phone_number, { forceMask: false }),
+      deviceHash: device.deviceHash,
+      phoneNumber: PhoneUtils.maskPhoneNumber(phone, { forceMask: false }),
       name: device.name,
       status: device.status,
-      processStatus,
-      qrCode: device.qr_code,
-      lastSeen: device.last_seen,
-      createdAt: device.created_at
+      container: { id: containerId, port: containerPort },
+      process: process || null,
+      webhooks: {
+        messages: Boolean(messagesWebhookUrl),
+        status: Boolean(statusWebhookUrl),
+        messagesUrl: messagesWebhookUrl,
+        statusUrl: statusWebhookUrl,
+        hasMessagesSecret: Boolean(device.webhookSecret),
+        hasStatusSecret: Boolean(device.statusWebhookSecret)
+      },
+      qr: {
+        present: Boolean(device.qrCode),
+        value: device.qrCode || null,
+        expiresAt: device.qrExpiresAt || null
+      },
+      createdAt: device.createdAt || null,
+      updatedAt: device.updatedAt || null,
+      lastSeen: device.lastSeen || null,
+      endpoints: containerPort ? {
+        restBase: `http://localhost:${containerPort}`,
+        health: `http://localhost:${containerPort}/health`,
+        ws: `ws://localhost:${containerPort}/ws`
+      } : null
     }
   });
 }));
@@ -258,9 +312,9 @@ router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Iniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
+  logger.info(`Iniciando container para ${PhoneUtils.maskForLog(device.phoneNumber, 'info')}`);
 
-  await binaryManager.startProcess(device.phone_number);
+  await binaryManager.startProcess(device.phoneNumber);
 
   res.json({
     success: true,
@@ -275,9 +329,9 @@ router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Parando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
+  logger.info(`Parando container para ${PhoneUtils.maskForLog(device.phoneNumber, 'info')}`);
 
-  await binaryManager.stopProcess(device.phone_number);
+  await binaryManager.stopProcess(device.phoneNumber);
 
   res.json({
     success: true,
@@ -292,9 +346,9 @@ router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Reiniciando container para ${PhoneUtils.maskForLog(device.phone_number, 'info')}`);
+  logger.info(`Reiniciando container para ${PhoneUtils.maskForLog(device.phoneNumber, 'info')}`);
 
-  await binaryManager.restartProcess(device.phone_number);
+  await binaryManager.restartProcess(device.phoneNumber);
 
   res.json({
     success: true,

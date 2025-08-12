@@ -88,16 +88,17 @@ class DeviceManager {
         phone_number: phoneNumber,
         name: options.name || `Device ${phoneNumber}`,
         container_port: port,
-        webhook_url: options.webhook_url,
-        webhook_secret: options.webhook_secret,
-        status_webhook_url: options.status_webhook_url,
-        status_webhook_secret: options.status_webhook_secret
+        webhook_url: options.webhookUrl,
+        webhook_secret: options.webhookSecret,
+        status_webhook_url: options.statusWebhookUrl,
+        status_webhook_secret: options.statusWebhookSecret
       });
 
       logger.info(`Dispositivo registrado com sucesso: ${phoneNumber}`, { deviceId: device.id, port });
       
       return {
         id: device.id,
+        deviceHash: device.device_hash,
         phoneNumber: device.phone_number,
         name: device.name,
         status: device.status,
@@ -162,6 +163,7 @@ class DeviceManager {
 
       return {
         id: device.id,
+        deviceHash: device.device_hash,
         phoneNumber: device.phone_number,
         name: device.name,
         status: device.status,
@@ -196,6 +198,7 @@ class DeviceManager {
       
       return devices.map(device => ({
         id: device.id,
+        deviceHash: device.device_hash,
         phoneNumber: device.phone_number,
         name: device.name,
         status: device.status,
@@ -211,7 +214,8 @@ class DeviceManager {
         statusWebhookSecret: device.status_webhook_secret,
         createdAt: device.created_at,
         updatedAt: device.updated_at,
-        lastSeen: device.last_seen
+        lastSeen: device.last_seen,
+        retryCount: device.retry_count
       }));
     } catch (error) {
       logger.error('Erro ao listar dispositivos:', error);

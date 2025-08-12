@@ -14,6 +14,7 @@ const resolveInstanceCore = async (instanceId) => {
     if (dbDevice) {
       device = {
         id: dbDevice.id,
+        deviceHash: dbDevice.device_hash,
         phoneNumber: dbDevice.phone_number,
         name: dbDevice.name,
         status: dbDevice.status,
@@ -24,6 +25,9 @@ const resolveInstanceCore = async (instanceId) => {
         qrCode: dbDevice.qr_code,
         qrExpiresAt: dbDevice.qr_expires_at,
         webhookUrl: dbDevice.webhook_url,
+        webhookSecret: dbDevice.webhook_secret,
+        statusWebhookUrl: dbDevice.status_webhook_url,
+        statusWebhookSecret: dbDevice.status_webhook_secret,
         createdAt: dbDevice.created_at,
         updatedAt: dbDevice.updated_at,
         lastSeen: dbDevice.last_seen

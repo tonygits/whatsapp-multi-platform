@@ -193,9 +193,9 @@ function generateOpenAPIFromApp(app) {
                 properties: {
                   phoneNumber: { type: 'string', example: '5511999999999' },
                   name: { type: 'string', example: 'Atendimento Principal' },
-                  webhook: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
+                  webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
                   webhookSecret: { type: 'string', nullable: true, example: 'meu-secret-mensagens' },
-                  statusWebhook: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
+                  statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
                   statusWebhookSecret: { type: 'string', nullable: true, example: 'meu-secret-status' },
                   autoStart: { type: 'boolean', default: true, example: true }
                 }
@@ -252,10 +252,10 @@ function generateOpenAPIFromApp(app) {
                 type: 'object',
                 properties: {
                   name: { type: 'string', example: 'Novo Nome do Dispositivo' },
-                  webhook_url: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
-                  webhook_secret: { type: 'string', nullable: true, example: 'novo-secret-mensagens' },
-                  status_webhook_url: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
-                  status_webhook_secret: { type: 'string', nullable: true, example: 'novo-secret-status' }
+                  webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'novo-secret-mensagens' },
+                  statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
+                  statusWebhookSecret: { type: 'string', nullable: true, example: 'novo-secret-status' }
                 }
               }
             }

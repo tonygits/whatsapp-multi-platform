@@ -15,7 +15,9 @@ class DeviceRepository {
         name,
         container_port,
         webhook_url,
-        webhook_secret
+        webhook_secret,
+        status_webhook_url,
+        status_webhook_secret
       } = deviceData;
 
       // Gerar hashes de segurança
@@ -23,9 +25,21 @@ class DeviceRepository {
       const phone_hash = PhoneUtils.hashPhoneNumber(phone_number);
 
       const result = await database.run(
-        `INSERT INTO devices (device_hash, phone_number, phone_hash, name, container_port, webhook_url, webhook_secret)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [device_hash, phone_number, phone_hash, name || null, container_port || null, webhook_url || null, webhook_secret || null]
+        `INSERT INTO devices (
+           device_hash, phone_number, phone_hash, name, container_port,
+           webhook_url, webhook_secret, status_webhook_url, status_webhook_secret
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          device_hash,
+          phone_number,
+          phone_hash,
+          name || null,
+          container_port || null,
+          webhook_url || null,
+          webhook_secret || null,
+          status_webhook_url || null,
+          status_webhook_secret || null
+        ]
       );
 
       const device = await this.findById(result.lastID);
@@ -132,15 +146,32 @@ class DeviceRepository {
     try {
       const allowedFields = [
         'name', 'status', 'container_id', 'container_port',
-        'qr_code', 'qr_expires_at', 'webhook_url', 'webhook_secret', 'last_seen'
+        'qr_code', 'qr_expires_at', 'webhook_url', 'webhook_secret',
+        'status_webhook_url', 'status_webhook_secret', 'last_seen'
       ];
+
+      // Convert camelCase to snake_case for database
+      const fieldMapping = {
+        'webhookUrl': 'webhook_url',
+        'webhookSecret': 'webhook_secret',
+        'statusWebhookUrl': 'status_webhook_url',
+        'statusWebhookSecret': 'status_webhook_secret',
+        'containerId': 'container_id',
+        'containerPort': 'container_port',
+        'qrCode': 'qr_code',
+        'qrExpiresAt': 'qr_expires_at',
+        'lastSeen': 'last_seen'
+      };
 
       const fields = [];
       const params = [];
 
       for (const [key, value] of Object.entries(updateData)) {
-        if (allowedFields.includes(key)) {
-          fields.push(`${key} = ?`);
+        // Convert camelCase to snake_case if needed
+        const dbField = fieldMapping[key] || key;
+        
+        if (allowedFields.includes(dbField)) {
+          fields.push(`${dbField} = ?`);
           params.push(value);
         }
       }
