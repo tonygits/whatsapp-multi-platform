@@ -2,17 +2,17 @@ const path = require('path');
 const fs = require('fs');
 
 // Decide base directory
-// Priority: env APP_BASE_DIR -> '/app' if exists -> api-gateway root (dev)
+// Priority: env APP_BASE_DIR -> '/app' if exists -> project root (dev)
 const explicitBase = process.env.APP_BASE_DIR;
 const dockerBase = '/app';
-// __dirname = api-gateway/src/utils → subir dois níveis para a raiz de api-gateway
-const apiGatewayRoot = path.resolve(__dirname, '..', '..');
+// __dirname = api-gateway/src/utils → subir três níveis para a raiz do projeto
+const projectRoot = path.resolve(__dirname, '..', '..', '..');
 
 const BASE_DIR = explicitBase
   ? explicitBase
   : fs.existsSync(dockerBase)
     ? dockerBase
-    : apiGatewayRoot;
+    : projectRoot;
 
 // Standardized paths
 const BIN_PATH = path.join(BASE_DIR, 'whatsapp');

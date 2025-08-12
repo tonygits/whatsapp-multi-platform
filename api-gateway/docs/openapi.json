@@ -232,7 +232,7 @@
                     "type": "string",
                     "example": "Atendimento Principal"
                   },
-                  "webhook": {
+                  "webhookUrl": {
                     "type": "string",
                     "format": "url",
                     "nullable": true,
@@ -243,7 +243,7 @@
                     "nullable": true,
                     "example": "meu-secret-mensagens"
                   },
-                  "statusWebhook": {
+                  "statusWebhookUrl": {
                     "type": "string",
                     "format": "url",
                     "nullable": true,
@@ -344,24 +344,24 @@
                     "type": "string",
                     "example": "Novo Nome do Dispositivo"
                   },
-                  "webhook_url": {
+                  "webhookUrl": {
                     "type": "string",
                     "format": "url",
                     "nullable": true,
                     "example": "https://meusite.com/webhook/messages"
                   },
-                  "webhook_secret": {
+                  "webhookSecret": {
                     "type": "string",
                     "nullable": true,
                     "example": "novo-secret-mensagens"
                   },
-                  "status_webhook_url": {
+                  "statusWebhookUrl": {
                     "type": "string",
                     "format": "url",
                     "nullable": true,
                     "example": "https://meusite.com/webhook/status"
                   },
-                  "status_webhook_secret": {
+                  "statusWebhookSecret": {
                     "type": "string",
                     "nullable": true,
                     "example": "novo-secret-status"

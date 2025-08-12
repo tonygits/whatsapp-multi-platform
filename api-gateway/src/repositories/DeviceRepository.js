@@ -295,6 +295,36 @@ class DeviceRepository {
       throw error;
     }
   }
+
+  /**
+   * Convert device data from snake_case to camelCase
+   * @param {Object} device - Device with snake_case fields
+   * @returns {Object} - Device with camelCase fields
+   */
+  convertToCamelCase(device) {
+    if (!device) return null;
+    
+    return {
+      id: device.id,
+      deviceHash: device.device_hash,
+      phoneNumber: device.phone_number,
+      phoneHash: device.phone_hash,
+      name: device.name,
+      status: device.status,
+      containerId: device.container_id,
+      containerPort: device.container_port,
+      qrCode: device.qr_code,
+      qrExpiresAt: device.qr_expires_at,
+      webhookUrl: device.webhook_url,
+      webhookSecret: device.webhook_secret,
+      statusWebhookUrl: device.status_webhook_url,
+      statusWebhookSecret: device.status_webhook_secret,
+      createdAt: device.created_at,
+      updatedAt: device.updated_at,
+      lastSeen: device.last_seen,
+      retryCount: device.retry_count || 0
+    };
+  }
 }
 
 module.exports = new DeviceRepository();

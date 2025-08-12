@@ -204,8 +204,8 @@ router.put('/', resolveInstance, asyncHandler(async (req, res) => {
     success: true,
     message: 'Dispositivo atualizado com sucesso',
     data: {
-      deviceHash: updatedDevice.deviceHash,
-      phoneNumber: PhoneUtils.maskPhoneNumber(updatedDevice.phoneNumber, { forceMask: false }),
+      deviceHash: updatedDevice.device_hash,
+      phoneNumber: PhoneUtils.maskPhoneNumber(updatedDevice.phone_number, { forceMask: false }),
       name: updatedDevice.name,
       status: updatedDevice.status
     }
