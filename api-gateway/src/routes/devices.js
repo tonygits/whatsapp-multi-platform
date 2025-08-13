@@ -165,7 +165,7 @@ router.put('/', resolveInstance, asyncHandler(async (req, res) => {
 
   const updatedDevice = await DeviceRepository.update(device.id, filteredUpdates);
 
-  logger.info(`Dispositivo ${device.device_hash} atualizado`);
+  logger.info(`Dispositivo ${device.deviceHash} atualizado`);
 
   res.json({
     success: true,

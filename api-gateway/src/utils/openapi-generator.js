@@ -74,10 +74,10 @@ function generateOpenAPIFromApp(app) {
           name: 'x-instance-id',
           in: 'header',
           required: true,
-          description: 'O número de telefone da instância (ex: 5511999999999)',
+          description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
           schema: {
             type: 'string',
-            example: '5511999999999'
+            example: 'a1b2c3d4e5f67890'
           }
         });
 
@@ -234,10 +234,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           }
         ],
@@ -302,10 +302,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           },
           {
@@ -365,10 +365,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           }
         ],
@@ -423,10 +423,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           }
         ],
@@ -476,10 +476,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           }
         ],
@@ -529,10 +529,10 @@ function generateOpenAPIFromApp(app) {
             name: 'x-instance-id',
             in: 'header',
             required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
+            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
-              example: '5511999999999'
+              example: 'a1b2c3d4e5f67890'
             }
           }
         ],
