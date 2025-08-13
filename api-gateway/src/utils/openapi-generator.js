@@ -509,7 +509,7 @@ function generateOpenAPIFromApp(app) {
         }
       }
     },
-    '/api/devices/delete': {
+    '/api/devices': {
       delete: {
         operationId: 'deleteDevice',
         tags: ['Device Management'],

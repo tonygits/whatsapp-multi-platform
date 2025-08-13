@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { asyncHandler, CustomError } = require('./errorHandler');
 const logger = require('../utils/logger');
+const { SESSIONS_DIR } = require('../utils/paths');
 
 const DEFAULT_ADMIN_USER = process.env.DEFAULT_ADMIN_USER || 'admin';
 const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
@@ -42,7 +43,7 @@ const loginHandler = asyncHandler(async (req, res) => {
       try {
         // Extract QR file path from the link
         const qrFileName = responseData.results.qr_link.split('/').pop();
-        const sessionPath = `/app/sessions/${deviceHash}`;
+        const sessionPath = path.join(SESSIONS_DIR, deviceHash);
         const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
         
         logger.info(`Tentando ler arquivo QR: ${qrFilePath}`);
