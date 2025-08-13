@@ -290,6 +290,67 @@ function generateOpenAPIFromApp(app) {
             }
           }
         }
+      },
+      delete: {
+        operationId: 'deleteDevice',
+        tags: ['Device Management'],
+        summary: 'Remover um dispositivo',
+        description: 'Remove um dispositivo e seu container Docker associado.',
+        security: [{ basicAuth: [] }],
+        parameters: [
+          {
+            name: 'x-instance-id',
+            in: 'header',
+            required: true,
+            description: 'O número de telefone da instância (ex: 5511999999999)',
+            schema: {
+              type: 'string',
+              example: '5511999999999'
+            }
+          },
+          {
+            name: 'force',
+            in: 'query',
+            required: false,
+            description: 'Forçar a remoção mesmo se o processo não puder ser parado.',
+            schema: {
+              type: 'boolean',
+              default: false
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Dispositivo removido com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Dispositivo removido com sucesso' }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Dispositivo não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
+              }
+            }
+          },
+          '500': {
+            description: 'Erro ao remover dispositivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
+              }
+            }
+          }
+        }
       }
     },
     '/api/devices/info': {
@@ -508,69 +569,6 @@ function generateOpenAPIFromApp(app) {
           }
         }
       }
-    },
-    '/api/devices': {
-      delete: {
-        operationId: 'deleteDevice',
-        tags: ['Device Management'],
-        summary: 'Remover um dispositivo',
-        description: 'Remove um dispositivo e seu container Docker associado.',
-        security: [{ basicAuth: [] }],
-        parameters: [
-          {
-            name: 'x-instance-id',
-            in: 'header',
-            required: true,
-            description: 'O número de telefone da instância (ex: 5511999999999)',
-            schema: {
-              type: 'string',
-              example: '5511999999999'
-            }
-          },
-          {
-            name: 'force',
-            in: 'query',
-            required: false,
-            description: 'Forçar a remoção mesmo se o processo não puder ser parado.',
-            schema: {
-              type: 'boolean',
-              default: false
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Dispositivo removido com sucesso',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Dispositivo removido com sucesso' }
-                  }
-                }
-              }
-            }
-          },
-          '404': {
-            description: 'Dispositivo não encontrado',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorBadRequest' }
-              }
-            }
-          },
-          '500': {
-            description: 'Erro ao remover dispositivo',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorInternalServer' }
-              }
-            }
-          }
-        }
-      }
     }
   };
 
@@ -604,8 +602,10 @@ function generateOpenAPIFromApp(app) {
    ...sendPaths, ...messagePaths, ...chatsPaths, ...chatPaths, 
    ...groupPaths, ...newsletterPaths].forEach(pathKey => {
     if (gatewayPaths[pathKey]) {
+      console.log(`Adding gateway path: ${pathKey}`);
       orderedPaths[pathKey] = gatewayPaths[pathKey];
     } else if (whatsappPaths[pathKey]) {
+      console.log(`Adding whatsapp path: ${pathKey}`);
       orderedPaths[pathKey] = whatsappPaths[pathKey];
     }
   });
