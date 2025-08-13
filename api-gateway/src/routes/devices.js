@@ -185,19 +185,19 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
   const { force = false } = req.query;
 
-  logger.info(`Removendo dispositivo: ${device.device_hash}`);
+  logger.info(`Removendo dispositivo: ${device.deviceHash}`);
 
   try {
     // Stop process first
     try {
-      await binaryManager.stopProcess(device.device_hash);
+      await binaryManager.stopProcess(device.deviceHash);
     } catch (error) {
       if (!force) throw error;
       logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${error.message}`);
     }
 
     // Remove from device manager
-    const removed = await deviceManager.removeDevice(device.device_hash);
+    const removed = await deviceManager.removeDevice(device.deviceHash);
 
     if (!removed) {
       throw new CustomError(
@@ -207,7 +207,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
       );
     }
 
-    logger.info(`Dispositivo ${device.device_hash} removido com sucesso`);
+    logger.info(`Dispositivo ${device.deviceHash} removido com sucesso`);
 
     res.json({
       success: true,
@@ -215,7 +215,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Erro ao remover dispositivo ${device.device_hash}:`, error);
+    logger.error(`Erro ao remover dispositivo ${device.deviceHash}:`, error);
     throw error;
   }
 }));
@@ -228,7 +228,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
  */
 router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
-  const process = await binaryManager.getProcessStatus(device.device_hash);
+  const process = await binaryManager.getProcessStatus(device.deviceHash);
   const containerPort = device.containerInfo?.port || process?.port || null;
   const containerId = device.containerInfo?.containerId || null;
   const messagesWebhookUrl = device.webhookUrl || null;
@@ -269,9 +269,9 @@ router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Iniciando container para ${device.device_hash}`);
+  logger.info(`Iniciando container para ${device.deviceHash}`);
 
-  await binaryManager.startProcess(device.device_hash);
+  await binaryManager.startProcess(device.deviceHash);
 
   res.json({
     success: true,
@@ -286,9 +286,9 @@ router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Parando container para ${device.device_hash}`);
+  logger.info(`Parando container para ${device.deviceHash}`);
 
-  await binaryManager.stopProcess(device.device_hash);
+  await binaryManager.stopProcess(device.deviceHash);
 
   res.json({
     success: true,
@@ -303,9 +303,9 @@ router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
 router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
   const { device } = req;
 
-  logger.info(`Reiniciando container para ${device.device_hash}`);
+  logger.info(`Reiniciando container para ${device.deviceHash}`);
 
-  await binaryManager.restartProcess(device.device_hash);
+  await binaryManager.restartProcess(device.deviceHash);
 
   res.json({
     success: true,
