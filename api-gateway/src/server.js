@@ -22,14 +22,8 @@ const deviceRoutes = require('./routes/devices');
 const healthRoutes = require('./routes/health');
 const docsRoutes = require('./routes/docs');
 
-// Import new direct API routes
-const appRoutes = require('./routes/app');
-const sendRoutes = require('./routes/send');
-const userRoutes = require('./routes/user');
-const messageApiRoutes = require('./routes/message');
-const chatRoutes = require('./routes/chat');
-const groupRoutes = require('./routes/group');
-const newsletterRoutes = require('./routes/newsletter');
+// Import consolidated proxy route
+const proxyRoutes = require('./routes/proxy');
 
 class APIGateway {
   constructor() {
@@ -91,15 +85,8 @@ class APIGateway {
 
     this.app.use('/api/devices', deviceRoutes);
     
-    // New direct API routes with instance_id support
-    this.app.use('/api/app', appRoutes);
-    this.app.use('/api/send', sendRoutes);
-    this.app.use('/api/user', userRoutes);
-    this.app.use('/api/message', messageApiRoutes);
-    this.app.use('/api/chat', chatRoutes);
-    this.app.use('/api/chats', chatRoutes);
-    this.app.use('/api/group', groupRoutes);
-    this.app.use('/api/newsletter', newsletterRoutes);
+    // Consolidated proxy routes with instance_id support
+    this.app.use('/api', proxyRoutes);
 
     // Root endpoint
     this.app.get('/', (req, res) => {
@@ -109,14 +96,9 @@ class APIGateway {
         status: 'running',
         timestamp: new Date().toISOString(),
         endpoints: {
-          devices: '/api/devices',
-          app: '/api/app',
-          send: '/api/send',
-          user: '/api/user',
-          message: '/api/message',
-          chat: '/api/chat',
-          group: '/api/group',
           health: '/api/health',
+          devices: '/api/devices',
+          proxy: '/api/* (app, send, user, message, chat, group, newsletter)',
           docs: '/docs'
         },
         links: {

@@ -5,6 +5,7 @@
 ### 🏗️ Arquitetura e Conceitos
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitetura técnica do sistema
 - **[DEVICE_SECURITY.md](./DEVICE_SECURITY.md)** - Segurança e identificação por deviceHash
+- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - Variáveis de ambiente completas
 
 ### 🔄 APIs e Integrações
 - **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Documentação completa das APIs

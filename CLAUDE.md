@@ -6,11 +6,12 @@
 Sistema escalável para gerenciar múltiplos dispositivos WhatsApp através de uma API Gateway com processos isolados e identificação por deviceHash.
 
 ### 🏗️ Arquitetura Atual
-- **API Gateway**: Node.js/Express rodando na porta 3000
+- **API Gateway**: Node.js/Express rodando na porta 3000 (acesso direto)
 - **Processos WhatsApp**: Binário `go-whatsapp-web-multidevice` em portas dinâmicas (8000+)
 - **Identificação**: deviceHash hexadecimal de 16 caracteres (auto-gerado)
 - **Banco de dados**: SQLite para persistência
 - **Sessões**: Volumes persistentes por deviceHash
+- **Deploy**: GitHub Actions com build multi-arquitetura para Docker Hub
 
 ### 🔑 Identificação de Dispositivos
 - **Sistema**: Baseado em `deviceHash` (ex: `a1b2c3d4e5f67890`)
@@ -143,6 +144,9 @@ npm test
 # Lint e format
 npm run lint
 npm run format
+
+# Limpeza completa do sistema
+./scripts/maintenance/cleanup.sh
 ```
 
 #### Debugging
@@ -154,20 +158,33 @@ npm run format
 
 #### Variáveis de Ambiente
 ```bash
-# Servidor
+# API Gateway
 API_PORT=3000
-NODE_ENV=development
+NODE_ENV=production
+API_RATE_LIMIT=100
+API_AUTH_ENABLED=true
 
 # Autenticação
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=admin
 
-# Processos
-PROCESS_BASE_PORT=8000
-MAX_PROCESSES=50
+# Docker
+DOCKER_SOCKET=/var/run/docker.sock
 
-# Health checks
+# Logging
+LOG_LEVEL=info
+LOGS_PATH=./logs
+
+# Update Manager
+UPDATE_CHECK_CRON='0 2 * * *'
+AUTO_UPDATE_ENABLED=true
+
+# Health & Monitoring
 HEALTH_CHECK_INTERVAL=30000
+MASK_PHONE_NUMBERS=true
+
+# Paths (opcional)
+APP_BASE_DIR=/custom/path
 ```
 
 #### Estrutura de Arquivos
@@ -182,10 +199,21 @@ HEALTH_CHECK_INTERVAL=30000
 │   │   ├── database/      # SQLite setup
 │   │   └── utils/         # Utilities
 │   └── server.js          # Entry point
-├── sessions/              # Device sessions
-├── volumes/              # SQLite databases
+├── docs/                  # Documentação centralizada
+│   ├── README.md          # Índice da documentação
+│   ├── ENVIRONMENT_VARIABLES.md  # Variáveis completas
+│   └── *.md              # Outras documentações
+├── scripts/
+│   └── maintenance/       # Scripts de manutenção
+│       └── cleanup.sh     # Limpeza completa do sistema
+├── .github/
+│   └── workflows/         # GitHub Actions
+│       ├── docker-build-push.yml  # Deploy Docker Hub
+│       └── release.yml    # Releases automáticos
+├── sessions/              # Device sessions (gitignored)
+├── volumes/              # SQLite databases (gitignored)
 ├── whatsapp              # WhatsApp binary
-└── docs/                 # Documentation
+└── README.md             # Documentação principal
 ```
 
 ### 📊 Schema do Banco
@@ -246,13 +274,34 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 ```
 
 ### 📝 Tasks Executadas
+
+#### 🔄 Refatoração Principal (Concluída)
 1. ✅ Auto-geração de deviceHash
 2. ✅ Remoção de phoneNumber/name da API
 3. ✅ Headers x-instance-id implementados
 4. ✅ Convenções de nomenclatura padronizadas
 5. ✅ Limpeza de código duplicado
-6. ✅ Documentação completamente atualizada
-7. ✅ QR code path corrigido para ambientes não-Docker
+6. ✅ QR code path corrigido para ambientes não-Docker
+
+#### 📚 Organização da Documentação (Recente)
+1. ✅ Documentação centralizada na pasta `docs/`
+2. ✅ Criação do `docs/README.md` como índice
+3. ✅ Documentação completa de variáveis de ambiente
+4. ✅ Correção de inconsistências no `.env.example`
+5. ✅ Atualização do README principal
+
+#### 🏗️ Simplificação da Arquitetura (Recente)
+1. ✅ Remoção do nginx (arquitetura simplificada)
+2. ✅ Acesso direto na porta 3000
+3. ✅ Consolidação de scripts de limpeza
+4. ✅ Atualização do docker-compose.yml
+
+#### 🚀 Deploy e CI/CD (Recente)
+1. ✅ GitHub Actions para build Docker
+2. ✅ Deploy automático para Docker Hub
+3. ✅ Build multi-arquitetura (amd64/arm64)
+4. ✅ Workflow de releases automático
+5. ✅ Documentação completa de deploy
 
 ### 🎯 Próximos Passos Sugeridos
 1. **Implementar rate limiting** por deviceHash
@@ -260,12 +309,26 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 3. **Sistema de backup** automático das sessões
 4. **Dashboard web** para monitoramento
 5. **Testes automatizados** completos
+6. **Monitoramento avançado** com métricas personalizadas
+7. **Load balancing** para múltiplas instâncias
 
 ### 🔗 Links Úteis
 - **API Docs**: http://localhost:3000/docs
 - **Health Check**: http://localhost:3000/api/health
 - **OpenAPI**: http://localhost:3000/docs/openapi.yaml
+- **Documentação**: [docs/README.md](docs/README.md)
+- **Variáveis de Ambiente**: [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
+- **Deploy Docker**: [docs/DOCKER_DEPLOY.md](docs/DOCKER_DEPLOY.md)
 
 ---
 
-*Este documento foi gerado automaticamente pelo Claude e reflete o estado atual do projeto após a refatoração completa.*
+*Última atualização: Agosto 2025*
+
+**Estado atual do projeto**: Refatorado e otimizado ✅
+- 🏗️ Arquitetura simplificada (sem nginx)  
+- 📚 Documentação centralizada e organizada
+- 🚀 Deploy automático configurado
+- 🧹 Sistema de limpeza consolidado
+- 🔧 Variáveis de ambiente documentadas
+
+*Este documento é mantido atualizado automaticamente pelo Claude*
