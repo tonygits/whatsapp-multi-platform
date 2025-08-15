@@ -48,12 +48,6 @@ mkdir -p "$TEMP_DIR"
 
 echo "📁 Preparando arquivos para backup..."
 
-# 1. Copy configuration files
-print_info "Copiando arquivos de configuração..."
-mkdir -p "${TEMP_DIR}/config"
-cp -r ./config/* "${TEMP_DIR}/config/" 2>/dev/null || true
-print_status "Configurações copiadas"
-
 # 2. Copy application source (without node_modules)
 print_info "Copiando código fonte..."
 mkdir -p "${TEMP_DIR}/src"

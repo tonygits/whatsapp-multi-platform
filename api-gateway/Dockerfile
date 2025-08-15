@@ -44,7 +44,7 @@ COPY openapi.yaml ./openapi.yaml
 COPY docs ./docs
 
 # Create necessary directories
-RUN mkdir -p /app/config /app/volumes /app/logs /app/sessions
+RUN mkdir -p /app/volumes /app/logs /app/sessions
 
 # Create non-root user
 RUN groupadd -g 1001 gateway && \

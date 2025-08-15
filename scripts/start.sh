@@ -43,7 +43,7 @@ print_status "docker-compose encontrado"
 
 # Create necessary directories
 print_info "Criando diretórios necessários..."
-mkdir -p logs volumes config/docker
+mkdir -p logs volumes
 chmod 755 logs volumes
 print_status "Diretórios criados"
 
