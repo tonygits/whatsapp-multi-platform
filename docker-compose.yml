@@ -17,7 +17,6 @@ services:
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
-      - WHATSAPP_IMAGE_NAME=whatsapp-multidevice
     networks:
       - whatsapp_network
     restart: unless-stopped
@@ -28,19 +27,5 @@ services:
       retries: 5
       start_period: 30s
 
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./config/nginx:/etc/nginx/conf.d
-      - ./logs/nginx:/var/log/nginx
-    networks:
-      - whatsapp_network
-    restart: unless-stopped
-    depends_on:
-      api-gateway:
-        condition: service_healthy
 networks:
   whatsapp_network:

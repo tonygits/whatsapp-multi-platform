@@ -52,7 +52,8 @@ class AuthManager {
  * Auth middleware for Express
  */
 const authMiddleware = async (req, res, next) => {
-  if (process.env.API_AUTH_ENABLED !== 'true') {
+  const API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'true'
+  if (API_AUTH_ENABLED !== 'true') {
     return next();
   }
 

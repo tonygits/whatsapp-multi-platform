@@ -31,9 +31,9 @@ A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite 
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│     Nginx       │    │   API Gateway    │    │   WhatsApp Binary   │
-│   (Proxy/LB)    │◄──►│ (Process Manager)│◄──►│  Multiple Processes │
-│   Port 80/443   │    │    Port 3000     │    │   Port 8000-8999    │
+│   API Gateway    │    │   WhatsApp Binary   │
+│ (Process Manager)│◄──►│    Multiple      │◄──►│  WhatsApp Processes │
+│    Port 3000     │    │    Processes     │    │   Port 8000-8999    │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
          │                       │                         │
          │                       ▼                         │

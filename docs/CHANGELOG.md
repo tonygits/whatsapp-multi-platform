@@ -21,4 +21,3 @@
 - 📦 Oficial go-whatsapp-web-multidevice
 - 📦 SQLite para persistência
 - 📦 Docker Compose
-- 📦 Nginx reverse proxy

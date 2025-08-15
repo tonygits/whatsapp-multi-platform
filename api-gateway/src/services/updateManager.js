@@ -119,8 +119,7 @@ class UpdateManager {
       const images = [
         'node:18-alpine',
         'golang:1.21-alpine',
-        'alpine:latest',
-        'nginx:alpine'
+        'alpine:latest'
       ];
 
       for (const image of images) {
