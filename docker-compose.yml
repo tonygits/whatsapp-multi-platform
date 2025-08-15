@@ -14,7 +14,8 @@ services:
       - ./sessions:/app/sessions
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - JWT_SECRET=${JWT_SECRET}
+      - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
+      - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
       - WHATSAPP_IMAGE_NAME=whatsapp-multidevice
     networks:

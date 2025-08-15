@@ -58,7 +58,8 @@ if [ ! -f .env ]; then
         cat > .env << EOF
 API_PORT=3000
 NODE_ENV=production
-JWT_SECRET=change_this_secret_in_production
+DEFAULT_ADMIN_USER=admin
+DEFAULT_ADMIN_PASS=admin
 DOCKER_SOCKET=/var/run/docker.sock
 CONTAINER_BASE_PORT=4000
 EOF

@@ -89,7 +89,6 @@ nano .env
 **Variáveis essenciais:**
 ```env
 API_PORT=3000
-JWT_SECRET=seu_jwt_secret_super_seguro_aqui
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
 ```
