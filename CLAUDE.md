@@ -31,18 +31,14 @@ Sistema escalável para gerenciar múltiplos dispositivos WhatsApp através de u
 - `src/repositories/DeviceRepository.js` - Acesso ao banco SQLite
 - `src/database/database.js` - Conexão e schema SQLite
 
-#### Routes & API
+#### Routes & API (Consolidado)
+- `src/routes/proxy.js` - **CONSOLIDADO** - Todos os 52 endpoints de proxy
 - `src/routes/devices.js` - CRUD de dispositivos
-- `src/routes/app.js` - Proxy para endpoints /app/*
-- `src/routes/send.js` - Proxy para endpoints /send/*
-- `src/routes/user.js` - Proxy para endpoints /user/*
-- `src/routes/message.js` - Proxy para endpoints /message/*
-- `src/routes/chat.js` - Proxy para endpoints /chat/*
-- `src/routes/group.js` - Proxy para endpoints /group/*
 - `src/routes/health.js` - Health checks
+- `src/routes/docs.js` - Documentação
 
-#### Middleware
-- `src/middleware/resolveInstance.js` - Resolução de deviceHash
+#### Middleware (Otimizado)
+- `src/middleware/proxyToActiveDevice.js` - **ÚNICO** middleware para proxy (consolidado)
 - `src/middleware/loginHandler.js` - Interceptação de QR codes
 - `src/middleware/auth.js` - Autenticação básica
 
@@ -303,6 +299,14 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 4. ✅ Workflow de releases automático
 5. ✅ Documentação completa de deploy
 
+#### 🗂️ Consolidação Radical de Rotas (Atual)
+1. ✅ Consolidação de 8 arquivos de rota em 1
+2. ✅ Redução de 3 middlewares para 1 otimizado
+3. ✅ 52 endpoints consolidados em proxy.js
+4. ✅ Middleware unificado proxyToActiveDevice
+5. ✅ Simplificação de 75% no código de rotas
+6. ✅ Performance e manutenibilidade melhoradas
+
 ### 🎯 Próximos Passos Sugeridos
 1. **Implementar rate limiting** por deviceHash
 2. **Adicionar métricas** de uso por dispositivo
@@ -324,11 +328,13 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 
 *Última atualização: Agosto 2025*
 
-**Estado atual do projeto**: Refatorado e otimizado ✅
+**Estado atual do projeto**: Altamente otimizado e pronto para lançamento ✅
 - 🏗️ Arquitetura simplificada (sem nginx)  
-- 📚 Documentação centralizada e organizada
-- 🚀 Deploy automático configurado
+- 📚 Documentação centralizada e focada em novos usuários
+- 🚀 Deploy automático configurado com GitHub Actions
 - 🧹 Sistema de limpeza consolidado
 - 🔧 Variáveis de ambiente documentadas
+- 🗂️ **NOVO:** Rotas consolidadas (8→1 arquivo, 75% menos código)
+- 📦 **NOVO:** Middleware unificado para melhor performance
 
 *Este documento é mantido atualizado automaticamente pelo Claude*

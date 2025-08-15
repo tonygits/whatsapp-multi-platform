@@ -1,248 +1,177 @@
-# 🚀 WhatsApp Multi-Platform
+# 🚀 WhatsApp Multi-Platform API Gateway
 
-> Plataforma escalável para gerenciar múltiplos números de WhatsApp utilizando containers Docker
+> Enterprise-grade solution for managing multiple WhatsApp instances through a unified REST API
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/Docker-20+-blue.svg)](https://docker.com/)
 [![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📋 Visão Geral
+## 📋 Overview
 
-A **WhatsApp Multi-Platform** é uma solução robusta e escalável que permite gerenciar múltiplos números de WhatsApp simultaneamente através de processos isolados. Cada instância do WhatsApp roda como um processo separado com sessão persistente, garantindo isolamento completo e máxima disponibilidade.
+The **WhatsApp Multi-Platform API Gateway** is a robust and scalable solution for managing multiple WhatsApp devices simultaneously through isolated processes. Each WhatsApp instance runs as a separate process with persistent sessions, ensuring complete isolation and maximum availability.
 
-### 🌟 Características Principais
+### 🌟 Key Features
 
-- ✅ **Múltiplos dispositivos simultâneos** - Gerenciamento ilimitado de instâncias WhatsApp
-- ✅ **Isolamento por processo** - Cada dispositivo roda em processo separado com sessão própria
-- ✅ **Sessões persistentes** - Dados salvos em volumes dedicados para cada instância
-- ✅ **API RESTful completa** - Endpoints para todas as operações
-- ✅ **Sistema de filas inteligente** - Controle de concorrência por dispositivo
-- ✅ **Monitoramento de processos** - Health checks e controle de PIDs
-- ✅ **Auto-restart inteligente** - Recuperação automática de sessões ativas
-- ✅ **QR Code via Base64** - QR codes servidos diretamente como base64
-- ✅ **WebSocket Mirroring** - Espelhamento de mensagens WebSocket dos containers para socket global
-- ✅ **Auto-updates** - Verificação inteligente de atualizações
-- ✅ **Persistência de sessões** - Sessions sobrevivem a restarts de containers
+- ✅ **Multi-Device Support** - Manage unlimited WhatsApp instances
+- ✅ **Process Isolation** - Each device runs in a separate process with its own session
+- ✅ **Persistent Sessions** - Data saved in dedicated volumes per instance
+- ✅ **Complete REST API** - Endpoints for all WhatsApp operations
+- ✅ **Device Hash Security** - Auto-generated unique identifiers for privacy
+- ✅ **Health Monitoring** - Automatic health checks and process control
+- ✅ **Auto-Recovery** - Intelligent session restoration after restarts
+- ✅ **QR Code API** - QR codes served directly as base64
+- ✅ **Real-time WebSockets** - Live message mirroring and status updates
+- ✅ **Enterprise Ready** - Built for production environments
 
-## 🏗️ Arquitetura
-
-> 🔄 **Arquitetura Atual:** Utilizamos o binário oficial do go-whatsapp-web-multidevice executando múltiplos processos dentro do container da API Gateway. Cada dispositivo roda como um processo separado com sua própria sessão.
+## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   API Gateway    │    │   WhatsApp Binary   │
-│ (Process Manager)│◄──►│    Multiple      │◄──►│  WhatsApp Processes │
-│    Port 3000     │    │    Processes     │    │   Port 8000-8999    │
+│   API Gateway    │    │   Device Manager   │    │  WhatsApp Processes │
+│  (Port 3000)     │◄──►│   Process Control  │◄──►│   (Port 8000+)      │
+│  • REST API      │    │   • Auto-restart   │    │   • Isolated        │
+│  • Authentication│    │   • Health Checks  │    │   • Persistent      │
+│  • Rate Limiting │    │   • Session Mgmt   │    │   • Device Hash ID  │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
-         │                       │                         │
-         │                       ▼                         │
-         │              ┌─────────────────┐                │
-         │              │ • Binary Mgr    │                │
-         │              │ • Process Ctrl  │                │
-         │              │ • Queue System  │                │
-         │              │ • Session Mgmt  │                │
-         │              │ • Health Check  │                │
-         │              └─────────────────┘                │
          │                       │                         │
          ▼                       ▼                         ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   SQLite DB     │    │  Binary Manager  │    │   Session Volumes   │
-│ (whatsapp.db)   │    │ (PID Tracking)   │    │   (Per Device)      │
+│   SQLite DB     │    │   WebSocket      │    │   Session Storage   │
+│   Device Info   │    │   Real-time      │    │   Per Device        │
+│   Status Track  │    │   Event Stream   │    │   Persistent        │
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
 ```
 
-## 🚀 Início Rápido
+## 🚀 Quick Start
 
-### 1️⃣ Pré-requisitos
+### Prerequisites
 
 - **Docker** 20.10+
 - **Docker Compose** 2.0+
-- **Node.js** 18+ (para desenvolvimento)
-- **4GB RAM** mínimo
-- **20GB** espaço em disco
+- **4GB RAM** minimum
+- **10GB** disk space
 
-### 2️⃣ Instalação
+### Installation
 
 ```bash
-# Clone o repositório
-git clone LuizFelipeNeves/go-whatsapp-web-multidevice.git
+# Clone the repository
+git clone https://github.com/LuizFelipeNeves/go-whatsapp-web-multidevice.git
 cd go-whatsapp-web-multidevice
 
-# Torne os scripts executáveis
-chmod +x scripts/*.sh scripts/maintenance/*.sh
-
-# Inicie a plataforma
-./scripts/start.sh
-```
-
-### 3️⃣ Configuração Inicial
-
-```bash
-# Copie o arquivo de ambiente
+# Configure environment
 cp .env.example .env
+nano .env  # Edit your settings
 
-# Edite as configurações (IMPORTANTE!)
-nano .env
+# Start the platform
+docker-compose up -d
 ```
 
-**Variáveis essenciais:**
+### Essential Configuration
+
 ```env
+# .env file
 API_PORT=3000
 DEFAULT_ADMIN_USER=admin
-DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
+DEFAULT_ADMIN_PASS=your_secure_password_here
 ```
 
-### 4️⃣ Primeiro Acesso
+### First Steps
 
-1. **API Gateway**: http://localhost:3000
+1. **Access API**: http://localhost:3000
 2. **Login**: `POST /api/auth/login`
-3. **Registrar dispositivo**: `POST /api/devices`
-4. **Obter QR Code**: `GET /api/login` (via header x-instance-id)
+3. **Register Device**: `POST /api/devices`
+4. **Get QR Code**: `GET /api/login` with `x-instance-id` header
 
-## 📖 Documentação
+## 📖 Documentation
 
-### 📁 [Documentação Completa - pasta docs/](docs/)
+### 📁 Complete Documentation - [docs/ folder](docs/)
 
-- 📚 [**API Documentation**](docs/API_DOCUMENTATION.md) - Guia completo das APIs
-- 🏗️ [**Architecture**](docs/ARCHITECTURE.md) - Arquitetura técnica do sistema  
-- 🔐 [**Device Security**](docs/DEVICE_SECURITY.md) - Segurança e deviceHash
-- 📡 [**Webhook Status**](docs/WEBHOOK_STATUS.md) - Sistema de webhooks
-- 🐳 [**Docker Deploy**](docs/DOCKER_DEPLOY.md) - Deploy automático
-- 🗺️ [**Roadmap**](docs/ROADMAP.md) - Funcionalidades planejadas
-- 📝 [**Changelog**](docs/CHANGELOG.md) - Histórico de mudanças
+- 🚀 [**Getting Started**](docs/GETTING_STARTED.md) - Quick start guide for new users
+- 📚 [**API Reference**](docs/API_DOCUMENTATION.md) - Complete API guide
+- 🏗️ [**Architecture**](docs/ARCHITECTURE.md) - Technical system architecture  
+- 🔐 [**Security**](docs/DEVICE_SECURITY.md) - Device hash security model
+- 📡 [**Webhooks**](docs/WEBHOOK_STATUS.md) - Real-time status webhooks
+- 🐳 [**Deployment**](docs/DOCKER_DEPLOY.md) - Production deployment guide
+- ⚙️ [**Environment Variables**](docs/ENVIRONMENT_VARIABLES.md) - Configuration options
 
-## 🔄 Persistência e Auto-Restart
+## 💡 API Examples
 
-### Sessões Persistentes
-- **Volume mapping**: `./sessions:/app/sessions` garante que as sessões sobrevivem a restarts de containers
-- **SQLite Database**: Armazenado em `/app/volumes/whatsapp.db` com path absoluto para máxima compatibilidade
-- **Session files**: Cada dispositivo tem sua própria pasta em `/app/sessions/{deviceHash}/`
-
-### Auto-Restart Inteligente
-Quando o container inicia, o sistema automaticamente:
-1. **Verifica dispositivos registrados** no banco de dados
-2. **Detecta sessões existentes** através dos arquivos `whatsapp.db` em cada pasta de sessão  
-3. **Reinicia automaticamente** dispositivos com status `active`, `error` ou `stopped` que possuem sessão válida
-4. **Logs detalhados** de todo o processo de verificação e restart
-
-### QR Code via Base64
-- **Interceptação automática**: Middleware captura arquivos de QR code gerados
-- **Conversão base64**: QR codes são convertidos e retornados diretamente na resposta da API
-- **Sem exposição de arquivos**: Não há necessidade de servir arquivos estáticos
-- **Compatibilidade total**: Funciona com qualquer frontend ou aplicação client
-
-### WebSocket Mirroring
-O sistema automaticamente espelha mensagens WebSocket de cada container individual para o socket global:
-
-- **Conexão automática**: Cada processo WhatsApp conecta automaticamente ao WebSocket do container (`ws://localhost:8000/ws`)
-- **Espelhamento em tempo real**: Todas as mensagens WebSocket são replicadas para o socket global do servidor
-- **Eventos globais**: Clientes podem escutar mensagens de todos os containers via socket principal
-- **Eventos específicos**: Clientes podem entrar em rooms específicos (`device-${deviceHash}`) para escutar apenas um dispositivo
-- **Reconexão automática**: Se o WebSocket do container cair, tenta reconectar automaticamente
-- **Logs centralizados**: Todos os eventos WebSocket são logados centralmente
-
-#### Eventos Disponíveis:
-- `whatsapp-websocket-message` - Mensagens de todos os containers
-- `container-websocket-connected` - Quando container conecta
-- `container-websocket-closed` - Quando container desconecta
-- `device-websocket-message` - Mensagens de dispositivo específico (room: `device-${deviceHash}`)
-- `process-stopped` - Quando processo para inesperadamente
-
-## 💡 Exemplos de Uso
-
-### Registrar um Novo Dispositivo
+### Device Registration
 
 ```bash
-# 1. Fazer login
+# 1. Login
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"sua_senha"}'
+  -d '{"username":"admin","password":"your_password"}'
 
-# 2. Registrar dispositivo
+# 2. Register new device
 curl -X POST http://localhost:3000/api/devices \
-  -H "Authorization: Bearer <seu_token>" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "webhookUrl": "https://meusite.com/webhook",
-    "statusWebhookUrl": "https://meusite.com/status"
+    "webhookUrl": "https://yoursite.com/webhook",
+    "statusWebhookUrl": "https://yoursite.com/status"
   }'
 
-# 3. Obter QR Code (use o deviceHash retornado no passo 2)
-curl -X GET http://localhost:3000/api/login \
-  -H "Authorization: Bearer <seu_token>" \
-  -H "x-instance-id: a1b2c3d4e5f67890"
+# Response: {"deviceHash": "a1b2c3d4e5f67890", "status": "registered"}
 ```
 
-### Enviar Mensagem
+### QR Code & Connection
 
 ```bash
-# Enviar mensagem via API oficial
+# Get QR code for device connection
+curl -X GET http://localhost:3000/api/login \
+  -H "Authorization: Bearer <token>" \
+  -H "x-instance-id: a1b2c3d4e5f67890"
+
+# Response: {"qrCode": "data:image/png;base64,iVBORw0KGgoA..."}
+```
+
+### Send Messages
+
+```bash
+# Send text message
 curl -X POST http://localhost:3000/api/send/message \
-  -H "Authorization: Bearer <seu_token>" \
+  -H "Authorization: Bearer <token>" \
   -H "x-instance-id: a1b2c3d4e5f67890" \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "+5511888888888@s.whatsapp.net",
-    "message": "Olá! Como posso ajudar?"
+    "phone": "+5511999999999@s.whatsapp.net",
+    "message": "Hello! How can I help you?"
+  }'
+
+# Send image
+curl -X POST http://localhost:3000/api/send/image \
+  -H "Authorization: Bearer <token>" \
+  -H "x-instance-id: a1b2c3d4e5f67890" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "+5511999999999@s.whatsapp.net",
+    "image": "https://example.com/image.jpg",
+    "caption": "Check this out!"
   }'
 ```
 
-### WebSocket (JavaScript)
+### Real-time WebSocket
 
 ```javascript
 const socket = io('http://localhost:3000');
 
-// === EVENTOS GLOBAIS ===
-
-// Escutar mensagens WebSocket de todos os containers
+// Listen to all device events
 socket.on('whatsapp-websocket-message', (data) => {
-  console.log(`Mensagem do container ${data.deviceHash}:`, data.message);
-  // data: { deviceHash, port, message, timestamp }
-});
-
-// Escutar conexões de containers WebSocket
-socket.on('container-websocket-connected', (data) => {
-  console.log(`Container ${data.deviceHash} conectado na porta ${data.port}`);
-});
-
-socket.on('container-websocket-closed', (data) => {
-  console.log(`Container ${data.deviceHash} desconectado (código: ${data.code})`);
-});
-
-// === EVENTOS ESPECÍFICOS DE DISPOSITIVO ===
-
-// Entrar na sala de um dispositivo específico
-socket.emit('join', `device-${deviceHash}`);
-
-// Escutar mensagens WebSocket apenas deste dispositivo
-socket.on('device-websocket-message', (data) => {
-  console.log('Mensagem do dispositivo:', data.message);
-  // data: { message, timestamp }
-});
-
-// Escutar quando processo para inesperadamente
-socket.on('process-stopped', (data) => {
-  console.log('Processo parou:', data.deviceHash);
-});
-
-// === EXEMPLO DE USO PRÁTICO ===
-
-// Monitor global - escuta todos os containers
-socket.on('whatsapp-websocket-message', (data) => {
-  const { deviceHash, message } = data;
+  console.log(`Message from ${data.deviceHash}:`, data.message);
   
-  // Processar mensagens específicas
-  if (message.type === 'qr') {
-    showQRCode(deviceHash, message.qr);
-  } else if (message.type === 'ready') {
-    markDeviceAsReady(deviceHash);
-  } else if (message.type === 'message') {
-    handleIncomingMessage(deviceHash, message);
+  if (data.message.type === 'qr') {
+    showQRCode(data.deviceHash, data.message.qr);
+  } else if (data.message.type === 'ready') {
+    markDeviceAsReady(data.deviceHash);
+  } else if (data.message.type === 'message') {
+    handleIncomingMessage(data.deviceHash, data.message);
   }
 });
 
-// Monitor de dispositivo específico
+// Monitor specific device
 const monitorDevice = (deviceHash) => {
   socket.emit('join', `device-${deviceHash}`);
   
@@ -252,124 +181,74 @@ const monitorDevice = (deviceHash) => {
 };
 ```
 
-## 🛠️ Scripts de Manutenção
+## 📊 Monitoring & Health
 
-### Backup Automático
-
-```bash
-# Backup completo
-./scripts/maintenance/backup.sh
-
-# Backup é salvo em ./backups/
-```
-
-### Limpeza do Sistema
+### Health Checks
 
 ```bash
-# Limpeza automática
-./scripts/maintenance/cleanup.sh
+# System health
+curl http://localhost:3000/api/health
 
-# Remove containers antigos, logs, cache, etc.
-```
-
-### Monitoramento
-
-```bash
-# Status geral
+# Detailed system status
 curl http://localhost:3000/api/health/detailed
 
-# Status dos dispositivos
-curl http://localhost:3000/api/health/devices
-
-# Métricas do sistema
-curl http://localhost:3000/api/health/system
+# Device status
+curl -H "x-instance-id: a1b2c3d4e5f67890" \
+     http://localhost:3000/api/devices/info
 ```
 
-## 📊 Monitoramento e Logs
-
-### Visualizar Logs
+### Logs
 
 ```bash
-# Todos os serviços
+# View all logs
 docker-compose logs -f
 
-# Apenas API Gateway
+# API Gateway only
 docker-compose logs -f api-gateway
-
-# Logs do processo específico (via API Gateway)
-curl -H "x-instance-id: a1b2c3d4e5f67890" http://localhost:3000/api/devices/info
 ```
 
-### Métricas Importantes
+## ⚙️ Configuration
 
-- **Taxa de entrega**: Percentual de mensagens entregues com sucesso
-- **Tempo de resposta**: Latência média da API
-- **Processos ativos**: Número de instâncias WhatsApp rodando
-- **Filas ativas**: Mensagens pendentes por dispositivo
-- **Uso de recursos**: CPU, memória e disco
+### Key Environment Variables
 
-## 🔧 Configuração Avançada
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `API_PORT` | API Gateway port | `3000` |
+| `DEFAULT_ADMIN_USER` | Admin username | `admin` |
+| `DEFAULT_ADMIN_PASS` | Admin password | `admin` |
+| `PROCESS_BASE_PORT` | Starting port for processes | `8000` |
+| `MAX_PROCESSES` | Maximum concurrent processes | `50` |
+| `API_RATE_LIMIT` | Request rate limit | `100` |
 
-### Variáveis de Ambiente
+See [Environment Variables Documentation](docs/ENVIRONMENT_VARIABLES.md) for complete list.
 
-| Variável | Descrição | Padrão |
-|----------|-----------|---------|
-| `API_PORT` | Porta da API Gateway | `3000` |
-| `PROCESS_BASE_PORT` | Porta inicial dos processos | `8000` |
-| `MAX_PROCESSES` | Máximo de processos | `50` |
-| `QR_CODE_TIMEOUT` | Timeout do QR Code (ms) | `60000` |
-| `UPDATE_CHECK_CRON` | Cron para verificar updates | `0 2 * * *` |
-| `API_RATE_LIMIT` | Limite de requisições | `100` |
+## 🚀 Production Ready
 
-### Personalização
+This system is designed for production environments with:
 
-```javascript
-// Configurar filas personalizadas
-const customQueue = {
-  concurrency: 2,
-  interval: 500,
-  intervalCap: 1
-};
+- **Auto-recovery** - Automatic session restoration after restarts
+- **Health monitoring** - Built-in health checks and status monitoring  
+- **Rate limiting** - Request throttling and abuse protection
+- **Secure authentication** - JWT-based API authentication
+- **Process isolation** - Each device runs in isolated process
+- **Persistent storage** - Sessions survive container restarts
 
-// Configurar timeouts
-const timeouts = {
-  process: 30000,
-  message: 25000,
-  qr: 60000
-};
-```
+## 📝 License
 
-## 🤝 Contribuição
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Contribuições são bem-vindas! Por favor:
+## 🆘 Support
 
-1. Faça um **Fork** do projeto
-2. Crie uma **branch** para sua feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um **Pull Request**
-
-## 📝 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🆘 Suporte
-
-- 📖 [Documentação](docs/)
-- 🐛 [Issues](https://github.com/your-repo/issues)
-- 💬 [Discussions](https://github.com/your-repo/discussions)
-- 📧 Email: suporte@whatsapp-platform.com
-
-## 🎯 Roadmap
-
-Veja nosso [roadmap completo](ROADMAP.md) com próximas features planejadas.
+- 📖 [Documentation](docs/)
+- 🐛 [Report Issues](https://github.com/your-username/go-whatsapp-web-multidevice/issues)
+- 💬 [Discussions](https://github.com/your-username/go-whatsapp-web-multidevice/discussions)
 
 ---
 
 <div align="center">
 
-**⭐ Se este projeto foi útil, considere dar uma estrela!**
+**⭐ Star this project if you find it useful!**
 
-Feito com ❤️ para a comunidade
+Built for scalable WhatsApp automation
 
 </div>

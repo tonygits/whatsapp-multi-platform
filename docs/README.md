@@ -2,6 +2,9 @@
 
 ## 📋 Índice da Documentação
 
+### 🚀 Getting Started
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Quick start guide for new users
+
 ### 🏗️ Arquitetura e Conceitos
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitetura técnica do sistema
 - **[DEVICE_SECURITY.md](./DEVICE_SECURITY.md)** - Segurança e identificação por deviceHash
@@ -17,9 +20,6 @@
 - **[DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)** - Deploy automático para Docker Hub
 - **[DOCKER_HUB_SETUP.md](./DOCKER_HUB_SETUP.md)** - Configuração do GitHub Actions
 
-### 🗺️ Planejamento e Histórico
-- **[ROADMAP.md](./ROADMAP.md)** - Roadmap de funcionalidades
-- **[CHANGELOG.md](./CHANGELOG.md)** - Histórico de mudanças
 
 ## 🚀 Links Rápidos
 
@@ -47,24 +47,23 @@ Header: x-instance-id: {deviceHash}
 ```
 docs/
 ├── README.md                 # Este arquivo (índice)
+├── GETTING_STARTED.md        # Guia de primeiros passos  
 ├── API_DOCUMENTATION.md      # Docs das APIs
 ├── ARCHITECTURE.md           # Arquitetura técnica
 ├── DEVICE_SECURITY.md        # Segurança deviceHash
 ├── WEBHOOK_STATUS.md         # Sistema de webhooks
 ├── DOCKER_DEPLOY.md          # Deploy Docker Hub
 ├── DOCKER_HUB_SETUP.md       # Setup GitHub Actions
-├── ROADMAP.md                # Roadmap funcionalidades
-├── CHANGELOG.md              # Histórico mudanças
 ├── openapi.yaml              # Especificação OpenAPI
 └── openapi.json              # Especificação OpenAPI (JSON)
 ```
 
 ## 📖 Como Usar Esta Documentação
 
-1. **Iniciantes**: Comece com [ARCHITECTURE.md](./ARCHITECTURE.md)
-2. **Desenvolvedores**: Vá direto para [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-3. **DevOps**: Consulte [DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)
-4. **Segurança**: Leia [DEVICE_SECURITY.md](./DEVICE_SECURITY.md)
+1. **New Users**: Start with [GETTING_STARTED.md](./GETTING_STARTED.md)
+2. **Developers**: Go directly to [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+3. **DevOps**: Check [DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)
+4. **Security**: Read [DEVICE_SECURITY.md](./DEVICE_SECURITY.md)
 
 ---
 
