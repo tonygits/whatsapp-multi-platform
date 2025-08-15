@@ -102,10 +102,15 @@ DEFAULT_ADMIN_PASS=sua_senha_segura_aqui
 
 ## 📖 Documentação
 
-- 📚 [**Documentação Completa da API**](docs/API_DOCUMENTATION.md)
-- 🔧 [**Guia de Instalação Detalhado**](docs/INSTALLATION.md)
-- 🛠️ [**Configuração Avançada**](docs/CONFIGURATION.md)
-- 🔍 [**Troubleshooting**](docs/TROUBLESHOOTING.md)
+### 📁 [Documentação Completa - pasta docs/](docs/)
+
+- 📚 [**API Documentation**](docs/API_DOCUMENTATION.md) - Guia completo das APIs
+- 🏗️ [**Architecture**](docs/ARCHITECTURE.md) - Arquitetura técnica do sistema  
+- 🔐 [**Device Security**](docs/DEVICE_SECURITY.md) - Segurança e deviceHash
+- 📡 [**Webhook Status**](docs/WEBHOOK_STATUS.md) - Sistema de webhooks
+- 🐳 [**Docker Deploy**](docs/DOCKER_DEPLOY.md) - Deploy automático
+- 🗺️ [**Roadmap**](docs/ROADMAP.md) - Funcionalidades planejadas
+- 📝 [**Changelog**](docs/CHANGELOG.md) - Histórico de mudanças
 
 ## 🔄 Persistência e Auto-Restart
 
