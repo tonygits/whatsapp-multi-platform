@@ -87,4 +87,4 @@ ENV VOLUMES_DIR=/app/volumes
 ENV APP_BASE_DIR=/app
 
 # Start command (TypeScript build)
-CMD ["node", "dist/src/server.js"]
+CMD ["node", "dist/server.js"]
