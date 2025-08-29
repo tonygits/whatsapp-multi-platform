@@ -5,7 +5,7 @@
   "main": "api-gateway/src/server.ts",
   "scripts": {
   "build": "tsc",
-  "postbuild": "mkdir -p dist/database && cp api-gateway/src/database/schema.sql dist/database/schema.sql",
+  "postbuild": "mkdir -p dist/database && cp src/database/schema.sql dist/database/schema.sql",
     "start": "node dist/server.js",
     "start:ts": "ts-node api-gateway/src/server.ts",
     "dev": "nodemon --exec ts-node api-gateway/src/server.ts",

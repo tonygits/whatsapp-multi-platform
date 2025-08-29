@@ -2,13 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "rootDir": "./api-gateway/src",
+    "rootDir": "src",
   "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["api-gateway/src/**/*"],
-  "exclude": ["node_modules", "api-gateway/dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

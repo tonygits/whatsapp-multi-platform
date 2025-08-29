@@ -1,5 +1,5 @@
 # API Gateway Dockerfile - Using debian base for glibc compatibility
-FROM node:18-slim
+FROM node:22-slim
 
 # Build args to handle arch-aware download of WhatsApp binary
 ARG TARGETARCH
@@ -17,11 +17,14 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
 
-# Install Node.js dependencies
-RUN npm ci --only=production
+# Copy package files e tsconfig
+COPY package*.json ./
+COPY tsconfig.json ./
+
+
+# Instala dependências (inclui devDependencies para build)
+RUN npm ci
 
 # Download and setup go-whatsapp-web-multidevice binary (arch-aware)
 # TARGETARCH values are typically: amd64 | arm64
@@ -38,10 +41,18 @@ RUN set -eux; \
     chmod +x whatsapp; \
     rm -f whatsapp_linux_${ARCH_SUFFIX}.zip readme.md
 
-# Copy application source
 COPY api-gateway/src ./src
 COPY openapi.yaml ./openapi.yaml
 COPY docs ./docs
+
+
+# Build TypeScript
+RUN npm run build
+
+# Remove devDependencies para imagem final enxuta
+RUN npm prune --production
+
+# Copy schema.sql to dist (garantido pelo postbuild)
 
 # Create necessary directories
 RUN mkdir -p /app/volumes /app/logs /app/sessions
@@ -67,6 +78,10 @@ EXPOSE 3000
 # Environment variables
 ENV NODE_ENV=production
 ENV API_PORT=3000
+ENV BIN_PATH=/app/whatsapp
+ENV SESSIONS_DIR=/app/sessions
+ENV VOLUMES_DIR=/app/volumes
+ENV APP_BASE_DIR=/app
 
-# Start command
-CMD ["node", "src/server.js"]
+# Start command (TypeScript build)
+CMD ["node", "dist/api-gateway/src/server.js"]
