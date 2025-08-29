@@ -74,6 +74,7 @@ docker-compose up -d
 API_PORT=3000
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=your_secure_password_here
+SERVER_URL=http://localhost:3000
 ```
 
 ### First Steps

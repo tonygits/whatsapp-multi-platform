@@ -36,7 +36,7 @@ function generateOpenAPIFromApp(app: any): any {
 
   // Update the base document with dynamic server URL
   baseDoc.servers = [
-    { url: 'http://localhost:3000', description: 'Servidor de desenvolvimento' }
+    { url: process.env.SERVER_URL || 'http://localhost:3000', description: 'Servidor de desenvolvimento' }
   ];
 
   // Reorganizar tags - Gateway e Device Management primeiro
