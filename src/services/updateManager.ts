@@ -1,7 +1,7 @@
-const cron = require('cron');
-const axios = require('axios');
+import cron from 'cron';
+import axios from 'axios';
 import logger from '../utils/logger';
-const binaryManager = require('./binaryManager');
+import binaryManager from './binaryManager';
 
 class UpdateManager {
   updateCheckCron: string;
