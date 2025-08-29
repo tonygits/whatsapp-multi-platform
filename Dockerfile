@@ -81,7 +81,7 @@ EXPOSE 3000
 # Environment variables
 ENV NODE_ENV=production
 ENV API_PORT=3000
-ENV BIN_PATH=/app/dist/whatsapp
+ENV BIN_PATH=/app/whatsapp
 ENV SESSIONS_DIR=/app/sessions
 ENV VOLUMES_DIR=/app/volumes
 ENV APP_BASE_DIR=/app
