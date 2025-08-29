@@ -58,7 +58,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |
-          WHATSAPP_VERSION=7.4.0
+          WHATSAPP_VERSION=7.5.0
 
     - name: Update Docker Hub description
       if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

@@ -43,7 +43,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |
-          WHATSAPP_VERSION=7.4.0
+          WHATSAPP_VERSION=7.5.0
 
     - name: Test completed
       run: echo "✅ Build test completed successfully!"

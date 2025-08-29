@@ -3,7 +3,7 @@ FROM node:18-slim
 
 # Build args to handle arch-aware download of WhatsApp binary
 ARG TARGETARCH
-ARG WHATSAPP_VERSION=7.4.0
+ARG WHATSAPP_VERSION=7.5.0
 
 # Install system dependencies including unzip and wget for binary download
 RUN apt-get update && apt-get install -y \
