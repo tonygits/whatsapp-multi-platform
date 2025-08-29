@@ -1,4 +1,4 @@
-import cron from 'cron';
+import { CronJob } from 'cron';
 import axios from 'axios';
 import logger from '../utils/logger';
 import binaryManager from './binaryManager';
@@ -39,7 +39,7 @@ class UpdateManager {
    */
   startScheduledChecks() {
     try {
-      this.cronJob = new cron.CronJob(
+      this.cronJob = new CronJob(
         this.updateCheckCron,
         () => this.performUpdateCheck(),
         null,
