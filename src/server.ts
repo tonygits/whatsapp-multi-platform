@@ -16,6 +16,7 @@ import logger from './utils/logger';
 import binaryManager from './services/binaryManager';
 import deviceManager from './services/newDeviceManager';
 import updateManager from './services/updateManager';
+import backupManager from './services/backupManager';
 import { authMiddleware, authManager } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -24,6 +25,7 @@ import { errorHandler } from './middleware/errorHandler';
 import deviceRoutes from './routes/devices';
 import healthRoutes from './routes/health';
 import docsRoutes from './routes/docs';
+import backupRoutes from './routes/backup';
 
 // Import consolidated proxy route
 
@@ -94,6 +96,7 @@ class APIGateway {
     this.app.use('/api', authMiddleware);
 
     this.app.use('/api/devices', deviceRoutes);
+    this.app.use('/api/backup', backupRoutes);
     
     // Consolidated proxy routes with instance_id support
     this.app.use('/api', proxyRoutes);
@@ -108,6 +111,7 @@ class APIGateway {
         endpoints: {
           health: '/api/health',
           devices: '/api/devices',
+          backup: '/api/backup',
           proxy: '/api/* (app, send, user, message, chat, group, newsletter)',
           docs: '/docs'
         },
@@ -219,6 +223,11 @@ class APIGateway {
       updateManager.initialize();
       console.log('✅ updateManager inicializado');
 
+      // Initialize Backup Manager
+      console.log('💾 Inicializando backupManager...');
+      await backupManager.initialize();
+      console.log('✅ backupManager inicializado');
+
       // Start server last
       this.server.listen(this.port, () => {
         logger.info(`🚀 API Gateway rodando na porta ${this.port}`);
@@ -246,6 +255,9 @@ class APIGateway {
     try {
       // Stop update manager
       updateManager.stop();
+      
+      // Stop backup manager
+      backupManager.stop();
       
       // Close server
       this.server.close(() => {
