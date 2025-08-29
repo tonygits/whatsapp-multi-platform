@@ -1,6 +1,7 @@
-const express = require('express');
-const proxyToActiveDevice = require('../middleware/proxyToActiveDevice');
-const loginHandler = require('../middleware/loginHandler');
+
+import express from 'express';
+import proxyToActiveDevice from '../middleware/proxyToActiveDevice';
+import loginHandler from '../middleware/loginHandler';
 
 const router = express.Router();
 
@@ -135,4 +136,4 @@ router.get('/app/logout', proxyToActiveDevice);
 router.get('/app/reconnect', proxyToActiveDevice);
 router.get('/app/devices', proxyToActiveDevice);
 
-module.exports = router;
+export default router;

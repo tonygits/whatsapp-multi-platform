@@ -1,17 +1,16 @@
-const database = require('../database/database');
-const logger = require('../utils/logger');
+import database from '../database/database';
+import logger from '../utils/logger';
+import { Request, Response, NextFunction } from 'express';
 
 class AuthManager {
   /**
    * Initialize auth manager and default admin user
    */
-  async initialize() {
+  async initialize(): Promise<void> {
     try {
-      // Initialize database if not already done
       if (!database.isReady()) {
         await database.initialize();
       }
-      
       logger.info('AuthManager inicializado com sucesso');
     } catch (error) {
       logger.error('Erro ao inicializar AuthManager:', error);
@@ -25,7 +24,7 @@ class AuthManager {
    * @param {string} password - Password
    * @returns {Promise<Object|null>} - User object or null if invalid
    */
-  async authenticateUser(username, password) {
+  async authenticateUser(username: string, password: string): Promise<any> {
     try {
       if (!username || !password) {
         return null;
@@ -51,7 +50,7 @@ class AuthManager {
 /**
  * Auth middleware for Express
  */
-const authMiddleware = async (req, res, next) => {
+const authMiddleware = async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   const API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'true'
   if (API_AUTH_ENABLED !== 'true') {
     return next();
@@ -98,7 +97,4 @@ const authMiddleware = async (req, res, next) => {
 // Create singleton instance
 const authManager = new AuthManager();
 
-module.exports = {
-  authManager,
-  authMiddleware
-};
+export { authManager, authMiddleware };

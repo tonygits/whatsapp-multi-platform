@@ -1,5 +1,6 @@
-const database = require('../database/database');
-const logger = require('../utils/logger');
+
+import database from '../database/database';
+import logger from '../utils/logger';
 
 class DeviceRepository {
   /**
@@ -7,7 +8,7 @@ class DeviceRepository {
    * @param {Object} deviceData - Device data
    * @returns {Promise<Object>} - Created device with ID
    */
-  async create(deviceData) {
+  async create(deviceData: any): Promise<any> {
     try {
       const {
         device_hash,
@@ -57,7 +58,7 @@ class DeviceRepository {
    * @param {string} deviceHash - Device hash
    * @returns {Promise<Object|null>} - Device or null
    */
-  async findByDeviceHash(deviceHash) {
+  async findByDeviceHash(deviceHash: string): Promise<any> {
     try {
       const device = await database.get(
         'SELECT * FROM devices WHERE device_hash = ?',
@@ -75,7 +76,7 @@ class DeviceRepository {
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} - Array of devices
    */
-  async findAll(filters = {}) {
+  async findAll(filters: any = {}): Promise<any[]> {
     try {
       let sql = 'SELECT * FROM devices';
       const params = [];
@@ -106,7 +107,7 @@ class DeviceRepository {
    * @param {Object} updateData - Data to update
    * @returns {Promise<Object|null>} - Updated device or null
    */
-  async update(id, updateData) {
+  async update(id: number, updateData: any): Promise<any> {
     try {
       const allowedFields = [
         'status', 'container_id', 'container_port',
@@ -130,7 +131,7 @@ class DeviceRepository {
 
       for (const [key, value] of Object.entries(updateData)) {
         // Convert camelCase to snake_case if needed
-        const dbField = fieldMapping[key] || key;
+        const dbField = (fieldMapping as any)[key] || key;
         
         if (allowedFields.includes(dbField)) {
           fields.push(`${dbField} = ?`);
@@ -168,7 +169,7 @@ class DeviceRepository {
    * @param {number} id - Device ID
    * @returns {Promise<boolean>} - Success status
    */
-  async delete(id) {
+  async delete(id: number): Promise<boolean> {
     try {
       const result = await database.run(
         'DELETE FROM devices WHERE id = ?',
@@ -194,7 +195,7 @@ class DeviceRepository {
    * Get device statistics
    * @returns {Promise<Object>} - Device statistics
    */
-  async getStatistics() {
+  async getStatistics(): Promise<any> {
     try {
       const stats = await database.get(`
         SELECT 
@@ -218,7 +219,7 @@ class DeviceRepository {
    * @param {Object} device - Device with snake_case fields
    * @returns {Object} - Device with camelCase fields
    */
-  convertToCamelCase(device) {
+  convertToCamelCase(device: any): any {
     if (!device) return null;
     
     return {
@@ -238,4 +239,4 @@ class DeviceRepository {
   }
 }
 
-module.exports = new DeviceRepository();
+export default new DeviceRepository();

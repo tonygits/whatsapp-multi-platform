@@ -1,10 +1,15 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs').promises;
-const logger = require('../utils/logger');
-const { VOLUMES_DIR } = require('../utils/paths');
+import sqlite3 from 'sqlite3';
+import path from 'path';
+import fs from 'fs/promises';
+import logger from '../utils/logger';
+import { VOLUMES_DIR } from '../utils/paths';
 
 class Database {
+  db: any;
+  dbPath: string;
+  isConnected: boolean;
+  initialized: boolean;
+
   constructor() {
     this.db = null;
     this.dbPath = path.join(VOLUMES_DIR, 'whatsapp.db');
@@ -15,7 +20,7 @@ class Database {
   /**
    * Initialize database connection and schema
    */
-  async initialize() {
+  async initialize(): Promise<void> {
     if (this.initialized) {
       logger.info('Banco de dados já foi inicializado');
       return;
@@ -59,7 +64,7 @@ class Database {
   /**
    * Initialize database schema
    */
-  async initializeSchema() {
+  async initializeSchema(): Promise<void> {
     try {
       const schemaPath = path.join(__dirname, 'schema.sql');
       const schema = await fs.readFile(schemaPath, 'utf8');
@@ -106,13 +111,12 @@ class Database {
    * @param {Array} params - Parameters for the query
    * @returns {Promise<Object>} - Result with lastID and changes
    */
-  run(sql, params = []) {
+  run(sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database não inicializado'));
       }
-
-      this.db.run(sql, params, function(err) {
+      this.db.run(sql, params, function(this: sqlite3.RunResult, err: Error | null) {
         if (err) {
           logger.error('Erro ao executar query:', { sql, params, error: err });
           reject(err);
@@ -132,13 +136,13 @@ class Database {
    * @param {Array} params - Parameters for the query
    * @returns {Promise<Object|null>} - Single row or null
    */
-  get(sql, params = []) {
+  get(sql: string, params: any[] = []): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database não inicializado'));
       }
 
-      this.db.get(sql, params, (err, row) => {
+  this.db.get(sql, params, (err: Error | null, row: any) => {
         if (err) {
           logger.error('Erro ao executar query:', { sql, params, error: err });
           reject(err);
@@ -155,13 +159,13 @@ class Database {
    * @param {Array} params - Parameters for the query
    * @returns {Promise<Array>} - Array of rows
    */
-  all(sql, params = []) {
+  all(sql: string, params: any[] = []): Promise<any[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database não inicializado'));
       }
 
-      this.db.all(sql, params, (err, rows) => {
+  this.db.all(sql, params, (err: Error | null, rows: any[]) => {
         if (err) {
           logger.error('Erro ao executar query:', { sql, params, error: err });
           reject(err);
@@ -177,39 +181,34 @@ class Database {
    * @param {Function} callback - Function that receives db for transaction
    * @returns {Promise} - Promise that resolves when transaction completes
    */
-  async transaction(callback) {
+  async transaction(callback: (db: Database) => Promise<void> | void): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database não inicializado'));
       }
-
       this.db.serialize(() => {
         this.db.run('BEGIN TRANSACTION');
-        
         try {
           const result = callback(this);
-          
           if (result && typeof result.then === 'function') {
-            // Handle async callback
             result
               .then(() => {
-                this.db.run('COMMIT', (err) => {
+                this.db.run('COMMIT', (err: any) => {
                   if (err) reject(err);
-                  else resolve();
+                  else resolve(void 0);
                 });
               })
-              .catch((error) => {
+              .catch((error: any) => {
                 this.db.run('ROLLBACK');
                 reject(error);
               });
           } else {
-            // Handle sync callback
-            this.db.run('COMMIT', (err) => {
+            this.db.run('COMMIT', (err: any) => {
               if (err) reject(err);
-              else resolve();
+              else resolve(void 0);
             });
           }
-        } catch (error) {
+        } catch (error: any) {
           this.db.run('ROLLBACK');
           reject(error);
         }
@@ -220,21 +219,21 @@ class Database {
   /**
    * Close database connection
    */
-  async close() {
+  async close(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.db) {
-        this.db.close((err) => {
+        this.db.close((err: any) => {
           if (err) {
             logger.error('Erro ao fechar banco de dados:', err);
             reject(err);
           } else {
             logger.info('Conexão com banco de dados fechada');
             this.isConnected = false;
-            resolve();
+            resolve(void 0);
           }
         });
       } else {
-        resolve();
+        resolve(void 0);
       }
     });
   }
@@ -242,12 +241,11 @@ class Database {
   /**
    * Check if database is connected
    */
-  isReady() {
-    return this.isConnected && this.initialized && this.db;
+  isReady(): boolean {
+    return this.isConnected && this.initialized && !!this.db;
   }
 }
 
 // Singleton instance
 const database = new Database();
-
-module.exports = database;
+export default database;

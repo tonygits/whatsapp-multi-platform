@@ -1,9 +1,10 @@
-const axios = require('axios');
-const fs = require('fs').promises;
-const path = require('path');
-const { asyncHandler, CustomError } = require('./errorHandler');
-const logger = require('../utils/logger');
-const { SESSIONS_DIR } = require('../utils/paths');
+import axios from 'axios';
+import fs from 'fs/promises';
+import path from 'path';
+import { Request, Response } from 'express';
+import { asyncHandler, CustomError } from './errorHandler';
+import logger from '../utils/logger';
+import { SESSIONS_DIR } from '../utils/paths';
 
 const DEFAULT_ADMIN_USER = process.env.DEFAULT_ADMIN_USER || 'admin';
 const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
@@ -11,9 +12,10 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 /**
  * Handle login request and intercept QR code generation
  */
-const loginHandler = asyncHandler(async (req, res) => {
-  const containerPort = req.device.containerInfo.port;
-  const deviceHash = req.device.deviceHash;
+const loginHandler = asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
+  const containerPort = device.containerInfo.port;
+  const deviceHash = device.deviceHash;
   const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
 
   // Add basic auth header
@@ -80,10 +82,11 @@ const loginHandler = asyncHandler(async (req, res) => {
     res.status(response.status).json(responseData);
     
   } catch (error) {
-    logger.error(`Error proxying login to container ${containerPort}:`, error.message);
+    const err = error as any;
+    logger.error(`Error proxying login to container ${containerPort}:`, err.message);
     
-    if (error.response) {
-      res.status(error.response.status).json(error.response.data);
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
     } else {
       throw new CustomError(
         'Container not responding',
@@ -94,4 +97,4 @@ const loginHandler = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = loginHandler;
+export default loginHandler;

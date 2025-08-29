@@ -1,11 +1,12 @@
-const express = require('express');
-const { asyncHandler, CustomError } = require('../middleware/errorHandler');
-const deviceManager = require('../services/newDeviceManager');
-const binaryManager = require('../services/binaryManager');
-const DeviceRepository = require('../repositories/DeviceRepository');
-const logger = require('../utils/logger');
-const DeviceUtils = require('../utils/deviceUtils');
-const resolveInstance = require('../middleware/resolveInstance');
+import resolveInstance from '../middleware/resolveInstance';
+
+import express, { Request, Response } from 'express';
+import { asyncHandler, CustomError } from '../middleware/errorHandler';
+import deviceManager from '../services/newDeviceManager';
+import binaryManager from '../services/binaryManager';
+import DeviceRepository from '../repositories/DeviceRepository';
+import logger from '../utils/logger';
+import DeviceUtils from '../utils/deviceUtils';
 
 const router = express.Router();
 
@@ -13,13 +14,13 @@ const router = express.Router();
  * GET /api/devices
  * List all devices
  */
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const { status, limit, offset } = req.query;
-  
+
   let devices;
-  
-  if (status) {
-    devices = await deviceManager.getDevicesByStatus(status);
+  const statusStr = typeof status === 'string' ? status : Array.isArray(status) ? status[0] : undefined;
+  if (statusStr) {
+    devices = await deviceManager.getDevicesByStatus(statusStr as string);
   } else {
     devices = await deviceManager.getAllDevices();
   }
@@ -27,17 +28,19 @@ router.get('/', asyncHandler(async (req, res) => {
   // Convert to array and apply pagination
   const devicesArray = Object.values(devices);
   const total = devicesArray.length;
-  
+
   let paginatedDevices = devicesArray;
-  if (limit) {
-    const limitNum = parseInt(limit);
-    const offsetNum = parseInt(offset) || 0;
+  const limitStr = typeof limit === 'string' ? limit : Array.isArray(limit) ? limit[0] : undefined;
+  const offsetStr = typeof offset === 'string' ? offset : Array.isArray(offset) ? offset[0] : undefined;
+  if (limitStr) {
+    const limitNum = parseInt(limitStr as string);
+    const offsetNum = offsetStr ? parseInt(offsetStr as string) : 0;
     paginatedDevices = devicesArray.slice(offsetNum, offsetNum + limitNum);
   }
 
   // Add container/process status e enriquecer dados de saída
   const devicesWithStatus = await Promise.all(
-    paginatedDevices.map(async (device) => {
+    paginatedDevices.map(async (device: any) => {
       const process = await binaryManager.getProcessStatus(device.deviceHash);
       const containerPort = device.port || device.containerInfo?.port || process?.port || null;
       const containerId = device.containerInfo?.containerId || null;
@@ -81,9 +84,9 @@ router.get('/', asyncHandler(async (req, res) => {
       devices: devicesWithStatus,
       pagination: {
         total,
-        limit: parseInt(limit) || total,
-        offset: parseInt(offset) || 0,
-        hasMore: limit ? (parseInt(offset) || 0) + parseInt(limit) < total : false
+        limit: limitStr ? parseInt(limitStr as string) : total,
+        offset: offsetStr ? parseInt(offsetStr as string) : 0,
+        hasMore: limitStr ? (offsetStr ? parseInt(offsetStr as string) : 0) + parseInt(limitStr as string) < total : false
       }
     }
   });
@@ -93,7 +96,7 @@ router.get('/', asyncHandler(async (req, res) => {
  * POST /api/devices
  * Register a new device (generates deviceHash automatically)
  */
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', asyncHandler(async (req: Request, res: Response) => {
   const { autoStart = true, webhookUrl, webhookSecret, statusWebhookUrl, statusWebhookSecret } = req.body;
 
   // Generate unique device hash
@@ -119,7 +122,7 @@ router.post('/', asyncHandler(async (req, res) => {
       try {
         process = await binaryManager.startProcess(deviceHash);
       } catch (processError) {
-        logger.warn(`Erro ao iniciar processo para ${deviceHash}, mas dispositivo foi criado:`, processError.message);
+        logger.warn(`Erro ao iniciar processo para ${deviceHash}, mas dispositivo foi criado:`, (processError as any)?.message);
       }
     }
     
@@ -133,8 +136,8 @@ router.post('/', asyncHandler(async (req, res) => {
       success: true,
       message: 'Dispositivo registrado com sucesso.',
       data: {
-        deviceHash: finalDeviceState.deviceHash,
-        status: finalDeviceState.status,
+        deviceHash: finalDeviceState?.deviceHash ?? deviceHash,
+        status: finalDeviceState?.status ?? 'unknown',
         processInfo: finalProcessState
       }
     });
@@ -149,13 +152,13 @@ router.post('/', asyncHandler(async (req, res) => {
  * PUT /api/devices
  * Update device information by instance ID
  */
-router.put('/', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.put('/', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
   const updates = req.body;
 
   // Filter allowed updates (não permitir alteração de hashes, etc.)
   const allowedFields = ['webhookUrl', 'webhookSecret', 'statusWebhookUrl', 'statusWebhookSecret'];
-  const filteredUpdates = {};
+  const filteredUpdates: { [key: string]: any } = {};
   
   for (const [key, value] of Object.entries(updates)) {
     if (allowedFields.includes(key)) {
@@ -181,8 +184,8 @@ router.put('/', resolveInstance, asyncHandler(async (req, res) => {
  * DELETE /api/devices
  * Remove device by instance ID
  */
-router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
   const { force = false } = req.query;
 
   logger.info(`Removendo dispositivo: ${device.deviceHash}`);
@@ -193,7 +196,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
       await binaryManager.stopProcess(device.deviceHash);
     } catch (error) {
       if (!force) throw error;
-      logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${error.message}`);
+      logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${(error as any)?.message}`);
     }
 
     // Remove from device manager
@@ -226,8 +229,8 @@ router.delete('/', resolveInstance, asyncHandler(async (req, res) => {
  * GET /api/devices/info
  * Get specific device information by instance ID
  */
-router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
   const process = await binaryManager.getProcessStatus(device.deviceHash);
   const containerPort = device.containerInfo?.port || process?.port || null;
   const containerId = device.containerInfo?.containerId || null;
@@ -266,8 +269,8 @@ router.get('/info', resolveInstance, asyncHandler(async (req, res) => {
  * POST /api/devices/start
  * Start device container by instance ID
  */
-router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
 
   logger.info(`Iniciando container para ${device.deviceHash}`);
 
@@ -283,8 +286,8 @@ router.post('/start', resolveInstance, asyncHandler(async (req, res) => {
  * POST /api/devices/stop
  * Stop device container by instance ID
  */
-router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
 
   logger.info(`Parando container para ${device.deviceHash}`);
 
@@ -300,8 +303,8 @@ router.post('/stop', resolveInstance, asyncHandler(async (req, res) => {
  * POST /api/devices/restart
  * Restart device container by instance ID
  */
-router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
-  const { device } = req;
+router.post('/restart', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  const device = (req as any).device;
 
   logger.info(`Reiniciando container para ${device.deviceHash}`);
 
@@ -313,4 +316,4 @@ router.post('/restart', resolveInstance, asyncHandler(async (req, res) => {
   });
 }));
 
-module.exports = router;
+export default router;

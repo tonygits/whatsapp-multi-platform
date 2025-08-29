@@ -1,13 +1,15 @@
-const express = require('express');
-const { asyncHandler } = require('../middleware/errorHandler');
-const deviceManager = require('../services/newDeviceManager');
-const binaryManager = require('../services/binaryManager');
-const logger = require('../utils/logger');
-const fsPromises = require('fs').promises;
-const database = require('../database/database');
-const { BIN_PATH } = require('../utils/paths');
-const axios = require('axios');
-const os = require('os');
+
+import express, { Request, Response } from 'express';
+import { asyncHandler } from '../middleware/errorHandler';
+import deviceManager from '../services/newDeviceManager';
+import binaryManager from '../services/binaryManager';
+import logger from '../utils/logger';
+import fs from 'fs';
+const fsPromises = fs.promises;
+import database from '../database/database';
+import { BIN_PATH } from '../utils/paths';
+import axios from 'axios';
+import os from 'os';
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ const router = express.Router();
  * GET /api/health
  * Basic health check
  */
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const startTime = Date.now();
   
   res.json({
@@ -32,22 +34,22 @@ router.get('/', asyncHandler(async (req, res) => {
  * GET /api/health/detailed
  * Detailed health check with all services
  */
-router.get('/detailed', asyncHandler(async (req, res) => {
+router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
   const startTime = Date.now();
-  const checks = {};
+  const checks: Record<string, any> = {};
 
   // Check Device Manager
   try {
     const stats = await deviceManager.getStats();
-    checks.deviceManager = {
+    checks["deviceManager"] = {
       status: 'healthy',
       stats,
       message: 'Device Manager operacional'
     };
-  } catch (error) {
-    checks.deviceManager = {
+  } catch (error: any) {
+    checks["deviceManager"] = {
       status: 'unhealthy',
-      error: error.message,
+      error: error?.message,
       message: 'Erro no Device Manager'
     };
   }
@@ -55,33 +57,31 @@ router.get('/detailed', asyncHandler(async (req, res) => {
   // Check Binary Manager
   try {
     const processes = await binaryManager.listProcesses();
-    checks.binaryManager = {
+    checks["binaryManager"] = {
       status: 'healthy',
       processCount: processes.length,
-      runningProcesses: processes.filter(p => p.running).length,
+      runningProcesses: processes.filter((p: any) => p.running).length,
       message: 'Binary Manager operacional'
     };
-  } catch (error) {
-    checks.binaryManager = {
+  } catch (error: any) {
+    checks["binaryManager"] = {
       status: 'unhealthy',
-      error: error.message,
+      error: error?.message,
       message: 'Erro no Binary Manager'
     };
   }
 
-
   // Check WhatsApp binary
   try {
     await fsPromises.access(BIN_PATH, fsPromises.constants.F_OK | fsPromises.constants.X_OK);
-    
-    checks.whatsappBinary = {
+    checks["whatsappBinary"] = {
       status: 'healthy',
       message: 'Binário WhatsApp acessível'
     };
-  } catch (error) {
-    checks.whatsappBinary = {
+  } catch (error: any) {
+    checks["whatsappBinary"] = {
       status: 'unhealthy',
-      error: error.message,
+      error: error?.message,
       message: 'Erro no binário WhatsApp'
     };
   }
@@ -89,21 +89,20 @@ router.get('/detailed', asyncHandler(async (req, res) => {
   // Check database file access
   try {
     await fsPromises.access(database.dbPath);
-    
-    checks.fileSystem = {
+    checks["fileSystem"] = {
       status: 'healthy',
       message: 'Banco de dados acessível'
     };
-  } catch (error) {
-    checks.fileSystem = {
+  } catch (error: any) {
+    checks["fileSystem"] = {
       status: 'unhealthy',
-      error: error.message,
+      error: error?.message,
       message: 'Erro no sistema de arquivos'
     };
   }
 
   // Overall health status
-  const allHealthy = Object.values(checks).every(check => check.status === 'healthy');
+  const allHealthy = Object.values(checks).every((check: any) => check.status === 'healthy');
   const overallStatus = allHealthy ? 'healthy' : 'degraded';
 
   res.status(allHealthy ? 200 : 503).json({
@@ -113,19 +112,14 @@ router.get('/detailed', asyncHandler(async (req, res) => {
     checks,
     summary: {
       total: Object.keys(checks).length,
-      healthy: Object.values(checks).filter(c => c.status === 'healthy').length,
-      unhealthy: Object.values(checks).filter(c => c.status === 'unhealthy').length
+      healthy: Object.values(checks).filter((c: any) => c.status === 'healthy').length,
+      unhealthy: Object.values(checks).filter((c: any) => c.status === 'unhealthy').length
     }
   });
 }));
-
-/**
- * GET /api/health/devices
- * Health check for all devices
- */
-router.get('/devices', asyncHandler(async (req, res) => {
+router.get('/devices', asyncHandler(async (req: Request, res: Response) => {
   const devices = await deviceManager.getAllDevices();
-  const deviceChecks = {};
+  const deviceChecks: Record<string, any> = {};
 
   for (const [deviceHash, device] of Object.entries(devices)) {
     try {
@@ -136,7 +130,7 @@ router.get('/devices', asyncHandler(async (req, res) => {
       let processReachable = false;
       if (processStatus && processStatus.running) {
         try {
-          const response = await axios.get(`http://localhost:${device.port}/health`, { timeout: 5000 });
+          const response = await axios.get(`http://localhost:${(device as any).port}/health`, { timeout: 5000 });
           processReachable = response.status === 200;
         } catch (error) {
           processReachable = false;
@@ -144,26 +138,26 @@ router.get('/devices', asyncHandler(async (req, res) => {
       }
 
       deviceChecks[deviceHash] = {
-        status: device.status === 'active' && processReachable ? 'healthy' : 'unhealthy',
+        status: (device as any).status === 'active' && processReachable ? 'healthy' : 'unhealthy',
         device: {
-          status: device.status,
-          lastActivity: device.lastActivity,
-          authStatus: device.authStatus
+          status: (device as any).status,
+          lastActivity: (device as any).lastActivity,
+          authStatus: (device as any).authStatus
         },
         process: processStatus || { status: 'not_found' },
         processReachable,
         lastChecked: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       deviceChecks[deviceHash] = {
         status: 'error',
-        error: error.message,
+        error: error?.message,
         lastChecked: new Date().toISOString()
       };
     }
   }
 
-  const healthyDevices = Object.values(deviceChecks).filter(d => d.status === 'healthy').length;
+  const healthyDevices = Object.values(deviceChecks).filter((d: any) => d.status === 'healthy').length;
   const totalDevices = Object.keys(deviceChecks).length;
 
   res.json({
@@ -183,11 +177,11 @@ router.get('/devices', asyncHandler(async (req, res) => {
  * GET /api/health/processes
  * Health check for all WhatsApp processes
  */
-router.get('/processes', asyncHandler(async (req, res) => {
+router.get('/processes', asyncHandler(async (req: Request, res: Response) => {
   const processes = await binaryManager.listProcesses();
   
   const processChecks = await Promise.all(
-    processes.map(async (process) => {
+    processes.map(async (process: any) => {
       try {
         // Try to reach process health endpoint
         const response = await axios.get(`http://localhost:${process.port}/health`, { timeout: 3000 });
@@ -202,7 +196,7 @@ router.get('/processes', asyncHandler(async (req, res) => {
           healthEndpoint: response.data,
           lastChecked: new Date().toISOString()
         };
-      } catch (error) {
+      } catch (error: any) {
         return {
           deviceHash: process.deviceHash,
           pid: process.pid,
@@ -210,14 +204,14 @@ router.get('/processes', asyncHandler(async (req, res) => {
           processStatus: process.status,
           running: process.running,
           port: process.port,
-          error: error.message,
+          error: error?.message,
           lastChecked: new Date().toISOString()
         };
       }
     })
   );
 
-  const healthyProcesses = processChecks.filter(p => p.status === 'healthy').length;
+  const healthyProcesses = processChecks.filter((p: any) => p.status === 'healthy').length;
 
   res.json({
     status: 'ok',
@@ -227,8 +221,8 @@ router.get('/processes', asyncHandler(async (req, res) => {
       total: processChecks.length,
       healthy: healthyProcesses,
       unhealthy: processChecks.length - healthyProcesses,
-      running: processChecks.filter(p => p.running).length,
-      stopped: processChecks.filter(p => !p.running).length
+      running: processChecks.filter((p: any) => p.running).length,
+      stopped: processChecks.filter((p: any) => !p.running).length
     }
   });
 }));
@@ -237,7 +231,7 @@ router.get('/processes', asyncHandler(async (req, res) => {
  * GET /api/health/system
  * System health metrics
  */
-router.get('/system', asyncHandler(async (req, res) => {
+router.get('/system', asyncHandler(async (req: Request, res: Response) => {
   const memoryUsage = process.memoryUsage();
   const systemMemory = {
     total: os.totalmem(),
@@ -284,9 +278,9 @@ router.get('/system', asyncHandler(async (req, res) => {
  * POST /api/health/auto-heal
  * Attempt to auto-heal unhealthy services
  */
-router.post('/auto-heal', asyncHandler(async (req, res) => {
+router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
   const { services = [] } = req.body;
-  const healingResults = {};
+  const healingResults: Record<string, any> = {};
 
   logger.info('Iniciando processo de auto-healing...');
 
@@ -314,7 +308,7 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
             }
           }
           
-          healingResults.processes = {
+      healingResults["processes"] = {
             status: 'success',
             healedCount: healedProcesses,
             message: `${healedProcesses} processos reiniciados`
@@ -331,7 +325,7 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
     } catch (error) {
       healingResults[service] = {
         status: 'error',
-        error: error.message,
+        error: (error as any)?.message,
         message: `Erro durante healing do serviço ${service}`
       };
     }
@@ -346,4 +340,4 @@ router.post('/auto-heal', asyncHandler(async (req, res) => {
   });
 }));
 
-module.exports = router;
+export default router;

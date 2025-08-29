@@ -1,31 +1,41 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const dotenv = require('dotenv');
-const http = require('http');
-const WebSocket = require('ws');
+
+import express, { Application } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import http from 'http';
+import WebSocket from 'ws';
 
 // Load environment variables
 dotenv.config();
 
 // Import custom modules
-const logger = require('./utils/logger');
-const binaryManager = require('./services/binaryManager');
-const deviceManager = require('./services/newDeviceManager');
-const updateManager = require('./services/updateManager');
-const { authMiddleware, authManager } = require('./middleware/auth');
-const { errorHandler } = require('./middleware/errorHandler');
+
+import logger from './utils/logger';
+import binaryManager from './services/binaryManager';
+import deviceManager from './services/newDeviceManager';
+import updateManager from './services/updateManager';
+import { authMiddleware, authManager } from './middleware/auth';
+import { errorHandler } from './middleware/errorHandler';
 
 // Import routes
-const deviceRoutes = require('./routes/devices');
-const healthRoutes = require('./routes/health');
-const docsRoutes = require('./routes/docs');
+
+import deviceRoutes from './routes/devices';
+import healthRoutes from './routes/health';
+import docsRoutes from './routes/docs';
 
 // Import consolidated proxy route
-const proxyRoutes = require('./routes/proxy');
+
+import proxyRoutes from './routes/proxy';
+
 
 class APIGateway {
+  app: Application;
+  server: http.Server;
+  port: number | string;
+  wss!: WebSocket.Server;
+
   constructor() {
     console.log('🏗️ Iniciando constructor...');
     this.app = express();
@@ -59,7 +69,7 @@ class APIGateway {
     // Rate limiting
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: process.env.API_RATE_LIMIT || 100,
+      max: typeof process.env.API_RATE_LIMIT === 'string' ? parseInt(process.env.API_RATE_LIMIT) : 100,
       message: 'Muitas requisições deste IP, tente novamente em 15 minutos.'
     });
     this.app.use(limiter);
@@ -120,7 +130,7 @@ class APIGateway {
       path: '/ws'
     });
 
-    this.wss.on('connection', (ws, req) => {
+    this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
       logger.info(`WebSocket client connected: ${req.socket.remoteAddress}`);
 
       // Send welcome message
@@ -131,14 +141,13 @@ class APIGateway {
       }));
 
       // Handle messages from client
-      ws.on('message', (data) => {
+      ws.on('message', (data: WebSocket.RawData) => {
         try {
           const message = JSON.parse(data.toString());
           logger.info(`WebSocket message received:`, message);
-          
           // Handle different message types
           if (message.type === 'join-device') {
-            ws.deviceFilter = message.deviceHash;
+            (ws as any).deviceFilter = message.deviceHash;
             ws.send(JSON.stringify({
               type: 'joined-device',
               deviceHash: message.deviceHash,
@@ -152,7 +161,7 @@ class APIGateway {
               timestamp: new Date().toISOString()
             }));
           }
-        } catch (error) {
+        } catch (error: any) {
           logger.error('Error parsing WebSocket message:', error);
           ws.send(JSON.stringify({
             type: 'error',
@@ -162,17 +171,17 @@ class APIGateway {
         }
       });
 
-      ws.on('close', (code, reason) => {
-        logger.info(`WebSocket client disconnected: ${code} ${reason}`);
+      ws.on('close', (code: number, reason: Buffer) => {
+        logger.info(`WebSocket client disconnected: ${code} ${reason.toString()}`);
       });
 
-      ws.on('error', (error) => {
+      ws.on('error', (error: Error) => {
         logger.error('WebSocket error:', error);
       });
     });
 
     // Make WebSocket server available globally
-    global.webSocketServer = this.wss;
+    (global as any).webSocketServer = this.wss;
     
     logger.info('WebSocket server configured on path /ws');
   }
@@ -225,8 +234,8 @@ class APIGateway {
 
     } catch (error) {
       logger.error('Erro ao inicializar API Gateway:', error);
-      console.error('ERRO CRÍTICO:', error.message);
-      console.error('STACK:', error.stack);
+  console.error('ERRO CRÍTICO:', (error as any).message);
+  console.error('STACK:', (error as any).stack);
       process.exit(1);
     }
   }
@@ -261,4 +270,4 @@ const gateway = new APIGateway();
 console.log('✅ Instância criada, iniciando start()...');
 gateway.start();
 
-module.exports = gateway;
+export default gateway;

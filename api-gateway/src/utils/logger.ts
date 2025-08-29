@@ -1,5 +1,6 @@
-const winston = require('winston');
-const path = require('path');
+
+import winston from 'winston';
+import path from 'path';
 
 // Define log format
 const logFormat = winston.format.combine(
@@ -37,14 +38,14 @@ const logger = winston.createLogger({
     // File transport for error logs only
     new winston.transports.File({
       filename: path.join(process.env.LOGS_PATH || './logs', 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
+  level: 'error',
+  maxsize: 5242880, // 5MB
       maxFiles: 5
-    })
-  ]
+    }),
+  ],
 });
 
-// Handle uncaught exceptions
+export default logger;
 logger.exceptions.handle(
   new winston.transports.File({
     filename: path.join(process.env.LOGS_PATH || './logs', 'exceptions.log')

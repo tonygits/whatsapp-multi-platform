@@ -1,9 +1,29 @@
-const axios = require('axios');
-const crypto = require('crypto');
-const logger = require('../utils/logger');
-const deviceManager = require('./newDeviceManager');
+
+import axios from 'axios';
+import crypto from 'crypto';
+import logger from '../utils/logger';
+import deviceManager from './newDeviceManager';
+
+export interface StatusData {
+  type: string;
+  code?: string;
+  message?: string;
+  device_info?: any;
+  devices?: any[];
+  error?: any;
+  data?: any;
+}
+
+export interface ContainerEvent {
+  code: string;
+  message?: string;
+  result?: any;
+}
 
 class StatusWebhookManager {
+  timeout: number;
+  retryAttempts: number;
+
   constructor() {
     this.timeout = 10000; // 10 seconds timeout
     this.retryAttempts = 3;
@@ -11,10 +31,8 @@ class StatusWebhookManager {
 
   /**
    * Send status update to device webhook
-   * @param {string} deviceHash - Device hash
-   * @param {Object} statusData - Status data to send
    */
-  async sendStatusUpdate(deviceHash, statusData) {
+  async sendStatusUpdate(deviceHash: string, statusData: StatusData): Promise<void> {
     try {
       const device = await deviceManager.getDevice(deviceHash);
       if (!device || !device.statusWebhookUrl) {
@@ -34,19 +52,16 @@ class StatusWebhookManager {
       
       logger.info(`Status webhook enviado para ${deviceHash}: ${statusData.type}`);
       
-    } catch (error) {
-      logger.error(`Erro ao enviar status webhook para ${deviceHash}:`, error.message);
+    } catch (error: any) {
+      logger.error(`Erro ao enviar status webhook para ${deviceHash}:`, error?.message);
     }
   }
 
   /**
    * Send webhook with retry logic
-   * @param {string} webhookUrl - Webhook URL
-   * @param {string} secret - Webhook secret (optional)
-   * @param {Object} payload - Data to send
    */
-  async sendWebhook(webhookUrl, secret, payload) {
-    const headers = {
+  async sendWebhook(webhookUrl: string, secret: string, payload: any): Promise<any> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'User-Agent': 'WhatsApp-Gateway-Webhook/1.0'
     };
@@ -57,7 +72,7 @@ class StatusWebhookManager {
       headers['X-Webhook-Signature'] = signature;
     }
 
-    let lastError;
+    let lastError: any;
     
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
@@ -67,13 +82,13 @@ class StatusWebhookManager {
           data: payload,
           headers,
           timeout: this.timeout,
-          validateStatus: (status) => status >= 200 && status < 300
+          validateStatus: (status: number) => status >= 200 && status < 300
         });
 
         logger.debug(`Webhook enviado com sucesso (tentativa ${attempt}): ${response.status}`);
         return response;
 
-      } catch (error) {
+      } catch (error: any) {
         lastError = error;
         
         if (attempt < this.retryAttempts) {
@@ -89,11 +104,8 @@ class StatusWebhookManager {
 
   /**
    * Generate HMAC-SHA256 signature for webhook
-   * @param {string} payload - Payload string
-   * @param {string} secret - Secret key
-   * @returns {string} - Signature
    */
-  generateSignature(payload, secret) {
+  generateSignature(payload: string, secret: string): string {
     return crypto
       .createHmac('sha256', secret)
       .update(payload)
@@ -102,13 +114,11 @@ class StatusWebhookManager {
 
   /**
    * Handle WhatsApp container events and send appropriate webhooks
-   * @param {string} deviceHash - Device hash
-   * @param {Object} containerEvent - Event from container
    */
-  async handleContainerEvent(deviceHash, containerEvent) {
+  async handleContainerEvent(deviceHash: string, containerEvent: ContainerEvent): Promise<void> {
     try {
-      let statusData = null;
-      let deviceStatus = null;
+      let statusData: StatusData | null = null;
+      let deviceStatus: string | null = null;
 
       // Parse different container events and determine device status
       switch (containerEvent.code) {
@@ -197,11 +207,12 @@ class StatusWebhookManager {
         await this.sendStatusUpdate(deviceHash, statusData);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Erro ao processar evento do container ${deviceHash}:`, error);
     }
   }
 }
 
 // Export singleton instance
-module.exports = new StatusWebhookManager();
+const statusWebhookManager = new StatusWebhookManager();
+export default statusWebhookManager;

@@ -1,9 +1,27 @@
-const logger = require('../utils/logger');
+import logger from '../utils/logger';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Error handling middleware
  */
-const errorHandler = (err, req, res, next) => {
+interface ErrorResponse {
+  error: string;
+  code: string;
+  timestamp: string;
+  path: string;
+  method: string;
+  details?: any;
+  requestId?: string;
+}
+
+interface CustomErrorType extends Error {
+  statusCode?: number;
+  code?: string;
+  details?: any;
+  isCustomError?: boolean;
+}
+
+const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: NextFunction) => {
   // Log the error
   logger.error('Erro na aplicação:', {
     error: err.message,
@@ -87,7 +105,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Prepare error response
-  const errorResponse = {
+  const errorResponse: ErrorResponse = {
     error: message,
     code,
     timestamp: new Date().toISOString(),
@@ -101,8 +119,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Add request ID if available
-  if (req.id) {
-    errorResponse.requestId = req.id;
+  if ((req as any).id) {
+    errorResponse.requestId = (req as any).id;
   }
 
   // Send error response
@@ -112,7 +130,7 @@ const errorHandler = (err, req, res, next) => {
 /**
  * 404 handler for unmatched routes
  */
-const notFoundHandler = (req, res) => {
+const notFoundHandler = (req: Request, res: Response) => {
   logger.warn(`Rota não encontrada: ${req.method} ${req.originalUrl}`, {
     ip: req.ip,
     userAgent: req.get('User-Agent')
@@ -137,8 +155,8 @@ const notFoundHandler = (req, res) => {
  * Async error wrapper
  * Wraps async route handlers to catch errors
  */
-const asyncHandler = (fn) => {
-  return (req, res, next) => {
+const asyncHandler = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 };
@@ -147,14 +165,17 @@ const asyncHandler = (fn) => {
  * Custom error class for application-specific errors
  */
 class CustomError extends Error {
-  constructor(message, statusCode = 400, code = 'CUSTOM_ERROR', details = null) {
+  statusCode: number;
+  code: string;
+  details: any;
+  isCustomError: boolean;
+  constructor(message: string, statusCode: number = 400, code: string = 'CUSTOM_ERROR', details: any = null) {
     super(message);
     this.name = 'CustomError';
     this.statusCode = statusCode;
     this.code = code;
     this.details = details;
     this.isCustomError = true;
-    
     // Maintain proper stack trace
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, CustomError);
@@ -165,8 +186,8 @@ class CustomError extends Error {
 /**
  * Request timeout middleware
  */
-const timeoutMiddleware = (timeout = 30000) => {
-  return (req, res, next) => {
+const timeoutMiddleware = (timeout: number = 30000) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     res.setTimeout(timeout, () => {
       const err = new CustomError(
         'Requisição expirou',
@@ -182,18 +203,18 @@ const timeoutMiddleware = (timeout = 30000) => {
 /**
  * Request logging middleware
  */
-const requestLogger = (req, res, next) => {
+const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   
   // Generate request ID
-  req.id = Math.random().toString(36).substr(2, 9);
+  (req as any).id = Math.random().toString(36).substr(2, 9);
   
   res.on('finish', () => {
     const duration = Date.now() - start;
     const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
     
     logger[logLevel]('Requisição processada', {
-      requestId: req.id,
+  requestId: (req as any).id,
       method: req.method,
       url: req.originalUrl,
       statusCode: res.statusCode,
@@ -210,7 +231,7 @@ const requestLogger = (req, res, next) => {
 /**
  * Global error handlers for uncaught exceptions
  */
-const setupGlobalErrorHandlers = () => {
+const setupGlobalErrorHandlers = (): void => {
   process.on('uncaughtException', (err) => {
     logger.error('Uncaught Exception:', err);
     process.exit(1);
@@ -232,7 +253,7 @@ const setupGlobalErrorHandlers = () => {
   });
 };
 
-module.exports = {
+export {
   errorHandler,
   notFoundHandler,
   asyncHandler,

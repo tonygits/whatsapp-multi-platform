@@ -1,9 +1,15 @@
 const cron = require('cron');
 const axios = require('axios');
-const logger = require('../utils/logger');
+import logger from '../utils/logger';
 const binaryManager = require('./binaryManager');
 
 class UpdateManager {
+  updateCheckCron: string;
+  cronJob: any;
+  lastUpdateCheck: Date | null;
+  updateHistory: any[];
+  autoUpdateEnabled: boolean;
+
   constructor() {
     this.updateCheckCron = process.env.UPDATE_CHECK_CRON || '0 2 * * *'; // 2 AM daily
     this.cronJob = null;
@@ -54,10 +60,10 @@ class UpdateManager {
     logger.info('Iniciando verificação inteligente de atualizações...');
     
     this.lastUpdateCheck = new Date();
-    const checkResults = {
-      timestamp: this.lastUpdateCheck.toISOString(),
-      checks: {}
-    };
+        const checkResults: any = {
+          timestamp: this.lastUpdateCheck.toISOString(),
+          checks: {} as any,
+        };
 
     try {
       // Check Docker image updates
@@ -100,7 +106,7 @@ class UpdateManager {
 
     } catch (error) {
       logger.error('Erro durante verificação de atualizações:', error);
-      checkResults.error = error.message;
+            (checkResults as any).error = (error as Error).message;
       return checkResults;
     }
   }
@@ -131,15 +137,15 @@ class UpdateManager {
           const registryInfo = await this.getRegistryImageInfo(image);
           
           const updateAvailable = localInfo && registryInfo && 
-            localInfo.digest !== registryInfo.digest;
+            (localInfo as any).digest !== (registryInfo as any).digest;
 
-          results.images.push({
+          (results.images as any[]).push({
             name: image,
-            local_digest: localInfo?.digest,
-            registry_digest: registryInfo?.digest,
+            local_digest: (localInfo as any)?.digest,
+            registry_digest: (registryInfo as any)?.digest,
             update_available: updateAvailable,
-            local_created: localInfo?.created,
-            registry_updated: registryInfo?.last_updated
+            local_created: (localInfo as any)?.created,
+            registry_updated: (registryInfo as any)?.last_updated
           });
 
           if (updateAvailable) {
@@ -147,17 +153,17 @@ class UpdateManager {
           }
 
         } catch (error) {
-          logger.warn(`Erro ao verificar imagem ${image}:`, error.message);
-          results.images.push({
+          logger.warn(`Erro ao verificar imagem ${image}:`, (error as any).message);
+          (results.images as any[]).push({
             name: image,
-            error: error.message
+            error: (error as Error).message
           });
         }
       }
 
     } catch (error) {
       logger.error('Erro ao verificar atualizações Docker:', error);
-      results.error = error.message;
+      (results as any).error = (error as Error).message;
     }
 
     return results;
@@ -167,10 +173,11 @@ class UpdateManager {
    * Check Node.js dependencies for updates
    */
   async checkNodeDependencies() {
-    const results = {
+    const results: any = {
       dependencies: [],
       updates_available: false,
       security_updates: false,
+      security_vulnerabilities: undefined,
     };
 
     const { execSync } = require('child_process');
@@ -185,12 +192,12 @@ class UpdateManager {
     } catch (error) {
       // This block will execute if packages ARE outdated (exit code 1).
       // The JSON output is in error.stdout, which is what we want to parse.
-      if (error.stdout) {
-        outdatedOutput = error.stdout;
+      if ((error as any).stdout) {
+        outdatedOutput = (error as any).stdout;
       } else {
         // This is a real error (e.g., npm not found or another issue).
         logger.warn('Erro ao executar "npm outdated":', error);
-        results.error = error.message;
+  (results as any).error = (error as any).message;
         return results; // Exit early
       }
     }
@@ -199,13 +206,13 @@ class UpdateManager {
       try {
         const outdated = JSON.parse(outdatedOutput);
         for (const [name, info] of Object.entries(outdated)) {
-          const isSecurityUpdate = await this.checkPackageSecurityAdvisories(name, info.current);
+      const isSecurityUpdate = await this.checkPackageSecurityAdvisories(name, (info as any).current);
           
           results.dependencies.push({
             name,
-            current: info.current,
-            wanted: info.wanted,
-            latest: info.latest,
+            current: (info as any).current,
+            wanted: (info as any).wanted,
+            latest: (info as any).latest,
             security_update: isSecurityUpdate,
           });
 
@@ -229,20 +236,20 @@ class UpdateManager {
       });
     } catch (auditError) {
       // This block executes if vulnerabilities ARE found.
-      if (auditError.stdout) {
+      if ((auditError as any).stdout) {
         try {
-            const audit = JSON.parse(auditError.stdout);
-            if (audit.metadata && audit.metadata.vulnerabilities.total > 0) {
-              results.security_vulnerabilities = audit.metadata.vulnerabilities;
-              results.security_updates = true;
-              logger.warn(`Vulnerabilidades de segurança encontradas: ${audit.metadata.vulnerabilities.total} total`);
-            }
+          const audit = JSON.parse((auditError as any).stdout);
+          if (audit.metadata && audit.metadata.vulnerabilities.total > 0) {
+            (results as any).security_vulnerabilities = audit.metadata.vulnerabilities;
+            (results as any).security_updates = true;
+            logger.warn(`Vulnerabilidades de segurança encontradas: ${audit.metadata.vulnerabilities.total} total`);
+          }
         } catch(parseError) {
-            logger.warn('Erro ao fazer parse da saída do "npm audit":', parseError);
+          logger.warn('Erro ao fazer parse da saída do "npm audit":', parseError);
         }
       } else {
         // This is a real error.
-        logger.warn('Erro ao executar "npm audit":', auditError);
+        logger.warn('Erro ao executar "npm audit":', (auditError as any).message);
       }
     }
 
@@ -269,16 +276,16 @@ class UpdateManager {
 
       results.latest_version = response.data.tag_name;
       results.release_notes = response.data.body;
-      results.published_at = response.data.published_at;
+  (results as any).published_at = response.data.published_at;
 
       // Get current version from containers (if possible)
       // This would require implementing version tracking in containers
-      results.current_version = 'unknown';
+  (results as any).current_version = 'unknown';
       results.update_available = true; // Conservative approach
 
     } catch (error) {
-      logger.warn('Erro ao verificar atualizações da biblioteca WhatsApp:', error.message);
-      results.error = error.message;
+  logger.warn('Erro ao verificar atualizações da biblioteca WhatsApp:', (error as any).message);
+  (results as any).error = (error as any).message;
     }
 
     return results;
@@ -297,9 +304,9 @@ class UpdateManager {
     try {
       // This would require implementation based on the host OS
       // For Docker containers, this might not be as relevant
-      results.message = 'System package checks not implemented for containerized environment';
+  (results as any).message = 'System package checks not implemented for containerized environment';
     } catch (error) {
-      results.error = error.message;
+  (results as any).error = (error as any).message;
     }
 
     return results;
@@ -320,7 +327,7 @@ class UpdateManager {
       for (const process of processes) {
         const health = await this.analyzeProcessHealth(process);
         
-        results.processes.push({
+  (results as any).processes.push({
           deviceHash: process.deviceHash,
           healthScore: health.score,
           uptime: health.uptime,
@@ -329,7 +336,7 @@ class UpdateManager {
         });
 
         if (health.restartRecommended) {
-          results.recommendations.push({
+          (results as any).recommendations.push({
             type: 'restart',
             process: process.deviceHash,
             reason: health.restartReason
@@ -337,7 +344,7 @@ class UpdateManager {
         }
 
         if (health.updateRecommended) {
-          results.recommendations.push({
+          (results as any).recommendations.push({
             type: 'update',
             process: process.deviceHash,
             reason: health.updateReason
@@ -347,7 +354,7 @@ class UpdateManager {
 
     } catch (error) {
       logger.error('Erro ao analisar saúde dos processos:', error);
-      results.error = error.message;
+  (results as any).error = (error as any).message;
     }
 
     return results;
@@ -356,7 +363,7 @@ class UpdateManager {
   /**
    * Analyze process health
    */
-  async analyzeProcessHealth(process) {
+  async analyzeProcessHealth(process: any) {
     const health = {
       score: 100,
       uptime: 0,
@@ -375,7 +382,7 @@ class UpdateManager {
       // Recommend restart if uptime > 7 days
       if (health.uptime > 7 * 24 * 60 * 60 * 1000) {
         health.restartRecommended = true;
-        health.restartReason = 'Process running for more than 7 days';
+  (health as any).restartReason = 'Process running for more than 7 days';
         health.score -= 20;
       }
 
@@ -383,7 +390,7 @@ class UpdateManager {
       if (!process.running) {
         health.score = 0;
         health.updateRecommended = true;
-        health.updateReason = 'Process not running';
+  (health as any).updateReason = 'Process not running';
       }
 
       // Additional health checks could be added here
@@ -399,7 +406,7 @@ class UpdateManager {
   /**
    * Analyze update recommendations
    */
-  analyzeUpdateRecommendations(checks) {
+  analyzeUpdateRecommendations(checks: any) {
     const recommendations = {
       priority: 'low',
       safeToAutoUpdate: false,
@@ -418,15 +425,15 @@ class UpdateManager {
     // Check for critical process issues
     if (checks.processHealth?.recommendations?.length > 0) {
       const restartCount = checks.processHealth.recommendations
-        .filter(r => r.type === 'restart').length;
+  .filter((r: any) => r.type === 'restart').length;
       
       if (restartCount > 0) {
         recommendations.priority = 'medium';
-        recommendations.autoUpdateActions.push({
+  (recommendations as any).autoUpdateActions.push({
           type: 'restart_processes',
           processes: checks.processHealth.recommendations
-            .filter(r => r.type === 'restart')
-            .map(r => r.process)
+            .filter((r: any) => r.type === 'restart')
+            .map((r: any) => r.process)
         });
         recommendations.safeToAutoUpdate = true;
       }
@@ -434,14 +441,14 @@ class UpdateManager {
 
     // Add manual actions for major updates
     if (checks.dockerImages?.updates_available) {
-      recommendations.manualActions.push({
+  (recommendations as any).manualActions.push({
         type: 'update_docker_images',
         description: 'Atualize as imagens Docker manualmente'
       });
     }
 
     if (checks.whatsappLibrary?.update_available) {
-      recommendations.manualActions.push({
+  (recommendations as any).manualActions.push({
         type: 'update_whatsapp_library',
         description: 'Nova versão da biblioteca WhatsApp disponível'
       });
@@ -453,14 +460,14 @@ class UpdateManager {
   /**
    * Send update notifications
    */
-  async sendUpdateNotifications(checkResults) {
+  async sendUpdateNotifications(checkResults: any) {
     const { recommendations } = checkResults;
 
     if (recommendations.priority === 'high' || recommendations.securityCritical) {
       logger.warn('ATENÇÃO: Atualizações críticas de segurança disponíveis!');
       
       // Send via WebSocket if configured
-      if (global.webSocketServer) {
+  if ((global as any).webSocketServer) {
         const message = JSON.stringify({
           type: 'security-update-alert',
           severity: 'high',
@@ -469,7 +476,7 @@ class UpdateManager {
           timestamp: new Date().toISOString()
         });
         
-        global.webSocketServer.clients.forEach((client) => {
+  ((global as any).webSocketServer.clients as any[]).forEach((client: any) => {
           if (client.readyState === 1) { // WebSocket.OPEN
             client.send(message);
           }
@@ -485,7 +492,7 @@ class UpdateManager {
   /**
    * Perform auto-update for safe actions
    */
-  async performAutoUpdate(actions) {
+  async performAutoUpdate(actions: any) {
     logger.info('Iniciando auto-update...');
 
     for (const action of actions) {
@@ -509,7 +516,7 @@ class UpdateManager {
   /**
    * Auto-restart processes
    */
-  async autoRestartProcesses(deviceHashes) {
+  async autoRestartProcesses(deviceHashes: any) {
     for (const deviceHash of deviceHashes) {
       try {
         logger.info(`Auto-reiniciando processo: ${deviceHash}`);
@@ -526,7 +533,7 @@ class UpdateManager {
   /**
    * Get local Docker image info
    */
-  async getLocalImageInfo(imageName) {
+  async getLocalImageInfo(imageName: any) {
     try {
       // Since we're not using containers anymore, this would need to be reimplemented
       // to check binary versions instead
@@ -540,7 +547,7 @@ class UpdateManager {
   /**
    * Get registry image info
    */
-  async getRegistryImageInfo(imageName) {
+  async getRegistryImageInfo(imageName: any) {
     try {
       // This would require implementing Docker registry API calls
       // For now, return placeholder
@@ -556,7 +563,7 @@ class UpdateManager {
   /**
    * Check package security advisories
    */
-  async checkPackageSecurityAdvisories(packageName, version) {
+  async checkPackageSecurityAdvisories(packageName: any, version: any) {
     try {
       // This would require implementing security advisory checks
       // Could use GitHub Security Advisory API or npm audit
@@ -605,4 +612,4 @@ class UpdateManager {
 }
 
 // Export singleton instance
-module.exports = new UpdateManager();
+export default new UpdateManager();

@@ -1,10 +1,14 @@
-const logger = require('../utils/logger');
-const deviceRepository = require('../repositories/DeviceRepository');
+
+import logger from '../utils/logger';
+import deviceRepository from '../repositories/DeviceRepository';
 
 class DeviceManager {
+  basePort: number;
+  usedPorts: Set<number>;
+
   constructor() {
     this.basePort = 8000; // Starting port for WhatsApp containers
-    this.usedPorts = new Set();
+    this.usedPorts = new Set<number>();
   }
 
   /**
@@ -31,12 +35,16 @@ class DeviceManager {
   async loadUsedPorts() {
     try {
       const devices = await deviceRepository.findAll();
-      for (const device of devices) {
-        if (device.container_port) {
-          this.usedPorts.add(device.container_port);
+      if (Array.isArray(devices)) {
+        for (const device of devices) {
+          if (device.container_port) {
+            this.usedPorts.add(device.container_port);
+          }
         }
+        logger.info(`Carregadas ${this.usedPorts.size} portas em uso`);
+      } else {
+        logger.warn('findAll() não retornou um array de dispositivos');
       }
-      logger.info(`Carregadas ${this.usedPorts.size} portas em uso`);
     } catch (error) {
       logger.error('Erro ao carregar portas usadas:', error);
     }
@@ -57,7 +65,7 @@ class DeviceManager {
   /**
    * Release a port
    */
-  releasePort(port) {
+  releasePort(port: number) {
     this.usedPorts.delete(port);
   }
 
@@ -67,7 +75,7 @@ class DeviceManager {
    * @param {Object} options - Additional options
    * @returns {Promise<Object>} - Device configuration
    */
-  async registerDevice(deviceHash, options = {}) {
+  async registerDevice(deviceHash: string, options: any = {}) {
     try {
       logger.info(`Registrando dispositivo: ${deviceHash}`);
 
@@ -114,7 +122,7 @@ class DeviceManager {
    * @param {string} deviceHash - Device hash
    * @returns {Promise<boolean>} - Success status
    */
-  async removeDevice(deviceHash) {
+  async removeDevice(deviceHash: string) {
     try {
       logger.info(`Removendo dispositivo: ${deviceHash}`);
 
@@ -147,7 +155,7 @@ class DeviceManager {
    * @param {string} deviceHash - Device hash
    * @returns {Promise<Object|null>} - Device information
    */
-  async getDevice(deviceHash) {
+  async getDevice(deviceHash: string) {
     try {
       const device = await deviceRepository.findByDeviceHash(deviceHash);
       
@@ -183,7 +191,7 @@ class DeviceManager {
    * @param {Object} updateData - Data to update
    * @returns {Promise<Object|null>} - Updated device
    */
-  async updateDevice(deviceHash, updateData) {
+  async updateDevice(deviceHash: string, updateData: any) {
     try {
       const device = await deviceRepository.findByDeviceHash(deviceHash);
       if (!device) {
@@ -206,26 +214,30 @@ class DeviceManager {
    * @param {string} status - Device status
    * @returns {Promise<Array>} - Array of devices
    */
-  async getDevicesByStatus(status) {
+  async getDevicesByStatus(status: string) {
     try {
       const devices = await deviceRepository.findAll({ status });
-      
-      return devices.map(device => ({
-        id: device.id,
-        deviceHash: device.device_hash,
-        status: device.status,
-        containerInfo: {
-          containerId: device.container_id,
-          port: device.container_port
-        },
-        webhookUrl: device.webhook_url,
-        webhookSecret: device.webhook_secret,
-        statusWebhookUrl: device.status_webhook_url,
-        statusWebhookSecret: device.status_webhook_secret,
-        createdAt: device.created_at,
-        updatedAt: device.updated_at,
-        lastSeen: device.last_seen
-      }));
+      if (Array.isArray(devices)) {
+        return devices.map((device: any) => ({
+          id: device.id,
+          deviceHash: device.device_hash,
+          status: device.status,
+          containerInfo: {
+            containerId: device.container_id,
+            port: device.container_port
+          },
+          webhookUrl: device.webhook_url,
+          webhookSecret: device.webhook_secret,
+          statusWebhookUrl: device.status_webhook_url,
+          statusWebhookSecret: device.status_webhook_secret,
+          createdAt: device.created_at,
+          updatedAt: device.updated_at,
+          lastSeen: device.last_seen
+        }));
+      } else {
+        logger.warn('findAll({ status }) não retornou um array de dispositivos');
+        return [];
+      }
     } catch (error) {
       logger.error('Erro ao listar dispositivos por status:', error);
       throw error;
@@ -239,23 +251,27 @@ class DeviceManager {
   async getAllDevices() {
     try {
       const devices = await deviceRepository.findAll();
-      
-      return devices.map(device => ({
-        id: device.id,
-        deviceHash: device.device_hash,
-        status: device.status,
-        containerInfo: {
-          containerId: device.container_id,
-          port: device.container_port
-        },
-        webhookUrl: device.webhook_url,
-        webhookSecret: device.webhook_secret,
-        statusWebhookUrl: device.status_webhook_url,
-        statusWebhookSecret: device.status_webhook_secret,
-        createdAt: device.created_at,
-        updatedAt: device.updated_at,
-        lastSeen: device.last_seen
-      }));
+      if (Array.isArray(devices)) {
+        return devices.map((device: any) => ({
+          id: device.id,
+          deviceHash: device.device_hash,
+          status: device.status,
+          containerInfo: {
+            containerId: device.container_id,
+            port: device.container_port
+          },
+          webhookUrl: device.webhook_url,
+          webhookSecret: device.webhook_secret,
+          statusWebhookUrl: device.status_webhook_url,
+          statusWebhookSecret: device.status_webhook_secret,
+          createdAt: device.created_at,
+          updatedAt: device.updated_at,
+          lastSeen: device.last_seen
+        }));
+      } else {
+        logger.warn('findAll() não retornou um array de dispositivos');
+        return [];
+      }
     } catch (error) {
       logger.error('Erro ao listar dispositivos:', error);
       throw error;
@@ -278,4 +294,5 @@ class DeviceManager {
 
 }
 
-module.exports = new DeviceManager();
+const deviceManager = new DeviceManager();
+export default deviceManager;

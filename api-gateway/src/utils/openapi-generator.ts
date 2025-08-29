@@ -1,11 +1,11 @@
-const yaml = require('js-yaml');
-const fs = require('fs');
-const path = require('path');
+import yaml from 'js-yaml';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Generate complete OpenAPI documentation with Gateway/Device Management first
  */
-function generateOpenAPIFromApp(app) {
+function generateOpenAPIFromApp(app: any): any {
   // Tenta carregar openapi.yaml de caminhos conhecidos; cai para estrutura padrão se não achar
   const candidatePaths = [
     path.join(__dirname, '../../openapi.yaml'),      // api-gateway/openapi.yaml (Docker)
@@ -13,7 +13,7 @@ function generateOpenAPIFromApp(app) {
     path.join(__dirname, '../../docs/openapi.yaml')  // api-gateway/docs/openapi.yaml
   ];
 
-  let baseDoc;
+  let baseDoc: any;
   let loaded = false;
 
   for (const p of candidatePaths) {
@@ -56,7 +56,7 @@ function generateOpenAPIFromApp(app) {
   baseDoc.security = [{ basicAuth: [] }];
 
   // Add /api prefix to all WhatsApp API paths and add x-instance-id parameter
-  const whatsappPaths = {};
+  const whatsappPaths: Record<string, any> = {};
   Object.keys(baseDoc.paths).forEach(originalPath => {
     const newPath = `/api${originalPath}`;
     const pathObj = { ...baseDoc.paths[originalPath] };
@@ -90,7 +90,7 @@ function generateOpenAPIFromApp(app) {
   });
 
   // Add Gateway Management routes
-  const gatewayPaths = {
+  const gatewayPaths: Record<string, any> = {
     '/api/health': {
       get: {
         operationId: 'healthCheck',
@@ -573,7 +573,7 @@ function generateOpenAPIFromApp(app) {
   };
 
   // Organizar paths na ordem correta: Gateway -> Device -> WhatsApp API
-  const orderedPaths = {};
+  const orderedPaths: Record<string, any> = {};
 
   // 1. Gateway paths primeiro
   const gatewayPathKeys = Object.keys(gatewayPaths).filter(p => 
@@ -623,7 +623,7 @@ function generateOpenAPIFromApp(app) {
   return baseDoc;
 }
 
-function createFallbackStructure() {
+function createFallbackStructure(): any {
   return {
     openapi: "3.0.0",
     info: {
@@ -695,4 +695,4 @@ function createFallbackStructure() {
   };
 }
 
-module.exports = { generateOpenAPIFromApp };
+export { generateOpenAPIFromApp };
