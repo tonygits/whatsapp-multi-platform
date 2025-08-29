@@ -8,9 +8,9 @@ import path from 'path';
 function generateOpenAPIFromApp(app: any): any {
   // Tenta carregar openapi.yaml de caminhos conhecidos; cai para estrutura padrão se não achar
   const candidatePaths = [
-    path.join(__dirname, '../../openapi.yaml'),      // api-gateway/openapi.yaml (Docker)
+    path.join(__dirname, '../../openapi.yaml'),      // openapi.yaml (Docker)
     path.join(__dirname, '../../../openapi.yaml'),   // raiz do projeto
-    path.join(__dirname, '../../docs/openapi.yaml')  // api-gateway/docs/openapi.yaml
+    path.join(__dirname, '../../docs_2/openapi.yaml')  // docs/openapi.yaml
   ];
 
   let baseDoc: any;

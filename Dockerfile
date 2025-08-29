@@ -1,38 +1,21 @@
 # API Gateway Dockerfile - Using debian base for glibc compatibility
-FROM node:24-slim
+FROM node:22-slim
 
-# Build args to handle arch-aware download of WhatsApp binary
-ARG TARGETARCH
-ARG WHATSAPP_VERSION=7.5.0
-
-# Declare ARGs again to make them available in RUN
-ARG TARGETARCH
-ARG WHATSAPP_VERSION
-
-# Install system dependencies including unzip and wget for binary download
-RUN apt-get update && apt-get install -y \
-    docker.io \
-    curl \
-    bash \
-    unzip \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+ARG TARGETARCH=amd64
 
 # Set working directory
 WORKDIR /app
 
-
-# Copy package files e tsconfig
-COPY package*.json ./
-COPY tsconfig.json ./
-
+# Copia todo o diretório (inclui src, tsconfig, etc)
+COPY . .
+# Copia package.json e package-lock.json explicitamente
+COPY package.json ./
+COPY package-lock.json ./
 
 # Instala dependências (inclui devDependencies para build)
-RUN npm ci
+RUN npm install
 
-# Download and setup go-whatsapp-web-multidevice binary (arch-aware)
-# TARGETARCH values are typically: amd64 | arm64
-# Download and setup go-whatsapp-web-multidevice binary (arch-aware)
+# Download e setup do binário go-whatsapp-web-multidevice (arch-aware)
 RUN set -eux; \
     case "${TARGETARCH}" in \
       amd64) ARCH_SUFFIX=amd64; FOLDER_NAME=linux-amd64 ;; \
@@ -46,18 +29,11 @@ RUN set -eux; \
     chmod +x whatsapp; \
     rm -f whatsapp_linux_${ARCH_SUFFIX}.zip readme.md
 
-COPY api-gateway/src ./src
-COPY openapi.yaml ./openapi.yaml
-COPY docs ./docs
-
-
 # Build TypeScript
 RUN npm run build
 
 # Remove devDependencies para imagem final enxuta
 RUN npm prune --production
-
-# Copy schema.sql to dist (garantido pelo postbuild)
 
 # Create necessary directories
 RUN mkdir -p /app/volumes /app/logs /app/sessions
@@ -66,7 +42,7 @@ RUN mkdir -p /app/volumes /app/logs /app/sessions
 RUN groupadd -g 1001 gateway && \
     useradd -u 1001 -g gateway -d /app -s /bin/bash gateway
 
-# Set ownership and ensure binary is executable
+# Set ownership e garantir binário executável
 RUN chown -R gateway:gateway /app && \
     chmod +x /app/whatsapp
 
@@ -83,7 +59,23 @@ EXPOSE 3000
 # Environment variables
 ENV NODE_ENV=production
 ENV API_PORT=3000
-ENV BIN_PATH=/app/dist/whatsapp
+ENV BIN_PATH=/app/whatsapp
+ENV SESSIONS_DIR=/app/sessions
+ENV VOLUMES_DIR=/app/volumes
+ENV APP_BASE_DIR=/app
+
+# Start command (TypeScript build)
+CMD ["node", "dist/src/server.js"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Expose port
+EXPOSE 3000
+
+# Environment variables
+ENV NODE_ENV=production
+ENV API_PORT=3000
+ENV BIN_PATH=/app/whatsapp
 ENV SESSIONS_DIR=/app/sessions
 ENV VOLUMES_DIR=/app/volumes
 ENV APP_BASE_DIR=/app

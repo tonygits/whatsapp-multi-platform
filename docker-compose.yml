@@ -3,7 +3,10 @@ services:
     user: root
     build:
       context: .
-      dockerfile: api-gateway/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        WHATSAPP_VERSION: 7.5.0
+        TARGETARCH: amd64
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:

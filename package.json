@@ -2,13 +2,13 @@
   "name": "whatsapp-multi-platform",
   "version": "1.0.0",
   "description": "Plataforma escalável para gerenciar múltiplos números de WhatsApp utilizando containers Docker",
-  "main": "api-gateway/src/server.ts",
+  "main": "src/server.ts",
   "scripts": {
   "build": "tsc",
   "postbuild": "mkdir -p dist/database && cp src/database/schema.sql dist/database/schema.sql",
     "start": "node dist/server.js",
-    "start:ts": "ts-node api-gateway/src/server.ts",
-    "dev": "nodemon --exec ts-node api-gateway/src/server.ts",
+    "start:ts": "ts-node src/server.ts",
+    "dev": "nodemon --exec ts-node src/server.ts",
     "docker:compose": "docker-compose up -d --build",
     "test": "jest",
     "logs": "docker-compose logs -f"

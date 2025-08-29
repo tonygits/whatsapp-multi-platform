@@ -37,7 +37,7 @@ const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: N
   let status = 500;
   let message = 'Erro interno do servidor';
   let code = 'INTERNAL_ERROR';
-  let details = null;
+  let details: string | null = null;
 
   // Handle specific error types
   if (err.name === 'ValidationError') {
