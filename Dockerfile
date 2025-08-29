@@ -58,7 +58,7 @@ RUN npm prune --production
 # Copy schema.sql to dist (garantido pelo postbuild)
 
 # Create necessary directories
-RUN mkdir -p /app/volumes /app/logs /app/sessions
+RUN mkdir -p /app/data/volumes /app/data/sessions /app/logs
 
 # Create non-root user
 RUN groupadd -g 1001 gateway && \
@@ -82,8 +82,8 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV API_PORT=3000
 ENV BIN_PATH=/app/whatsapp
-ENV SESSIONS_DIR=/app/sessions
-ENV VOLUMES_DIR=/app/volumes
+ENV SESSIONS_DIR=/app/data/sessions
+ENV VOLUMES_DIR=/app/data/volumes
 ENV APP_BASE_DIR=/app
 
 # Start command (TypeScript build)

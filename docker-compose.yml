@@ -8,10 +8,8 @@ services:
       - "${API_PORT:-3000}:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./config:/app/config
-      - ./volumes:/app/volumes
+      - ./data:/app/data
       - ./logs:/app/logs
-      - ./sessions:/app/sessions
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
