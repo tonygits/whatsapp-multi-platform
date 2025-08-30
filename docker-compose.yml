@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+        - linux/amd64
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:

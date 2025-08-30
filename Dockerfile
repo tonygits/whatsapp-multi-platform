@@ -32,11 +32,16 @@ RUN npm ci
 
 # Download and setup go-whatsapp-web-multidevice binary (arch-aware)
 # TARGETARCH values are typically: amd64 | arm64
-# Download and setup go-whatsapp-web-multidevice binary (fixed version for amd64)
 RUN set -eux; \
     WHATSAPP_VERSION="7.5.0"; \
-    ARCH_SUFFIX="amd64"; \
-    FOLDER_NAME="linux-amd64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then \
+        ARCH_SUFFIX="arm64"; \
+        FOLDER_NAME="linux-arm64"; \
+    else \
+        ARCH_SUFFIX="amd64"; \
+        FOLDER_NAME="linux-amd64"; \
+    fi; \
+    echo "Downloading WhatsApp binary for architecture: $TARGETARCH (${ARCH_SUFFIX})"; \
     wget -O whatsapp_linux_${ARCH_SUFFIX}.zip \
       "https://github.com/aldinokemal/go-whatsapp-web-multidevice/releases/download/v${WHATSAPP_VERSION}/whatsapp_${WHATSAPP_VERSION}_linux_${ARCH_SUFFIX}.zip"; \
     unzip whatsapp_linux_${ARCH_SUFFIX}.zip; \
