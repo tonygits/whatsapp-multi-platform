@@ -1,4 +1,3 @@
-import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import { Request, Response } from 'express';
@@ -6,38 +5,21 @@ import { asyncHandler, CustomError } from './errorHandler';
 import logger from '../utils/logger';
 import { SESSIONS_DIR } from '../utils/paths';
 
-const DEFAULT_ADMIN_USER = process.env.DEFAULT_ADMIN_USER || 'admin';
-const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
-
 /**
  * Handle login request and intercept QR code generation
  */
 const loginHandler = asyncHandler(async (req: Request, res: Response) => {
   const device = (req as any).device;
-  const containerPort = device.containerInfo.port;
-  const deviceHash = device.deviceHash;
-  const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
+  const proxyResponse = (req as any).proxyResponse;
+  
+  if (!device || !proxyResponse) {
+    throw new CustomError('Device or proxy response not found', 500, 'INVALID_MIDDLEWARE_STATE');
+  }
 
-  // Add basic auth header
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Basic ${Buffer.from(`${DEFAULT_ADMIN_USER}:${DEFAULT_ADMIN_PASS}`).toString('base64')}`,
-  };
+  const deviceHash = device.deviceHash;
+  let responseData = proxyResponse.data;
 
   try {
-    logger.info(`Fazendo login para dispositivo ${deviceHash} na porta ${containerPort}`);
-    
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      data: req.body,
-      params: req.query,
-      headers: headers,
-      timeout: 30000
-    });
-
-    const responseData = response.data;
-    
     // Check if response contains QR code information in results
     if (responseData && responseData.results && responseData.results.qr_link && responseData.results.qr_link.includes('/statics/')) {
       logger.info(`QR code detectado no response para ${deviceHash}`);
@@ -79,21 +61,12 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
       }
     }
 
-    res.status(response.status).json(responseData);
+    res.status(proxyResponse.status).json(responseData);
     
   } catch (error) {
-    const err = error as any;
-    logger.error(`Error proxying login to container ${containerPort}:`, err.message);
-    
-    if (err.response) {
-      res.status(err.response.status).json(err.response.data);
-    } else {
-      throw new CustomError(
-        'Container not responding',
-        503,
-        'CONTAINER_ERROR'
-      );
-    }
+    logger.error(`Error processing login response for ${deviceHash}:`, error);
+    // Fallback to original response
+    res.status(proxyResponse.status).json(proxyResponse.data);
   }
 });
 

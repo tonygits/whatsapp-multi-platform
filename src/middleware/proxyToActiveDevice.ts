@@ -15,8 +15,8 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
  * 
  * All in one step for better performance and simplicity
  */
-import { Request, Response } from 'express';
-const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response) => {
+import { Request, Response, NextFunction } from 'express';
+const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, next?: NextFunction) => {
   // 1. Extract instanceId from header
   const instanceId = req.get('x-instance-id');
   if (!instanceId) {
@@ -83,6 +83,9 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response) => 
     'Authorization': `Basic ${Buffer.from(`${DEFAULT_ADMIN_USER}:${DEFAULT_ADMIN_PASS}`).toString('base64')}`
   };
 
+  // Attach device to request for next middleware
+  (req as any).device = device;
+
   try {
     logger.debug(`Proxying ${req.method} ${req.originalUrl} to ${targetUrl} for device ${instanceId}`);
     
@@ -95,15 +98,35 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response) => 
       timeout: 30000
     });
 
-    // Forward response
-    res.status(response.status).json(response.data);
+    // Store response data in request for next middleware or send directly
+    (req as any).proxyResponse = {
+      status: response.status,
+      data: response.data
+    };
+
+    // If there's a next middleware, call it; otherwise send the response
+    if (next) {
+      next();
+    } else {
+      res.status(response.status).json(response.data);
+    }
 
   } catch (error) {
     const err = error as any;
     if (err.response) {
       // Container responded with error
       logger.warn(`Container error for device ${instanceId}: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
-      res.status(err.response.status).json(err.response.data);
+      
+      // Store error response in request or send directly
+      if (next) {
+        (req as any).proxyResponse = {
+          status: err.response.status,
+          data: err.response.data
+        };
+        next();
+      } else {
+        res.status(err.response.status).json(err.response.data);
+      }
     } else if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
       // Container is not reachable
       throw new CustomError(

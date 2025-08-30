@@ -128,7 +128,7 @@ router.post('/newsletter/unfollow', proxyToActiveDevice);
 // ==============================================
 
 // Special route with loginHandler middleware for QR code interception
-router.get('/app/login', [proxyToActiveDevice, loginHandler]);
+router.get('/app/login', proxyToActiveDevice, loginHandler);
 
 // Direct proxy routes
 router.get('/app/login-with-code', proxyToActiveDevice);
