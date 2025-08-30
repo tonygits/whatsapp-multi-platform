@@ -64,15 +64,24 @@ class APIGateway {
   }
 
   setupMiddleware() {
+    // Trust proxy for accurate IP detection (needed for rate limiting and logging)
+    this.app.set('trust proxy', true);
+
     // Security middleware
     this.app.use(helmet());
     this.app.use(cors());
 
-    // Rate limiting
+    // Rate limiting with better configuration for proxy environments
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
       max: typeof process.env.API_RATE_LIMIT === 'string' ? parseInt(process.env.API_RATE_LIMIT) : 100,
-      message: 'Muitas requisições deste IP, tente novamente em 15 minutos.'
+      message: 'Muitas requisições deste IP, tente novamente em 15 minutos.',
+      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      // Use a more reliable key generator that handles proxied requests
+      keyGenerator: (req) => {
+        return req.ip || req.connection.remoteAddress || 'unknown';
+      }
     });
     this.app.use(limiter);
 
@@ -80,8 +89,12 @@ class APIGateway {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
-    // Logging
+    // Logging (reduce verbosity in production)
     this.app.use((req, res, next) => {
+      // Only log non-health check requests in production to reduce log volume
+      if (process.env.NODE_ENV === 'production' && req.path === '/api/health') {
+        return next();
+      }
       logger.info(`${req.method} ${req.path} - ${req.ip}`);
       next();
     });
