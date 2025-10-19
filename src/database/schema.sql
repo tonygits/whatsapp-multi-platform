@@ -1,6 +1,6 @@
 -- WhatsApp Multi-Platform Database Schema
 
--- Tabela de dispositivos WhatsApp
+-- WhatsApp device table
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_hash VARCHAR(16) NOT NULL UNIQUE,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS devices (
     last_seen DATETIME
 );
 
--- Tabela de mensagens (histórico/log)
+-- Message table (history/log)
 CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER NOT NULL,
@@ -33,11 +33,11 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
 
--- Índices para performance
+-- Performance indices
 CREATE INDEX IF NOT EXISTS idx_devices_hash ON devices(device_hash);
 CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status);
 CREATE INDEX IF NOT EXISTS idx_messages_device ON messages(device_id);
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);
 
--- Trigger removido temporariamente para evitar problemas de parsing
--- Será adicionado via código JavaScript se necessário
+-- Trigger temporarily removed to avoid parsing issues
+-- Will be added via JavaScript code if necessary

@@ -1,29 +1,29 @@
-# 📡 Documentação do Webhook de Status
+# 📡 Status Webhook Documentation
 
-## 📋 Índice
-- [Visão Geral](#visão-geral)
-- [Configuração](#configuração)
-- [Eventos Suportados](#eventos-suportados)
-- [Formato do Payload](#formato-do-payload)
-- [Segurança](#segurança)
-- [Exemplos Práticos](#exemplos-práticos)
-- [Tratamento de Erros](#tratamento-de-erros)
-- [Melhores Práticas](#melhores-práticas)
+## 📋 Table of Contents
+- [Overview](#overview)
+- [Configuration](#configuration)
+- [Supported Events](#supported-events)
+- [Payload Format](#payload-format)
+- [Security](#security)
+- [Practical Examples](#practical-examples)
+- [Error Handling](#error-handling)
+- [Best Practices](#best-practices)
 
-## 🔍 Visão Geral
+## 🔍 Overview
 
-O sistema de Webhook de Status permite que sua aplicação receba notificações em tempo real sobre mudanças de status dos dispositivos WhatsApp conectados. Isso inclui eventos de conexão, desconexão, autenticação e outros eventos importantes do ciclo de vida dos dispositivos e containers.
+The Status Webhook system allows your application to receive real-time notifications about status changes on connected WhatsApp devices. This includes connection, disconnection, authentication, and other important lifecycle events for devices and containers.
 
-### Características Principais:
-- **Tempo Real**: Notificações instantâneas sobre mudanças de status
-- **Segurança**: Assinatura HMAC-SHA256 para verificação de autenticidade
-- **Retry Logic**: Sistema de retry automático com backoff exponencial
-- **Não-bloqueante**: Não interfere no funcionamento da API principal
+### Main Features:
+- Real-Time: Instant notifications about status changes
+- Security: HMAC-SHA256 signature for authenticity verification
+- Retry Logic: Automatic retry system with exponential backoff
+- Non-Blocking: Does not interfere with the operation of the main API
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-### 1. Registro de Dispositivo
-Configure o webhook de status durante o registro do dispositivo:
+### 1. Device Registration
+Configure the status webhook during device registration:
 
 ```bash
 curl -X POST http://localhost:3000/api/devices \
@@ -35,33 +35,33 @@ curl -X POST http://localhost:3000/api/devices \
   }'
 ```
 
-### 2. Atualização de Webhook
-Atualize o webhook de um dispositivo existente:
+### 2. Webhook Update
+Update an existing device's webhook:
 
 ```bash
-curl -X PUT http://localhost:3000/api/devices \
+curl -X PUT http://localhost:3000/api/devices\
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
   -H "x-instance-id: a1b2c3d4e5f67890" \
   -d '{
     "statusWebhookUrl": "https://novosite.com/webhook/status",
-    "statusWebhookSecret": "novo-secret"
+    "statusWebhookSecret": "new-secret"
   }'
 ```
 
-## 📊 Eventos Suportados
+## 📊 Supported Events
 
-| Evento | Código | Descrição | Quando Ocorre |
+| Event | Code | Description | When It Occurs |
 |--------|--------|-----------|---------------|
-| `login_success` | `LOGIN_SUCCESS` | Dispositivo autenticado com sucesso | Após login via QR Code ou sessão existente |
-| `connected` | `LIST_DEVICES` | Dispositivo conectado e pronto | Quando o dispositivo está online e operacional |
-| `disconnected` | `LIST_DEVICES` | Dispositivo desconectado | Perda de conexão ou logout |
-| `auth_failed` | `AUTH_FAILURE` | Falha na autenticação | Credenciais inválidas ou sessão expirada |
-| `container_event` | `GENERIC` | Outros eventos do container | Eventos diversos do processo WhatsApp |
+| `login_success` | `LOGIN_SUCCESS` | Device successfully authenticated | After login via QR Code or existing session |
+| `connected` | `LIST_DEVICES` | Device Connected and Ready | When the device is online and operational |
+| `disconnected` | `LIST_DEVICES` | Device Disconnected | Lost Connection or Logged Out |
+| `auth_failed` | `AUTH_FAILURE` | Authentication failed | Invalid credentials or session expired |
+| `container_event` | `GENERIC` | Other container events | Various WhatsApp process events|
 
-## 📦 Formato do Payload
+## 📦 Payload Format
 
-### Estrutura Base
+### Base Structure
 ```json
 {
   "device": {
@@ -78,38 +78,38 @@ curl -X PUT http://localhost:3000/api/devices \
 }
 ```
 
-### Campos Detalhados
+### Detailed Fields
 
 #### Device Object
-- `deviceHash`: Hash único do dispositivo (formato: `a1b2c3d4e5f67890`)
-- `status`: Status atual do dispositivo (ver tabela de status abaixo)
+- `deviceHash`: Unique device hash (format: `a1b2c3d4e5f67890`)
+- `status`: Current device status (see status table below)
 
-#### Status do Dispositivo
-| Status | Descrição | Quando Ocorre | Contexto |
+#### Device Status
+| Status | Description | When It Occurs | Context |
 |--------|-----------|---------------|----------|
-| `connected` | WhatsApp conectado | Dispositivo autenticado e funcional | Status WhatsApp |
-| `disconnected` | WhatsApp desconectado | Perda de conexão com WhatsApp | Status WhatsApp |
-| `active` | Dispositivo ativo | Container + WhatsApp funcionando | Status Dispositivo |
-| `running` | Container rodando | Processo WhatsApp em execução | Status Container |
-| `stopped` | Container parado | Processo WhatsApp finalizado | Status Container |
-| `error` | Erro no sistema | Falha no container ou autenticação | Status Geral |
+| `connected` | WhatsApp connected | Device authenticated and functional | WhatsApp status |
+| `disconnected` | WhatsApp disconnected | Lost connection to WhatsApp | WhatsApp status |
+| `active` | Device active | Container + WhatsApp working | Device status |
+| `running` | Container running | WhatsApp process running | Container status |
+| `stopped` | Container stopped | WhatsApp process terminated | Container status |
+| `error` | System error | Container or authentication failure | General status |
 
-#### Event Object  
-- `type`: Tipo do evento (ver tabela de eventos)
-- `code`: Código interno do evento
-- `message`: Descrição legível do evento
-- `data`: Dados adicionais específicos do evento (opcional)
+#### Event Object
+- `type`: Event type (see events table)
+- `code`: Internal event code
+- `message`: Human-readable description of the event
+- `data`: Additional event-specific data (optional)
 
-## 🔐 Segurança
+## 🔐 Security
 
-### Verificação de Assinatura
-Se você configurou um `statusWebhookSecret`, todas as requisições incluirão o header `X-Webhook-Signature`:
+### Signature Verification
+If you configured a `statusWebhookSecret`, all requests will include the `X-Webhook-Signature` header:
 
 ```
 X-Webhook-Signature: a1b2c3d4e5f6...
 ```
 
-### Validação (Node.js)
+### Validation (Node.js)
 ```javascript
 const crypto = require('crypto');
 
@@ -139,7 +139,7 @@ app.post('/webhook/status', (req, res) => {
 });
 ```
 
-### Validação (Python)
+### Validation (Python)
 ```python
 import hmac
 import hashlib
@@ -154,9 +154,9 @@ def validate_webhook(payload, signature, secret):
     return hmac.compare_digest(signature, expected_signature)
 ```
 
-## 💡 Exemplos Práticos
+## 💡 Practical Examples
 
-### 1. Login Bem-sucedido
+### 1. Successful Login
 ```json
 {
   "device": {
@@ -175,7 +175,7 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 2. Dispositivo Conectado
+### 2. Connected Device
 ```json
 {
   "device": {
@@ -196,7 +196,7 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 3. Dispositivo Desconectado
+### 3. Device Disconnected
 ```json
 {
   "device": {
@@ -213,7 +213,7 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 4. Falha de Autenticação
+### 4. Authentication Failure
 ```json
 {
   "device": {
@@ -233,7 +233,7 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 5. Container Iniciado
+### 5. Container Started
 ```json
 {
   "device": {
@@ -253,7 +253,7 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 6. Container Parado
+### 6. Container Stopped
 ```json
 {
   "device": {
@@ -273,40 +273,40 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-## 🚨 Tratamento de Erros
+## 🚨 Error Handling
 
-### Sistema de Retry
-O sistema implementa retry automático com as seguintes características:
+### Retry System
+The system implements automatic retry with the following characteristics:
 
-- **Tentativas**: 3 tentativas por webhook
-- **Backoff**: Exponencial (1s, 2s, 4s)  
-- **Timeout**: 10 segundos por tentativa
-- **Status HTTP Aceitos**: 200-299
+- **Attempts**: 3 attempts per webhook
+- **Backoff**: Exponential (1s, 2s, 4s)
+- **Timeout**: 10 seconds per attempt
+- **Accepted HTTP Status**: 200-299
 
-### Logs de Erro
-Erros são logados automaticamente:
+### Error Logs
+Errors are logged automatically:
 ```
-2025-08-12T15:30:45.123Z [WARN] Webhook falhou (tentativa 1/3), tentando novamente em 1000ms
-2025-08-12T15:30:46.456Z [ERROR] Erro ao enviar webhook para a1b2c3d4e5f67890: timeout
+2025-08-12T15:30:45.123Z [WARN] Webhook failed (attempt 1/3), retrying in 1000ms
+2025-08-12T15:30:46.456Z [ERROR] Error sending webhook to a1b2c3d4e5f67890: timeout
 ```
 
-### Endpoint de Depuração
-Para depuração, você pode usar serviços como:
+### Debugging Endpoint
+For debugging, you can use services like:
 - [webhook.site](https://webhook.site)
-- [ngrok](https://ngrok.com) para testes locais
+- [ngrok](https://ngrok.com) for local testing
 - [requestbin.com](https://requestbin.com)
 
-## ✅ Melhores Práticas
+## ✅ Best Practices
 
-### 1. Implementação do Endpoint
+### 1. Endpoint Implementation
 ```javascript
 app.post('/webhook/status', express.raw({type: 'application/json'}), (req, res) => {
   try {
-    // Sempre responda rapidamente
-    res.status(200).send('OK');
-    
-    // Processe assincronamente
-    processWebhook(req.body).catch(console.error);
+      // Always respond quickly
+      res.status(200).send('OK');
+
+      // Process asynchronously
+      processWebhook(req.body).catch(console.error);
   } catch (error) {
     console.error('Webhook error:', error);
     res.status(500).send('Error');
@@ -332,10 +332,10 @@ async function processWebhook(payload) {
     case 'container_event':
       await handleContainerEvent(event);
       break;
-    // ... outros eventos
+      // ... other events
   }
-  
-  // Também processe por status do dispositivo
+
+// Also process by device status
   switch (event.device.status) {
     case 'running':
       await handleContainerRunning(event);
@@ -350,13 +350,13 @@ async function processWebhook(payload) {
 }
 ```
 
-### 2. Monitoramento
-- **Latência**: Monitore o tempo de resposta do seu endpoint
-- **Taxa de Erro**: Acompanhe webhooks com falha
-- **Volume**: Monitore a quantidade de eventos recebidos
+### 2. Monitoring
+- **Latency**: Monitor your endpoint's response time
+- **Error Rate**: Track failed webhooks
+- **Volume**: Monitor the number of events received
 
-### 3. Idempotência
-Implemente idempotência usando o timestamp:
+### 3. Idempotency
+Implement idempotency using the timestamp:
 ```javascript
 const processedEvents = new Set();
 
@@ -369,46 +369,46 @@ function processWebhook(event) {
   }
   
   processedEvents.add(eventId);
-  // Processar evento...
+    // Process event...
 }
 ```
 
 ### 4. Rate Limiting
-Implemente rate limiting no seu endpoint para evitar sobrecarga:
+Implement rate limiting on your endpoint to avoid overload:
 ```javascript
 const rateLimit = require('express-rate-limit');
 
 const webhookLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minuto
-  max: 100, // máximo 100 requests por minuto
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, //maximum 100 requests per minute
   message: 'Too many webhook requests'
 });
 
 app.use('/webhook/status', webhookLimiter);
 ```
 
-## 🔧 Solução de Problemas
+## 🔧 Troubleshooting
 
-### Webhook não recebido
-1. Verifique se a URL está acessível externamente
-2. Confirme que o endpoint responde com status 200-299
-3. Verifique os logs da aplicação para erros
+### Webhook not received
+1. Verify that the URL is externally accessible
+2. Confirm that the endpoint responds with status 200-299
+3. Check the application logs for errors
 
-### Falha na verificação de assinatura
-1. Confirme que está usando o secret correto
-2. Verifique se está usando o payload raw (não parsed)
-3. Implemente logs para debugging da assinatura
+### Signature verification failed
+1. Confirm that you are using the correct secret
+2. Verify that you are using the raw (not parsed) payload
+3. Implement logging to debug the signature
 
-### Timeout nos webhooks
-1. Otimize seu endpoint para responder rapidamente
-2. Processe dados assincronamente após responder
-3. Considere aumentar o timeout se necessário
+### Webhook timeout
+1. Optimize your endpoint to respond quickly
+2. Process data asynchronously after responding
+3. Consider increasing the timeout if necessary
 
 ---
 
-## 📞 Suporte
+## 📞 Support
 
-Para dúvidas ou problemas:
-- Verifique os logs da aplicação em `/logs/`
-- Consulte a documentação da API em `/api/docs`
-- Reporte issues no repositório do projeto
+For questions or issues:
+- Check the application logs in `/logs/`
+- See the API documentation in `/api/docs`
+- Report issues in the project repository

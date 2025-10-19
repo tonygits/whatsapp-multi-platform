@@ -2,7 +2,7 @@
 
 ## Overview
 
-WhatsApp Multi-Platform usa uma arquitetura de proxy inteligente para gerenciar múltiplos dispositivos WhatsApp.
+WhatsApp Multi-Platform uses an intelligent proxy architecture to manage multiple WhatsApp devices.
 
 ## Components
 

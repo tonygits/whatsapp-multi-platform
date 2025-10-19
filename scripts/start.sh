@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # WhatsApp Multi-Platform Startup Script
-# Inicia todos os serviços necessários
+# Starts all necessary services
 
 set -e
 
-echo "🚀 Iniciando WhatsApp Multi-Platform..."
+echo "🚀 Starting WhatsApp Multi-Platform..."
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -27,34 +27,34 @@ print_warning() {
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker não está rodando. Por favor, inicie o Docker primeiro."
+    echo "❌ Docker is not running. Please start Docker first."
     exit 1
 fi
 
-print_status "Docker está rodando"
+print_status "Docker is running"
 
 # Check if docker-compose is available
 if ! command -v docker-compose &> /dev/null; then
-    echo "❌ docker-compose não encontrado. Por favor, instale o docker-compose."
+    echo "❌ docker-compose not found. Please install docker-compose."
     exit 1
 fi
 
-print_status "docker-compose encontrado"
+print_status "docker-compose found"
 
 # Create necessary directories
-print_info "Criando diretórios necessários..."
+print_info "Creating necessary directories..."
 mkdir -p logs volumes
 chmod 755 logs volumes
-print_status "Diretórios criados"
+print_status "Directories created"
 
 # Copy environment file if it doesn't exist
 if [ ! -f .env ]; then
     if [ -f .env.example ]; then
-        print_info "Copiando arquivo de ambiente..."
+        print_info "Copying environment file..."
         cp .env.example .env
-        print_warning "Arquivo .env criado. Por favor, configure as variáveis necessárias."
+        print_warning ".env file created. Please set the necessary variables."
     else
-        print_warning "Arquivo .env.example não encontrado. Criando .env básico..."
+        print_warning "File .env.example not found. Creating basic .env..."
         cat > .env << EOF
 API_PORT=3000
 NODE_ENV=production
@@ -67,56 +67,56 @@ EOF
 fi
 
 # Build Docker images
-print_info "Construindo imagens Docker..."
+print_info "Building Docker images..."
 docker-compose build
-print_status "Imagens construídas"
+print_status "Constructed images"
 
 # Start services
-print_info "Iniciando serviços..."
+print_info "Starting services..."
 docker-compose up -d
 
 # Wait for services to be ready
-print_info "Aguardando serviços ficarem prontos..."
+print_info "Waiting for services to be ready..."
 sleep 10
 
 # Check if services are running
-print_info "Verificando status dos serviços..."
+print_info "Checking service status..."
 
 if docker-compose ps | grep -q "Up"; then
-    print_status "Serviços iniciados com sucesso"
+    print_status "Services started successfully"
 else
-    echo "❌ Alguns serviços falharam ao iniciar"
-    echo "📋 Status dos serviços:"
+    echo "❌ Some services failed to start"
+    echo "📋 Service status:"
     docker-compose ps
     exit 1
 fi
 
 # Show running services
 echo ""
-echo "📋 Status dos serviços:"
+echo "📋 Service status:"
 docker-compose ps
 
 # Show access information
 echo ""
-echo "🌐 Informações de acesso:"
+echo "🌐 Access information:"
 echo "   API Gateway: http://localhost:${API_PORT:-3000}"
 echo "   Health Check: http://localhost:${API_PORT:-3000}/api/health"
-echo "   Documentação: http://localhost:${API_PORT:-3000}/"
+echo "   Documentation: http://localhost:${API_PORT:-3000}/"
 
 # Show logs command
 echo ""
-echo "📝 Para ver os logs em tempo real:"
+echo "📝 To view logs in real time:"
 echo "   docker-compose logs -f"
 
 # Show management commands
 echo ""
-echo "🛠️ Comandos úteis:"
-echo "   Parar: docker-compose down"
-echo "   Reiniciar: docker-compose restart"
-echo "   Logs: docker-compose logs -f [service]"
-echo "   Status: docker-compose ps"
+echo "🛠️ Useful commands:"
+echo "Stop: docker-compose down"
+echo "Restart: docker-compose restart"
+echo "Logs: docker-compose logs -f [service]"
+echo "Status: docker-compose ps"
 
 echo ""
-print_status "WhatsApp Multi-Platform iniciado com sucesso!"
+print_status "WhatsApp Multi-Platform launched successfully!"
 
 exit 0

@@ -20,7 +20,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
   // 1. Extract instanceId from header
   const instanceId = req.get('x-instance-id');
   if (!instanceId) {
-    throw new CustomError('Header x-instance-id é obrigatório', 400, 'MISSING_INSTANCE_ID');
+    throw new CustomError('Header x-instance-id is required', 400, 'MISSING_INSTANCE_ID');
   }
 
   // 2. Resolve device (combines resolveInstance logic)
@@ -50,7 +50,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
 
   if (!device) {
     throw new CustomError(
-      `Dispositivo com device hash ${instanceId} não encontrado`,
+      `Device with device hash ${instanceId} not found`,
       404,
       'DEVICE_NOT_FOUND'
     );
@@ -59,7 +59,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
   // 3. Ensure device is active (combines ensureActive logic)
   if (device.status !== 'active' && device.status !== 'connected') {
     throw new CustomError(
-      `Dispositivo ${instanceId} não está ativo. Status: ${device.status}`,
+      `Device ${instanceId} is not active. Status: ${device.status}`,
       400,
       'DEVICE_NOT_ACTIVE'
     );
@@ -68,7 +68,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
   // 4. Ensure container info exists
   if (!device.containerInfo?.port) {
     throw new CustomError(
-      `Container não encontrado para dispositivo ${instanceId}`,
+      `Container not found for device ${instanceId}`,
       500,
       'CONTAINER_NOT_FOUND'
     );
@@ -104,13 +104,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       data: response.data
     };
 
-    // If there's a next middleware, call it; otherwise send the response
-    if (next) {
-      next();
-    } else {
-      res.status(response.status).json(response.data);
-    }
-
+    res.status(response.status).json(response.data);
   } catch (error) {
     const err = error as any;
     if (err.response) {
@@ -130,7 +124,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
     } else if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
       // Container is not reachable
       throw new CustomError(
-        `Dispositivo ${instanceId} não está acessível. Container pode estar desligado.`,
+        `Device ${instanceId} is not reachable. Container may be offline.`,
         503,
         'CONTAINER_UNREACHABLE'
       );
@@ -138,7 +132,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       // Other network/proxy errors
       logger.error(`Proxy error for device ${instanceId}:`, err.message);
       throw new CustomError(
-        'Erro interno no proxy da requisição',
+        'Internal error in the request proxy',
         500,
         'PROXY_ERROR'
       );

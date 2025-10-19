@@ -22,7 +22,7 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
   try {
     // Check if response contains QR code information in results
     if (responseData && responseData.results && responseData.results.qr_link && responseData.results.qr_link.includes('/statics/')) {
-      logger.info(`QR code detectado no response para ${deviceHash}`);
+      logger.info(`QR code detected in response to ${deviceHash}`);
       
       try {
         // Extract QR file path from the link
@@ -30,7 +30,7 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
         const sessionPath = path.join(SESSIONS_DIR, deviceHash);
         const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
         
-        logger.info(`Tentando ler arquivo QR: ${qrFilePath}`);
+        logger.info(`Trying to read QR file: ${qrFilePath}`);
         
         // Wait a bit for the file to be written
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -49,14 +49,14 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
           // Remove the old qr_link field
           delete responseData.results.qr_link;
           
-          logger.info(`QR code convertido para base64 para ${deviceHash}`);
+          logger.info(`QR code converted to base64 to ${deviceHash}`);
         } else {
-          logger.warn(`Arquivo QR não encontrado: ${qrFilePath}`);
+          logger.warn(`QR file not found: ${qrFilePath}`);
           // Keep original response if file doesn't exist
         }
         
       } catch (qrError) {
-        logger.error(`Erro ao processar QR code para ${deviceHash}:`, qrError);
+        logger.error(`Error processing QR code for ${deviceHash}:`, qrError);
         // Continue with original response if QR processing fails
       }
     }

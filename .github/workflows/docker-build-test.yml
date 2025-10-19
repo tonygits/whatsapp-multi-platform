@@ -1,7 +1,7 @@
 name: Test Docker Build (No Push)
 
 on:
-  workflow_dispatch:  # Permite execução manual
+  workflow_dispatch:  # Allows manual execution
   push:
     branches: [ test-build ]
 
@@ -37,7 +37,7 @@ jobs:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
-        push: false  # Não faz push
+        push: false  # Does not push
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha

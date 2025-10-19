@@ -22,7 +22,7 @@ class UpdateManager {
    * Initialize update manager and start scheduled checks
    */
   initialize() {
-    logger.info('Inicializando Update Manager...');
+    logger.info('Initializing Update Manager...');
     
     this.startScheduledChecks();
     
@@ -31,7 +31,7 @@ class UpdateManager {
       this.performUpdateCheck();
      }, 30000); // Wait 30 seconds after startup
 
-    logger.info('Update Manager inicializado');
+    logger.info('Update Manager initialized');
   }
 
   /**
@@ -44,12 +44,12 @@ class UpdateManager {
         () => this.performUpdateCheck(),
         null,
         true,
-        'America/Sao_Paulo'
+        'Africa/Nairobi'
       );
 
-      logger.info(`Verificações de atualização agendadas: ${this.updateCheckCron}`);
+      logger.info(`Scheduled update checks: ${this.updateCheckCron}`);
     } catch (error) {
-      logger.error('Erro ao agendar verificações de atualização:', error);
+      logger.error('Error scheduling update checks:', error);
     }
   }
 
@@ -57,7 +57,7 @@ class UpdateManager {
    * Perform comprehensive update check
    */
   async performUpdateCheck() {
-    logger.info('Iniciando verificação inteligente de atualizações...');
+    logger.info('Starting smart check for updates...');
     
     this.lastUpdateCheck = new Date();
         const checkResults: any = {
@@ -101,11 +101,11 @@ class UpdateManager {
         await this.performAutoUpdate(recommendations.autoUpdateActions);
       }
 
-      logger.info('Verificação de atualizações concluída');
+      logger.info('Checking for updates completed');
       return checkResults;
 
     } catch (error) {
-      logger.error('Erro durante verificação de atualizações:', error);
+      logger.error('Error while checking for updates:', error);
             (checkResults as any).error = (error as Error).message;
       return checkResults;
     }
@@ -153,7 +153,7 @@ class UpdateManager {
           }
 
         } catch (error) {
-          logger.warn(`Erro ao verificar imagem ${image}:`, (error as any).message);
+          logger.warn(`Error checking image ${image}:`, (error as any).message);
           (results.images as any[]).push({
             name: image,
             error: (error as Error).message
@@ -162,7 +162,7 @@ class UpdateManager {
       }
 
     } catch (error) {
-      logger.error('Erro ao verificar atualizações Docker:', error);
+      logger.error('Error checking for Docker updates:', error);
       (results as any).error = (error as Error).message;
     }
 
@@ -196,7 +196,7 @@ class UpdateManager {
         outdatedOutput = (error as any).stdout;
       } else {
         // This is a real error (e.g., npm not found or another issue).
-        logger.warn('Erro ao executar "npm outdated":', error);
+        logger.warn('Error running "npm outdated":', error);
   (results as any).error = (error as any).message;
         return results; // Exit early
       }
@@ -222,7 +222,7 @@ class UpdateManager {
           }
         }
       } catch (parseError) {
-          logger.warn('Erro ao fazer parse da saída do "npm outdated":', parseError);
+          logger.warn('Error parsing output of "npm outdated":', parseError);
           results.error = 'Failed to parse npm outdated JSON output.';
       }
     }
@@ -242,14 +242,14 @@ class UpdateManager {
           if (audit.metadata && audit.metadata.vulnerabilities.total > 0) {
             (results as any).security_vulnerabilities = audit.metadata.vulnerabilities;
             (results as any).security_updates = true;
-            logger.warn(`Vulnerabilidades de segurança encontradas: ${audit.metadata.vulnerabilities.total} total`);
+            logger.warn(`Security vulnerabilities found: ${audit.metadata.vulnerabilities.total} total`);
           }
         } catch(parseError) {
-          logger.warn('Erro ao fazer parse da saída do "npm audit":', parseError);
+          logger.warn('Error parsing "npm audit" output:', parseError);
         }
       } else {
         // This is a real error.
-        logger.warn('Erro ao executar "npm audit":', (auditError as any).message);
+        logger.warn('Error running "npm audit":', (auditError as any).message);
       }
     }
 
@@ -284,7 +284,7 @@ class UpdateManager {
       results.update_available = true; // Conservative approach
 
     } catch (error) {
-  logger.warn('Erro ao verificar atualizações da biblioteca WhatsApp:', (error as any).message);
+  logger.warn('Error checking for WhatsApp library updates:', (error as any).message);
   (results as any).error = (error as any).message;
     }
 
@@ -353,7 +353,7 @@ class UpdateManager {
       }
 
     } catch (error) {
-      logger.error('Erro ao analisar saúde dos processos:', error);
+      logger.error('Error analyzing process health:', error);
   (results as any).error = (error as any).message;
     }
 
@@ -396,7 +396,7 @@ class UpdateManager {
       // Additional health checks could be added here
 
     } catch (error) {
-      logger.error(`Erro ao analisar processo ${process.deviceHash}:`, error);
+      logger.error(`Error analyzing process ${process.deviceHash}:`, error);
       health.score = 0;
     }
 
@@ -443,14 +443,14 @@ class UpdateManager {
     if (checks.dockerImages?.updates_available) {
   (recommendations as any).manualActions.push({
         type: 'update_docker_images',
-        description: 'Atualize as imagens Docker manualmente'
+        description: 'Update Docker images manually'
       });
     }
 
     if (checks.whatsappLibrary?.update_available) {
   (recommendations as any).manualActions.push({
         type: 'update_whatsapp_library',
-        description: 'Nova versão da biblioteca WhatsApp disponível'
+        description: 'New version of WhatsApp library available'
       });
     }
 
@@ -464,14 +464,14 @@ class UpdateManager {
     const { recommendations } = checkResults;
 
     if (recommendations.priority === 'high' || recommendations.securityCritical) {
-      logger.warn('ATENÇÃO: Atualizações críticas de segurança disponíveis!');
+      logger.warn('ATTENTION: Critical security updates available!');
       
       // Send via WebSocket if configured
   if ((global as any).webSocketServer) {
         const message = JSON.stringify({
           type: 'security-update-alert',
           severity: 'high',
-          message: 'Atualizações críticas de segurança disponíveis',
+          message: 'Critical security updates available',
           details: checkResults,
           timestamp: new Date().toISOString()
         });
@@ -485,7 +485,7 @@ class UpdateManager {
     }
 
     if (recommendations.manualActions.length > 0) {
-      logger.info(`${recommendations.manualActions.length} ações manuais recomendadas`);
+      logger.info(`${recommendations.manualActions.length} recommended manual actions`);
     }
   }
 
@@ -493,7 +493,7 @@ class UpdateManager {
    * Perform auto-update for safe actions
    */
   async performAutoUpdate(actions: any) {
-    logger.info('Iniciando auto-update...');
+    logger.info('Starting auto-update...');
 
     for (const action of actions) {
       try {
@@ -503,14 +503,14 @@ class UpdateManager {
             break;
 
           default:
-            logger.warn(`Ação de auto-update não reconhecida: ${action.type}`);
+            logger.warn(`Unrecognized auto-update action: ${action.type}`);
         }
       } catch (error) {
-        logger.error(`Erro durante auto-update ${action.type}:`, error);
+        logger.error(`Error during auto-update ${action.type}:`, error);
       }
     }
 
-    logger.info('Auto-update concluído');
+    logger.info('Auto-update completed');
   }
 
   /**
@@ -519,13 +519,13 @@ class UpdateManager {
   async autoRestartProcesses(deviceHashes: any) {
     for (const deviceHash of deviceHashes) {
       try {
-        logger.info(`Auto-reiniciando processo: ${deviceHash}`);
+        logger.info(`Auto-restarting process: ${deviceHash}`);
         await binaryManager.restartProcess(deviceHash);
         
         // Wait between restarts
         await new Promise(resolve => setTimeout(resolve, 5000));
       } catch (error) {
-        logger.error(`Erro ao reiniciar processo ${deviceHash}:`, error);
+        logger.error(`Error restarting process ${deviceHash}:`, error);
       }
     }
   }
@@ -596,7 +596,7 @@ class UpdateManager {
    * Manually trigger update check
    */
   async manualUpdateCheck() {
-    logger.info('Update check manual solicitado');
+    logger.info('Manual update check requested');
     return await this.performUpdateCheck();
   }
 
@@ -606,7 +606,7 @@ class UpdateManager {
   stop() {
     if (this.cronJob) {
       this.cronJob.stop();
-      logger.info('Verificações de atualização paradas');
+      logger.info('Update checks stopped');
     }
   }
 }

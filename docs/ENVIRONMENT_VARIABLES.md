@@ -1,50 +1,50 @@
-# 🔧 Variáveis de Ambiente
+# 🔧 Environment Variables
 
-## 📋 Lista Completa das Variáveis
+## 📋 Complete List of Variables
 
 ### 🚀 API Gateway
-| Variável | Padrão | Descrição |
+| Variable | Standard | Description |
 |----------|--------|-----------|
-| `NODE_ENV` | `production` | Ambiente de execução (development/production) |
-| `API_PORT` | `3000` | Porta do API Gateway |
-| `API_RATE_LIMIT` | `100` | Limite de requisições por minuto |
-| `API_AUTH_ENABLED` | `true` | Habilita/desabilita autenticação básica |
+| `NODE_ENV` | `production` | Execution environment (development/production)|
+| `API_PORT` | `3000` | API Gateway port|
+| `API_RATE_LIMIT` | `100` | Request limit per minute|
+| `API_AUTH_ENABLED` | `true` | Enables/disables basic authentication|
 
-### 🔐 Autenticação
-| Variável | Padrão | Descrição |
+### 🔐 Authentication
+| Variable | Standard | Description |
 |----------|--------|-----------|
-| `DEFAULT_ADMIN_USER` | `admin` | Usuário padrão para autenticação |
-| `DEFAULT_ADMIN_PASS` | `admin` | Senha padrão para autenticação |
+| `DEFAULT_ADMIN_USER` | `admin` | Default user for authentication |
+| `DEFAULT_ADMIN_PASS` | `admin` | Default password for authentication|
 
 ### 🐳 Docker
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `DOCKER_SOCKET` | `/var/run/docker.sock` | Path para o socket do Docker |
+| Variable | Standard | Description |
+|----------|--------|-------------|
+| `DOCKER_SOCKET` | `/var/run/docker.sock` | Path to Docker socket |
 
 ### 📝 Logging
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `LOG_LEVEL` | `info` | Nível de log (error/warn/info/debug) |
-| `LOGS_PATH` | `./logs` | Diretório para arquivos de log |
+| Variable | Standard | Description             |
+|----------|--------|-------------------------|
+| `LOG_LEVEL` | `info` | Log level (error/warn/info/debug) |
+| `LOGS_PATH` | `./logs` | Directory for log files |
 
 ### 🔄 Update Manager
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `UPDATE_CHECK_CRON` | `'0 2 * * *'` | Schedule para verificar atualizações |
-| `AUTO_UPDATE_ENABLED` | `true` | Habilita atualizações automáticas |
+| Variable | Standard | Description |
+|----------|--------|-------------|
+| `UPDATE_CHECK_CRON` | `'0 2 * * *'` | Schedule to check for updates |
+| `AUTO_UPDATE_ENABLED` | `true` | Enables automatic updates |
 
 ### 🏥 Health & Monitoring
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `HEALTH_CHECK_INTERVAL` | `30000` | Intervalo de health check em ms |
-| `MASK_PHONE_NUMBERS` | `true` | Mascarar números de telefone nos logs |
+| Variable | Standard | Description                |
+|----------|--------|----------------------------|
+| `HEALTH_CHECK_INTERVAL` | `30000` | Health check interval in ms |
+| `MASK_PHONE_NUMBERS` | `true` | Mask phone numbers in logs |
 
 ### 📁 Paths (Opcional)
-| Variável | Padrão | Descrição |
+| Variable | Standard | Description |
 |----------|--------|-----------|
-| `APP_BASE_DIR` | `/app` (Docker) | Diretório base da aplicação |
+| `APP_BASE_DIR` | `/app` (Docker) | Application base directory |
 
-## 📄 Arquivo .env.example
+## 📄 .env.example file
 
 ```bash
 # WhatsApp Multi-Platform Environment Configuration
@@ -91,39 +91,39 @@ MASK_PHONE_NUMBERS=true
 HEALTH_CHECK_INTERVAL=30000
 ```
 
-## 🎯 Variáveis por Uso
+## 🎯 Variables for Use
 
-### 🚨 **Obrigatórias em Produção**
-- `DEFAULT_ADMIN_USER` - Definir usuário seguro
-- `DEFAULT_ADMIN_PASS` - Definir senha forte
-- `NODE_ENV=production` - Para otimização
-- `LOG_LEVEL=warn` ou `error` - Reduzir logs
+### 🚨 **Required in Production**
+- `DEFAULT_ADMIN_USER` - Set a secure user
+- `DEFAULT_ADMIN_PASS` - Set a strong password
+- `NODE_ENV=production` - For optimization
+- `LOG_LEVEL=warn` or `error` - Reduce logs
 
-### 🔧 **Customização Comum**
-- `API_PORT` - Se porta 3000 conflitar
-- `LOGS_PATH` - Para logs centralizados
-- `HEALTH_CHECK_INTERVAL` - Ajustar frequência
-- `API_RATE_LIMIT` - Ajustar conforme carga
+### 🔧 **Common Customization**
+- `API_PORT` - If port 3000 conflicts
+- `LOGS_PATH` - For centralized logging
+- `HEALTH_CHECK_INTERVAL` - Adjust frequency
+- `API_RATE_LIMIT` - Adjust according to load
 
-### 🔄 **Desenvolvimento**
-- `NODE_ENV=development` - Para debugging
-- `LOG_LEVEL=debug` - Logs detalhados
-- `API_AUTH_ENABLED=false` - Facilitar testes
+### 🔄 **Development**
+- `NODE_ENV=development` - For debugging
+- `LOG_LEVEL=debug` - Detailed logs
+- `API_AUTH_ENABLED=false` - Facilitate testing
 
-## ⚠️ Considerações de Segurança
+## ⚠️ Security Considerations
 
-1. **Nunca** commitar arquivo `.env` com credenciais reais
-2. **Sempre** alterar `DEFAULT_ADMIN_PASS` em produção
-3. **Use** senhas fortes para admin
-4. **Configure** `MASK_PHONE_NUMBERS=true` para privacidade
-5. **Ajuste** `LOG_LEVEL` para evitar vazamento de dados sensíveis
+1. **Never** commit a `.env` file with real credentials
+2. **Always** change `DEFAULT_ADMIN_PASS` in production
+3. **Use** strong passwords for admin
+4. **Set** `MASK_PHONE_NUMBERS=true` for privacy
+5. **Adjust** `LOG_LEVEL` to prevent sensitive data leaks
 
-## 📚 Referências
+## 📚 References
 
-- Arquivo de exemplo: [.env.example](../.env.example)
-- Configuração Docker: [docker-compose.yml](../docker-compose.yml)
-- Documentação principal: [CLAUDE.md](../CLAUDE.md)
+- Example file: [.env.example](../.env.example)
+- Docker configuration: [docker-compose.yml](../docker-compose.yml)
+- Main documentation: [CLAUDE.md](../CLAUDE.md)
 
 ---
 
-*Documentação atualizada - Todas as variáveis verificadas no código*
+*Updated documentation - All variables checked in the code*

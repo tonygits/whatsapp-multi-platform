@@ -8,7 +8,7 @@ import { generateOpenAPIFromApp } from '../utils/openapi-generator';
 
 const router = express.Router();
 
-// Carregar especificação OpenAPI
+// Load OpenAPI specification
 let swaggerDocument: any = null;
 let allReadyForcedRegenerate = false;
 
@@ -16,7 +16,7 @@ async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressAp
   if (!swaggerDocument || forceRegenerate) {
     try {
       if (forceRegenerate && expressApp) {
-        console.log('Gerando nova documentação OpenAPI a partir das rotas Express...');
+        console.log('Generating new OpenAPI documentation from Express routes...');
         swaggerDocument = generateOpenAPIFromApp(expressApp);
         
         // Save to files
@@ -51,13 +51,13 @@ async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressAp
         }
       }
     } catch (error: any) {
-      console.error('Erro ao carregar/gerar OpenAPI:', error);
+      console.error('Error loading/generating OpenAPI:', error);
       swaggerDocument = {
         openapi: '3.0.0',
         info: {
           title: 'WhatsApp Multi-Platform API Gateway',
           version: '1.0.0',
-          description: 'Erro ao carregar especificação OpenAPI'
+          description: 'Error loading OpenAPI specification'
         },
         paths: {}
       };
@@ -66,7 +66,7 @@ async function generateAndLoadSwaggerDocument(forceRegenerate = false, expressAp
   return swaggerDocument;
 }
 
-// Configurar Swagger UI com customizações
+// Configure Swagger UI with customizations
 const swaggerOptions = {
   customCss: `
     .swagger-ui .topbar { 
@@ -101,12 +101,12 @@ const swaggerOptions = {
   }
 };
 
-// Servir assets do Swagger UI
+// Serve assets do Swagger UI
 router.use('/', swaggerUi.serve);
 
 /**
  * GET /docs
- * Servir Swagger UI
+ * Serve Swagger UI
  */
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -115,7 +115,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     swaggerUi.setup(swaggerDoc, swaggerOptions)(req, res, next);
   } catch (error: any) {
     res.status(500).json({
-      error: 'Erro ao carregar documentação',
+      error: 'Error loading documentation',
       code: 'DOCS_LOAD_ERROR'
     });
   }
@@ -123,7 +123,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 /**
  * GET /docs/openapi.yaml
- * Servir arquivo OpenAPI
+ * Serve OpenAPI file
  */
 router.get('/openapi.yaml', asyncHandler(async (req: Request, res: Response) => {
   try {
@@ -134,7 +134,7 @@ router.get('/openapi.yaml', asyncHandler(async (req: Request, res: Response) => 
     res.send(yamlContent);
   } catch (error: any) {
     res.status(404).json({
-      error: 'Arquivo OpenAPI não encontrado',
+      error: 'OpenAPI file not found',
       code: 'OPENAPI_NOT_FOUND'
     });
   }
@@ -142,24 +142,24 @@ router.get('/openapi.yaml', asyncHandler(async (req: Request, res: Response) => 
 
 /**
  * GET /docs/generate
- * Regenerar documentação OpenAPI
+ * Regenerate OpenAPI documentation
  */
 router.get('/generate', asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log('Regenerando documentação OpenAPI...');
+    console.log('Regenerating OpenAPI documentation...');
     swaggerDocument = null; // Clear cache
     const expressApp = req.app;
     await generateAndLoadSwaggerDocument(true, expressApp);
     
     res.json({
       success: true,
-      message: 'Documentação OpenAPI regenerada com sucesso',
+      message: 'OpenAPI documentation successfully regenerated',
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error('Erro ao regenerar documentação:', error);
+    console.error('Error regenerating documentation:', error);
     res.status(500).json({
-      error: 'Erro ao regenerar documentação',
+      error: 'Error regenerating documentation',
       code: 'DOCS_REGENERATION_ERROR',
       details: error.message
     });

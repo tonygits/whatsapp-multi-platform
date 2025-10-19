@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import deviceManager from '../services/newDeviceManager';
 
-// Middleware para resolver a instância do dispositivo
+// Middleware to resolve the device instance
 const resolveInstance = async (req: Request, res: Response, next: NextFunction) => {
-  const deviceHash = req.query.deviceHash || req.body.deviceHash || req.params.deviceHash;
+  const deviceHash = req.query['x-instance-id'] || req.body['x-instance-id'] || req.params['x-instance-id'];
   if (!deviceHash || typeof deviceHash !== 'string') {
-    return res.status(400).json({ success: false, message: 'deviceHash é obrigatório' });
+    return res.status(400).json({ success: false, message: 'deviceHash is required' });
   }
-  // Busca o dispositivo pelo hash
+// Search for the device by hash
   const device = await deviceManager.getDevice(deviceHash);
   if (!device) {
-    return res.status(404).json({ success: false, message: 'Dispositivo não encontrado' });
+    return res.status(404).json({ success: false, message: 'Device not found' });
   }
   (req as any).device = device;
   next();

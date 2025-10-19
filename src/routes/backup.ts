@@ -37,9 +37,9 @@ router.get('/status', async (req: Request, res: Response) => {
     const status = backupManager.getStatus();
     res.json(status);
   } catch (error) {
-    logger.error('Erro ao obter status do backup:', error);
+    logger.error('Error getting backup status:', error);
     res.status(500).json({ 
-      error: 'Erro interno do servidor',
+      error: 'Internal server error',
       message: (error as Error).message 
     });
   }
@@ -72,20 +72,20 @@ router.post('/trigger', async (req: Request, res: Response) => {
   try {
     const backupKey = await backupManager.performBackup();
     res.json({ 
-      message: 'Backup realizado com sucesso',
+      message: 'Backup performed successfully',
       backupKey 
     });
   } catch (error) {
-    logger.error('Erro ao realizar backup manual:', error);
+    logger.error('Error performing manual backup:', error);
     
-    if ((error as Error).message.includes('já está em progresso')) {
+    if ((error as Error).message.includes('is already in progress')) {
       res.status(400).json({ 
-        error: 'Backup já está em progresso',
+        error: 'Backup is already in progress',
         message: (error as Error).message 
       });
     } else {
       res.status(500).json({ 
-        error: 'Erro ao realizar backup',
+        error: 'Error when performing backup',
         message: (error as Error).message 
       });
     }
@@ -129,9 +129,9 @@ router.get('/list', async (req: Request, res: Response) => {
     const backups = await backupManager.listBackups();
     res.json({ backups });
   } catch (error) {
-    logger.error('Erro ao listar backups:', error);
+    logger.error('Error listing backups:', error);
     res.status(500).json({ 
-      error: 'Erro ao listar backups',
+      error: 'Error listing backups',
       message: (error as Error).message 
     });
   }
@@ -176,19 +176,19 @@ router.post('/restore', async (req: Request, res: Response) => {
 
     if (!backupKey || typeof backupKey !== 'string') {
       return res.status(400).json({ 
-        error: 'backupKey é obrigatório e deve ser uma string' 
+        error: 'backupKey is required and must be a string'
       });
     }
 
     await backupManager.restoreBackup(backupKey);
     res.json({ 
-      message: 'Backup restaurado com sucesso',
+      message: 'Backup restored successfully',
       backupKey 
     });
   } catch (error) {
-    logger.error('Erro ao restaurar backup:', error);
+    logger.error('Error restoring backup:', error);
     res.status(500).json({ 
-      error: 'Erro ao restaurar backup',
+      error: 'Error restoring backup',
       message: (error as Error).message 
     });
   }

@@ -24,19 +24,19 @@ class BinaryManager {
   }
 
   async initialize() {
-    logger.info('Inicializando Binary Manager...');
+    logger.info('Initializing Binary Manager...');
     try {
       // Check if binary exists and is executable
       await this.checkBinaryExists();
-      logger.info('Iniciando loadExistingProcesses...');
+      logger.info('Starting loadExistingProcesses...');
       // Load existing processes from device manager
       await this.loadExistingProcesses();
-      logger.info('loadExistingProcesses concluído');
+      logger.info('loadExistingProcesses completed');
       // Start health check monitoring
       this.startHealthCheckMonitoring();
-      logger.info('Binary Manager inicializado com sucesso');
+      logger.info('Binary Manager initialized successfully');
     } catch (error) {
-      logger.error('Erro ao inicializar Binary Manager:', error);
+      logger.error('Error initializing Binary Manager:', error);
       throw error;
     }
   }
@@ -47,9 +47,9 @@ class BinaryManager {
   async checkBinaryExists() {
     try {
       await fs.access(this.binaryPath, fs.constants.F_OK | fs.constants.X_OK);
-      logger.info(`Binary WhatsApp encontrado em: ${this.binaryPath}`);
+      logger.info(`WhatsApp binary found in: ${this.binaryPath}`);
     } catch (error) {
-      throw new Error(`Binary WhatsApp não encontrado ou não executável em: ${this.binaryPath}`);
+      throw new Error(`WhatsApp binary not found or not executable in: ${this.binaryPath}`);
     }
   }
 
@@ -59,12 +59,12 @@ class BinaryManager {
   async loadExistingProcesses() {
     try {
       const devices = await deviceManager.getAllDevices();
-      logger.info(`Verificando ${devices.length} dispositivos registrados`);
+      logger.info(`Checking ${devices.length} registered devices`);
       for (const device of devices) {
-  logger.info(`Dispositivo ${device.deviceHash}: processId=${(device as any).processId}, status=${device.status}`);
+  logger.info(`Device ${device.deviceHash}: processId=${(device as any).processId}, status=${device.status}`);
         // Check if device had an active session before restart
   if ((device as any).processId) {
-          logger.info(`Verificando se processo ${(device as any).processId} ainda está rodando...`);
+          logger.info(`Checking if process ${(device as any).processId} is still running...`);
           // Check if process is still running (unlikely after container restart)
           const isRunning = await this.isProcessRunning((device as any).processId);
           if (isRunning) {
@@ -75,26 +75,26 @@ class BinaryManager {
               status: 'running',
               startedAt: new Date(device.updatedAt)
             });
-            logger.info(`Processo para ${device.deviceHash} ainda está rodando (PID: ${(device as any).processId})`);
+            logger.info(`Process for ${device.deviceHash} is still running (PID: ${(device as any).processId})`);
           } else {
-            logger.info(`Processo ${(device as any).processId} não está mais rodando, tentando reiniciar...`);
+            logger.info(`Process ${(device as any).processId} is no longer running, trying to restart...`);
             // Process is dead - try to restart if session files exist
             await this.restartSessionIfExists(device);
           }
         } else if (device.status === 'active') {
-          logger.info(`Dispositivo ${device.deviceHash} marcado como ativo sem processo, tentando reiniciar...`);
+          logger.info(`Device ${device.deviceHash} marked as active with no process, trying to reboot...`);
           // Device is marked as active but has no process - try to restart
           await this.restartSessionIfExists(device);
         } else if (device.status === 'error' || device.status === 'stopped') {
-          logger.info(`Dispositivo ${device.deviceHash} com status ${device.status}, verificando se há sessão existente...`);
+          logger.info(`Device ${device.deviceHash} with status ${device.status}, checking for existing session...`);
           // Device has error/stopped status - check if session exists and restart
           await this.restartSessionIfExists(device);
         } else {
-          logger.info(`Dispositivo ${device.deviceHash} não precisa de restart (status: ${device.status})`);
+          logger.info(`Device ${device.deviceHash} does not need restart (status: ${device.status})`);
         }
       }
     } catch (error) {
-      logger.error('Erro ao carregar processos existentes:', error);
+      logger.error('Error loading existing processes:', error);
     }
   }
 
@@ -111,22 +111,22 @@ class BinaryManager {
       const fs = require('fs').promises;
       try {
         await fs.access(sessionDbPath);
-        logger.info(`Sessão existente detectada para ${device.deviceHash}, reiniciando automaticamente...`);
+        logger.info(`Existing session detected for ${device.deviceHash}, automatically restarting...`);
         
         // Restart the process
         await this.startProcess(device.deviceHash);
-        logger.info(`Processo reiniciado automaticamente para ${device.deviceHash}`);
+        logger.info(`Process automatically restarted for ${device.deviceHash}`);
         
       } catch (accessError) {
         // Session doesn't exist, just update status to stopped
-        logger.info(`Nenhuma sessão existente para ${device.deviceHash}, marcando como parado`);
+        logger.info(`No existing session for ${device.deviceHash}, marking as stopped`);
         await deviceManager.updateDevice(device.deviceHash, {
           processId: null,
           status: 'stopped'
         });
       }
     } catch (error) {
-      logger.error(`Erro ao tentar reiniciar sessão para ${device.deviceHash}:`, error);
+      logger.error(`Error while trying to reset session for ${device.deviceHash}:`, error);
       await deviceManager.updateDevice(device.deviceHash, {
         processId: null,
         status: 'error'
@@ -157,21 +157,21 @@ class BinaryManager {
   async startProcess(deviceHash: string, options: any = {}) {
     // Check if process already exists
     if (this.processes.has(deviceHash)) {
-      throw new Error(`Processo para ${deviceHash} já existe`);
+      throw new Error(`Process for ${deviceHash} already exists`);
     }
 
     // Get device information
     const device = await deviceManager.getDevice(deviceHash);
     if (!device) {
-      throw new Error(`Dispositivo ${deviceHash} não está registrado`);
+      throw new Error(`Device ${deviceHash} is not registered`);
     }
 
   const devicePort = (device as any).port || (device as any).containerInfo?.port;
     if (!devicePort) {
-      throw new Error(`Porta não definida para dispositivo ${deviceHash}`);
+      throw new Error(`Port not defined for device ${deviceHash}`);
     }
 
-    logger.info(`Iniciando processo WhatsApp para ${deviceHash} na porta ${devicePort}`);
+    logger.info(`Starting WhatsApp process for ${deviceHash} on port ${devicePort}`);
 
     try {
       // Create session directory for this device
@@ -210,7 +210,7 @@ class BinaryManager {
       });
 
       childProcess.on('close', async (code) => {
-        logger.info(`Processo WhatsApp ${deviceHash} finalizado com código ${code}`);
+        logger.info(`WhatsApp process ${deviceHash} completed with code ${code}`);
         this.processes.delete(deviceHash);
         await deviceManager.updateDevice(deviceHash, { 
           processId: null,
@@ -219,7 +219,7 @@ class BinaryManager {
       });
 
       childProcess.on('error', async (error) => {
-        logger.error(`Erro no processo WhatsApp ${deviceHash}:`, error);
+        logger.error(`Error in WhatsApp process ${deviceHash}:`, error);
         this.processes.delete(deviceHash);
         await deviceManager.updateDevice(deviceHash, { 
           processId: null,
@@ -246,7 +246,7 @@ class BinaryManager {
         status: 'active'
       });
 
-      logger.info(`Processo WhatsApp iniciado para ${deviceHash} (PID: ${childProcess.pid})`);
+      logger.info(`WhatsApp process started to ${deviceHash} (PID: ${childProcess.pid})`);
       
       // Connect to container WebSocket
       setTimeout(() => {
@@ -261,7 +261,7 @@ class BinaryManager {
       };
 
     } catch (error) {
-      logger.error(`Erro ao iniciar processo para ${deviceHash}:`, error);
+      logger.error(`Error starting process for ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -275,11 +275,11 @@ class BinaryManager {
   async stopProcess(deviceHash: string, timeout: number = 30) {
     const processInfo = this.processes.get(deviceHash);
     if (!processInfo) {
-      throw new Error(`Processo para ${deviceHash} não encontrado`);
+      throw new Error(`Process for ${deviceHash} not found`);
     }
 
     try {
-      logger.info(`Parando processo WhatsApp para ${deviceHash} (PID: ${processInfo.pid})`);
+      logger.info(`Stopping WhatsApp process for ${deviceHash} (PID: ${processInfo.pid})`);
       
       // Send SIGTERM signal
       processInfo.process.kill('SIGTERM');
@@ -288,7 +288,7 @@ class BinaryManager {
       const killed = await this.waitForProcessExit(processInfo.pid, timeout * 1000);
       
       if (!killed) {
-        logger.warn(`Processo ${deviceHash} não parou graciosamente, forçando término`);
+        logger.warn(`Process ${deviceHash} did not stop gracefully, forcing termination`);
         processInfo.process.kill('SIGKILL');
         await this.waitForProcessExit(processInfo.pid, 5000);
       }
@@ -301,10 +301,10 @@ class BinaryManager {
         status: 'stopped' 
       });
 
-      logger.info(`Processo WhatsApp para ${deviceHash} parado com sucesso`);
+      logger.info(`WhatsApp process for ${deviceHash} stopped successfully`);
       return true;
     } catch (error) {
-      logger.error(`Erro ao parar processo para ${deviceHash}:`, error);
+      logger.error(`Error stopping process for ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -341,7 +341,7 @@ class BinaryManager {
       await this.startProcess(deviceHash);
       return true;
     } catch (error) {
-      logger.error(`Erro ao reiniciar processo para ${deviceHash}:`, error);
+      logger.error(`Error restarting process for ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -369,7 +369,7 @@ class BinaryManager {
         sessionPath: processInfo.sessionPath
       };
     } catch (error) {
-      logger.error(`Erro ao obter status do processo ${deviceHash}:`, error);
+      logger.error(`Error getting process status ${deviceHash}:`, error);
       return null;
     }
   }
@@ -388,7 +388,7 @@ class BinaryManager {
           processes.push(status);
         }
       } catch (error) {
-        logger.error(`Erro ao obter status do processo ${deviceHash}:`, error);
+        logger.error(`Error getting process status ${deviceHash}:`, error);
       }
     }
 
@@ -405,7 +405,7 @@ class BinaryManager {
       await this.performHealthChecks();
     }, interval);
 
-    logger.info(`Monitoramento de health check iniciado (${interval}ms)`);
+    logger.info(`Health check monitoring started (${interval}ms)`);
   }
 
   /**
@@ -417,7 +417,7 @@ class BinaryManager {
         const isRunning = await this.isProcessRunning(processInfo.pid);
         
         if (!isRunning && processInfo.status === 'running') {
-          logger.warn(`Processo ${deviceHash} parou inesperadamente`);
+            logger.warn(`Process ${deviceHash} stopped unexpectedly`);
           this.processes.delete(deviceHash);
           await deviceManager.updateDevice(deviceHash, { 
             processId: null,
@@ -442,7 +442,7 @@ class BinaryManager {
           }
         }
       } catch (error) {
-        logger.error(`Erro no health check do processo ${deviceHash}:`, error);
+        logger.error(`Error in the process health check ${deviceHash}:`, error);
       }
     }
   }
@@ -456,7 +456,7 @@ class BinaryManager {
       await fs.mkdir(sessionPath, { recursive: true });
       await fs.chmod(sessionPath, 0o755);
     } catch (error) {
-      logger.error(`Erro ao criar diretório de sessão ${sessionPath}:`, error);
+      logger.error(`Error creating session directory ${sessionPath}:`, error);
       throw error;
     }
   }
@@ -488,7 +488,7 @@ class BinaryManager {
     const wsUrl = `ws://localhost:${port}/ws`;
     
     try {
-      logger.info(`Conectando ao WebSocket ${deviceHash} em ${wsUrl}`);
+      logger.info(`Connecting to WebSocket ${deviceHash} em ${wsUrl}`);
       
       const ws = new WebSocket(wsUrl, {
         headers: {
@@ -497,7 +497,7 @@ class BinaryManager {
       });
       
       ws.on('open', () => {
-        logger.info(`WebSocket conectado: ${deviceHash}`);
+        logger.info(`WebSocket connected: ${deviceHash}`);
         this.websocketConnections.set(deviceHash, ws);
         this.setupWebSocketEvents(ws, deviceHash, port);
       });
@@ -508,7 +508,7 @@ class BinaryManager {
       });
       
     } catch (error) {
-      logger.error(`Erro ao conectar WebSocket ${deviceHash}:`, error);
+      logger.error(`Error connecting to WebSocket ${deviceHash}:`, error);
     }
   }
 
@@ -560,7 +560,7 @@ class BinaryManager {
         
         logger.debug(`WebSocket message from ${deviceHash}:`, message);
       } catch (error) {
-        logger.error(`Erro ao processar mensagem WebSocket de ${deviceHash}:`, error);
+        logger.error(`Error processing WebSocket message from ${deviceHash}:`, error);
       }
     });
     
@@ -570,7 +570,7 @@ class BinaryManager {
     });
     
     ws.on('close', (code, reason) => {
-      logger.info(`WebSocket ${deviceHash} fechado (${code}: ${reason})`);
+      logger.info(`WebSocket ${deviceHash} closed (${code}: ${reason})`);
       this.websocketConnections.delete(deviceHash);
       
   if ((global as any).webSocketServer) {
@@ -600,7 +600,7 @@ class BinaryManager {
   disconnectContainerWebSocket(deviceHash: any) {
     const ws = this.websocketConnections.get(deviceHash);
     if (ws) {
-      logger.info(`Desconectando WebSocket do container ${deviceHash}`);
+      logger.info(`Disconnecting WebSocket from container ${deviceHash}`);
       ws.close();
       this.websocketConnections.delete(deviceHash);
     }
@@ -610,7 +610,7 @@ class BinaryManager {
    * Cleanup all processes
    */
   async cleanup() {
-    logger.info('Iniciando cleanup dos processos WhatsApp...');
+    logger.info('Starting cleanup of WhatsApp processes...');
     
     // Close all WebSocket connections
     for (const [deviceHash] of this.websocketConnections) {
@@ -620,14 +620,14 @@ class BinaryManager {
     const cleanupPromises = Array.from(this.processes.keys()).map(async (deviceHash) => {
       try {
         await this.stopProcess(deviceHash);
-        logger.info(`Processo ${deviceHash} parado durante cleanup`);
+        logger.info(`Process ${deviceHash} stopped during cleanup`);
       } catch (error) {
-        logger.error(`Erro ao parar processo ${deviceHash} durante cleanup:`, error);
+        logger.error(`Error stopping process ${deviceHash} during cleanup:`, error);
       }
     });
 
     await Promise.allSettled(cleanupPromises);
-    logger.info('Cleanup dos processos WhatsApp concluído');
+    logger.info('WhatsApp process cleanup complete');
   }
 
 }

@@ -1,88 +1,88 @@
-# 🐳 Deploy Automático para Docker Hub
+# 🐳 Automatic Deployment to Docker Hub
 
-## 📋 Configuração Realizada
+## 📋 Configuration Completed
 
 ### GitHub Actions Workflows
 
-1. **`docker-build-push.yml`** - Build e push automático da imagem Docker
-2. **`release.yml`** - Criação automática de releases no GitHub
+1. **`docker-build-push.yml`** - Automatically build and push the Docker image
+2. **`release.yml`** - Automatically create releases on GitHub
 
-### 🔧 Configuração Necessária
+### 🔧 Required Configuration
 
-#### 1. Secrets do GitHub
-Configure os seguintes secrets em **Settings > Secrets and variables > Actions**:
+#### 1. GitHub Secrets
+Configure the following secrets in **Settings > Secrets and variables > Actions**:
 
 ```
-DOCKER_USERNAME=seu_usuario_dockerhub
-DOCKER_PASSWORD=seu_token_ou_senha
+DOCKER_USERNAME=your_dockerhub_username
+DOCKER_PASSWORD=your_token_or_password
 ```
 
-#### 2. Access Token Docker Hub (Recomendado)
-- Acesse [Docker Hub](https://hub.docker.com/)
+#### 2. Docker Hub Access Token (Recommended)
+- Access [Docker Hub](https://hub.docker.com/)
 - Account Settings > Security > New Access Token
-- Nome: "GitHub Actions"
-- Use o token como `DOCKER_PASSWORD`
+- Name: "GitHub" Actions"
+- Use the token as `DOCKER_PASSWORD`
 
-### 🚀 Como Usar
+### 🚀 How to Use
 
-#### Deploy Manual
+#### Manual Deploy
 ```bash
-# Fazer push na main
+# Push to main
 git push origin main
 
-# Ou criar uma tag para release
+# Or create a tag for release
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-#### Deploy Automático
-- **Push na `main`**: Cria imagem com tag `latest`
-- **Tags `v*`**: Cria imagens com versioning semântico
-- **Pull Requests**: Apenas testa o build (não faz push)
+#### Automatic Deploy
+- **Push to `main`**: Creates an image with the `latest` tag
+- **Tags `v*`**: Creates images with semantic versioning
+- **Pull Requests**: Only tests the build (does not push)
 
-### 🏷️ Tags Geradas
+### 🏷️ Generated Tags
 
-| Tipo | Exemplo | Descrição |
+| Type | Example | Description |
 |------|---------|-----------|
-| Latest | `latest` | Última versão da main |
-| Versão | `v1.0.0`, `1.0.0`, `1.0`, `1` | Tags de versão |
-| Branch | `main` | Build da branch |
-| PR | `pr-123` | Build de pull request |
+| Latest | `latest` | Latest version of main|
+| Version | `v1.0.0`, `1.0.0`, `1.0`, `1` | Version tags |
+| Branch | `main` | Branch build |
+| PR | `pr-123` | Pull request build|
 
-### 📦 Imagem Final
+### 📦 Final Image
 
 ```bash
-# Formato da imagem
-docker.io/SEU_USERNAME/whatsapp-multi-platform-api:TAG
+# Image Format
+docker.io/YOUR_USERNAME/whatsapp-multi-platform-api:TAG
 
-# Exemplos
-docker pull SEU_USERNAME/whatsapp-multi-platform-api:latest
-docker pull SEU_USERNAME/whatsapp-multi-platform-api:v1.0.0
+# Examples
+docker pull YOUR_USERNAME/whatsapp-multi-platform-api:latest
+docker pull YOUR_USERNAME/whatsapp-multi-platform-api:v1.0.0
 ```
 
-### 🏗️ Recursos do Build
+### 🏗️ Build Features
 
-- ✅ **Multi-arquitetura**: linux/amd64, linux/arm64
-- ✅ **Cache otimizado**: Build mais rápido
-- ✅ **Descrição automática**: Atualiza Docker Hub
-- ✅ **Metadados**: Labels e anotações
-- ✅ **Segurança**: Não executa em PRs
+- ✅ **Multi-architecture**: Linux/amd64, Linux/arm64
+- ✅ **Optimized Cache**: Faster Build
+- ✅ **Automatic Description**: Updates Docker Hub
+- ✅ **Metadata**: Labels and Annotations
+- ✅ **Security**: Does not run on PRs
 
-### 📊 Monitoramento
+### 📊 Monitoring
 
-- **GitHub Actions**: Tab "Actions" do repositório
-- **Docker Hub**: Seção "Builds" da imagem
+- **GitHub Actions**: Repository "Actions" tab
+- **Docker Hub**: Image "Builds" section
 
-### 🔄 Workflow de Release
+### 🔄 Release Workflow
 
-1. Criar tag: `git tag v1.0.0`
-2. Push da tag: `git push origin v1.0.0`
+1. Create tag: `git tag v1.0.0`
+2. Push tag: `git push origin v1.0.0`
 3. GitHub Actions:
-   - Builda imagem Docker
-   - Cria release no GitHub
-   - Atualiza Docker Hub
+- Build the Docker image
+- Create a release on GitHub
+- Update Docker Hub
 
-### 🐳 Uso da Imagem
+### 🐳 Image Use
 
 ```yaml
 # docker-compose.yml
@@ -99,13 +99,13 @@ services:
       - ./volumes:/app/volumes
 ```
 
-### ⚡ Próximos Passos
+### ⚡ Next Steps
 
-1. Configure os secrets no GitHub
-2. Faça um push ou crie uma tag
-3. Monitore o build no Actions
-4. Verifique a imagem no Docker Hub
+1. Configure secrets on GitHub
+2. Push or create a tag
+3. Monitor the build in Actions
+4. Check the image on Docker Hub
 
 ---
 
-*Configurado automaticamente pelo Claude para deploy contínuo*
+*Automatically configured by Claude for continuous deployment*

@@ -23,7 +23,7 @@ interface CustomErrorType extends Error {
 
 const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: NextFunction) => {
   // Log the error
-  logger.error('Erro na aplicação:', {
+  logger.error('Application error:', {
     error: err.message,
     stack: err.stack,
     url: req.originalUrl,
@@ -35,43 +35,43 @@ const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: N
 
   // Default error response
   let status = 500;
-  let message = 'Erro interno do servidor';
+  let message = 'Internal server error';
   let code = 'INTERNAL_ERROR';
   let details: string | null = null;
 
   // Handle specific error types
   if (err.name === 'ValidationError') {
     status = 400;
-    message = 'Dados de entrada inválidos';
+    message = 'Invalid input data';
     code = 'VALIDATION_ERROR';
     details = err.details || err.message;
   } else if (err.name === 'UnauthorizedError' || err.message.includes('unauthorized')) {
     status = 401;
-    message = 'Não autorizado';
+    message = 'Unauthorized';
     code = 'UNAUTHORIZED';
   } else if (err.name === 'ForbiddenError' || err.message.includes('forbidden')) {
     status = 403;
-    message = 'Acesso proibido';
+    message = 'Access prohibited';
     code = 'FORBIDDEN';
   } else if (err.name === 'NotFoundError' || err.message.includes('not found')) {
     status = 404;
-    message = 'Recurso não encontrado';
+    message = 'Resource not found';
     code = 'NOT_FOUND';
   } else if (err.name === 'ConflictError' || err.message.includes('already exists')) {
     status = 409;
-    message = 'Conflito - recurso já existe';
+    message = 'Conflict - resource already exists';
     code = 'CONFLICT';
   } else if (err.name === 'TimeoutError') {
     status = 408;
-    message = 'Timeout na operação';
+    message = 'Operation timeout';
     code = 'TIMEOUT';
   } else if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
     status = 503;
-    message = 'Serviço indisponível';
+    message = 'Service unavailable';
     code = 'SERVICE_UNAVAILABLE';
   } else if (err.name === 'SyntaxError' && err.message.includes('JSON')) {
     status = 400;
-    message = 'JSON inválido';
+    message = 'Invalid JSON';
     code = 'INVALID_JSON';
   }
 
@@ -86,21 +86,21 @@ const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: N
   // Rate limit errors
   if (err.message && err.message.includes('rate limit')) {
     status = 429;
-    message = 'Muitas requisições';
+    message = 'Many requests';
     code = 'RATE_LIMIT_EXCEEDED';
   }
 
   // Docker errors
   if (err.message && err.message.includes('docker')) {
     status = 503;
-    message = 'Erro no serviço Docker';
+    message = 'Docker service error';
     code = 'DOCKER_ERROR';
     details = process.env.NODE_ENV === 'development' ? err.message : null;
   }
 
   // Don't expose internal errors in production
   if (process.env.NODE_ENV === 'production' && status === 500) {
-    message = 'Erro interno do servidor';
+    message = 'Internal server error';
     details = null;
   }
 
@@ -131,13 +131,13 @@ const errorHandler = (err: CustomErrorType, req: Request, res: Response, next: N
  * 404 handler for unmatched routes
  */
 const notFoundHandler = (req: Request, res: Response) => {
-  logger.warn(`Rota não encontrada: ${req.method} ${req.originalUrl}`, {
+  logger.warn(`Route not found: ${req.method} ${req.originalUrl}`, {
     ip: req.ip,
     userAgent: req.get('User-Agent')
   });
 
   res.status(404).json({
-    error: 'Endpoint não encontrado',
+    error: 'Endpoint not found',
     code: 'ENDPOINT_NOT_FOUND',
     path: req.originalUrl,
     method: req.method,
@@ -190,7 +190,7 @@ const timeoutMiddleware = (timeout: number = 30000) => {
   return (req: Request, res: Response, next: NextFunction) => {
     res.setTimeout(timeout, () => {
       const err = new CustomError(
-        'Requisição expirou',
+        'Request expired',
         408,
         'REQUEST_TIMEOUT'
       );
@@ -213,7 +213,7 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
     const duration = Date.now() - start;
     const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
     
-    logger[logLevel]('Requisição processada', {
+    logger[logLevel]('Request processed', {
   requestId: (req as any).id,
       method: req.method,
       url: req.originalUrl,

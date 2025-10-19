@@ -8,17 +8,17 @@
   "servers": [
     {
       "url": "http://localhost:3000",
-      "description": "Servidor de desenvolvimento"
+      "description": "Development Server"
     }
   ],
   "tags": [
     {
       "name": "Gateway",
-      "description": "Autenticação e saúde do gateway"
+      "description": "Gateway Authentication and Health"
     },
     {
       "name": "Device Management",
-      "description": "Gerenciamento de dispositivos e containers"
+      "description": "Device and container management"
     },
     {
       "name": "app",
@@ -61,8 +61,8 @@
         "tags": [
           "Gateway"
         ],
-        "summary": "Login no API Gateway",
-        "description": "Autentica um usuário no gateway e retorna um token JWT",
+        "summary": "Log in to API Gateway",
+        "description": "Authenticates a user at the gateway and returns a JWT token",
         "requestBody": {
           "required": true,
           "content": {
@@ -77,12 +77,12 @@
                   "username": {
                     "type": "string",
                     "example": "admin",
-                    "description": "Nome de usuário"
+                    "description": "Username"
                   },
                   "password": {
                     "type": "string",
                     "example": "admin",
-                    "description": "Senha do usuário"
+                    "description": "User password"
                   }
                 }
               }
@@ -91,7 +91,7 @@
         },
         "responses": {
           "200": {
-            "description": "Login realizado com sucesso",
+            "description": "Login successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -103,7 +103,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Login realizado com sucesso"
+                      "example": "Login successfully"
                     },
                     "data": {
                       "type": "object",
@@ -137,7 +137,7 @@
             }
           },
           "401": {
-            "description": "Credenciais inválidas",
+            "description": "Invalid credentials",
             "content": {
               "application/json": {
                 "schema": {
@@ -155,8 +155,8 @@
         "tags": [
           "Gateway"
         ],
-        "summary": "Verificação de saúde do sistema",
-        "description": "Verifica o status de saúde da API e serviços conectados",
+        "summary": "System health check",
+        "description": "Checks the health status of the API and connected services",
         "security": [
           {
             "bearerAuth": []
@@ -164,7 +164,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Sistema saudável",
+            "description": "Healthy system",
             "content": {
               "application/json": {
                 "schema": {
@@ -205,13 +205,13 @@
         "tags": [
           "Device Management"
         ],
-        "summary": "Listar dispositivos registrados",
-        "description": "Retorna lista de todos os dispositivos WhatsApp registrados",
+        "summary": "List registered devices",
+        "description": "Returns list of all registered WhatsApp devices",
         "parameters": [
           {
             "name": "status",
             "in": "query",
-            "description": "Filtrar por status",
+            "description": "Filter by status",
             "schema": {
               "type": "string",
               "enum": [
@@ -247,7 +247,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Lista de dispositivos",
+            "description": "Device list",
             "content": {
               "application/json": {
                 "schema": {
@@ -268,7 +268,7 @@
                           },
                           "name": {
                             "type": "string",
-                            "example": "Atendimento Principal"
+                            "example": "Main Service"
                           },
                           "status": {
                             "type": "string",
@@ -293,7 +293,7 @@
         "tags": [
           "Device Management"
         ],
-        "summary": "Registrar novo dispositivo",
+        "summary": "Register new device",
         "security": [
           {
             "bearerAuth": []
@@ -315,7 +315,7 @@
                   },
                   "name": {
                     "type": "string",
-                    "example": "Atendimento Principal"
+                    "example": "Main Service"
                   }
                 }
               }
@@ -324,7 +324,7 @@
         },
         "responses": {
           "201": {
-            "description": "Dispositivo criado",
+            "description": "Device created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -382,9 +382,9 @@
         "parameters": [
           {
             "name": "x-instance-id",
-            "in": "header",
+            "in": "query",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -432,7 +432,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -458,7 +458,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -537,7 +537,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -585,7 +585,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -611,7 +611,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -742,7 +742,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -769,7 +769,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -837,7 +837,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -904,7 +904,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -993,7 +993,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1041,7 +1041,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1089,7 +1089,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1137,7 +1137,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1215,7 +1215,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1309,7 +1309,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1398,7 +1398,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1492,7 +1492,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1586,7 +1586,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"
@@ -1695,7 +1695,7 @@
             "name": "x-instance-id",
             "in": "header",
             "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
+            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
             "schema": {
               "type": "string",
               "example": "a1b2c3d4e5f67890"

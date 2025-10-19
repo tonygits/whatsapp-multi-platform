@@ -51,7 +51,7 @@ class BackupManager {
     return {
       enabled: process.env.BACKUP_ENABLED === 'true',
       schedule: process.env.BACKUP_SCHEDULE || '0 2 * * *', // 2 AM daily
-      timezone: process.env.BACKUP_TIMEZONE || 'America/Sao_Paulo',
+      timezone: process.env.BACKUP_TIMEZONE || 'Africa/Nairobi',
       s3Bucket: process.env.BACKUP_S3_BUCKET || '',
       s3Region: process.env.BACKUP_S3_REGION || 'us-east-1',
       s3AccessKey: process.env.BACKUP_S3_ACCESS_KEY || '',
@@ -89,16 +89,16 @@ class BackupManager {
    */
   async initialize(): Promise<void> {
     if (!this.config.enabled) {
-      logger.info('Backup automático está desabilitado');
+      logger.info('Automatic backup is disabled');
       return;
     }
 
     try {
       await this.validateConfiguration();
       await this.startScheduledBackups();
-      logger.info('Backup Manager inicializado com sucesso');
+      logger.info('Backup Manager initialized successfully');
     } catch (error) {
-      logger.error('Erro ao inicializar Backup Manager:', error);
+      logger.error('Error initializing Backup Manager:', error);
       throw error;
     }
   }
@@ -108,11 +108,11 @@ class BackupManager {
    */
   private async validateConfiguration(): Promise<void> {
     if (!this.config.s3Bucket) {
-      throw new Error('BACKUP_S3_BUCKET não está configurado');
+      throw new Error('BACKUP_S3_BUCKET is not set');
     }
 
     if (!this.config.s3AccessKey || !this.config.s3SecretKey) {
-      throw new Error('Credenciais S3 não estão configuradas');
+      throw new Error('S3 credentials are not configured');
     }
 
     // Test S3 connection
@@ -121,9 +121,9 @@ class BackupManager {
         Bucket: this.config.s3Bucket,
         MaxKeys: 1
       }));
-      logger.info('Conexão com S3 validada com sucesso');
+      logger.info('Connection to S3 successfully validated');
     } catch (error) {
-      throw new Error(`Falha ao conectar com S3: ${(error as Error).message}`);
+      throw new Error(`Failed to connect to S3: ${(error as Error).message}`);
     }
   }
 
@@ -138,7 +138,7 @@ class BackupManager {
           try {
             await this.performBackup();
           } catch (error) {
-            logger.error('Erro durante backup agendado:', error);
+            logger.error('Error during scheduled backup:', error);
           }
         },
         null,
@@ -146,9 +146,9 @@ class BackupManager {
         this.config.timezone
       );
 
-      logger.info(`Backups automáticos agendados: ${this.config.schedule}`);
+      logger.info(`Scheduled automatic backups: ${this.config.schedule}`);
     } catch (error) {
-      logger.error('Erro ao agendar backups automáticos:', error);
+      logger.error('Error scheduling automatic backups:', error);
       throw error;
     }
   }
@@ -158,8 +158,8 @@ class BackupManager {
    */
   async performBackup(): Promise<string> {
     if (this.isBackupInProgress) {
-      logger.warn('Backup já está em progresso, ignorando nova solicitação');
-      throw new Error('Backup já está em progresso');
+      logger.warn('Backup is already in progress, ignoring new request');
+      throw new Error('Backup is already in progress');
     }
 
     this.isBackupInProgress = true;
@@ -170,13 +170,13 @@ class BackupManager {
     let stoppedInstances: string[] = [];
 
     try {
-      logger.info('Iniciando backup da pasta data...');
+      logger.info('Starting backup of data folder...');
 
       // Stop instances if configured
       if (this.config.stopInstancesBeforeBackup) {
-        logger.info('Parando instâncias antes do backup...');
+        logger.info('Stopping instances before backup...');
         stoppedInstances = await this.stopAllInstances();
-        logger.info(`${stoppedInstances.length} instâncias paradas`);
+        logger.info(`${stoppedInstances.length} stopped instances`);
       }
 
       // Ensure temp directory exists
@@ -217,11 +217,11 @@ class BackupManager {
       // Clean up old backups
       await this.cleanupOldBackups();
 
-      logger.info(`Backup concluído com sucesso: ${s3Key}`);
+      logger.info(`Backup completed successfully: ${s3Key}`);
       return s3Key;
 
     } catch (error) {
-      logger.error('Erro durante o backup:', error);
+      logger.error('Error during backup:', error);
       
       // Clean up temp files on error
       try {
@@ -229,16 +229,16 @@ class BackupManager {
           await fs.promises.unlink(tempBackupPath);
         }
       } catch (cleanupError) {
-        logger.error('Erro ao limpar arquivos temporários:', cleanupError);
+        logger.error('Error cleaning temporary files:', cleanupError);
       }
 
       throw error;
     } finally {
       // Restart instances if they were stopped
       if (this.config.stopInstancesBeforeBackup && stoppedInstances.length > 0) {
-        logger.info('Reiniciando instâncias após backup...');
+        logger.info('Restarting instances after backup...');
         await this.startInstances(stoppedInstances);
-        logger.info(`${stoppedInstances.length} instâncias reiniciadas`);
+        logger.info(`${stoppedInstances.length} restarted instances`);
       }
       
       this.isBackupInProgress = false;
@@ -261,7 +261,7 @@ class BackupManager {
           if (err) {
             reject(err);
           } else {
-            logger.info(`Arquivo comprimido criado: ${outputPath}`);
+            logger.info(`Compressed file created: ${outputPath}`);
             resolve();
           }
         }
@@ -289,7 +289,7 @@ class BackupManager {
       input.pipe(cipher).pipe(output);
 
       output.on('finish', () => {
-        logger.info(`Arquivo criptografado: ${encryptedPath}`);
+        logger.info(`Encrypted file: ${encryptedPath}`);
         resolve(encryptedPath);
       });
 
@@ -331,7 +331,7 @@ class BackupManager {
     });
 
     await this.s3Client.send(command);
-    logger.info(`Backup enviado para S3: s3://${this.config.s3Bucket}/${s3Key}`);
+    logger.info(`Backup sent to S3: s3://${this.config.s3Bucket}/${s3Key}`);
 
     return s3Key;
   }
@@ -393,17 +393,17 @@ class BackupManager {
               // Ignore if metadata file doesn't exist
             }
 
-            logger.info(`Backup antigo removido: ${obj.Key}`);
+            logger.info(`Old backup removed: ${obj.Key}`);
           }
         }
 
         if (objectsToDelete.length > 0) {
-          logger.info(`${objectsToDelete.length} backups antigos removidos (mantendo ${this.config.maxBackups} mais recentes)`);
+          logger.info(`${objectsToDelete.length} old backups removed (keeping newer ${this.config.maxBackups})`);
         }
       }
 
     } catch (error) {
-      logger.error('Erro ao limpar backups antigos:', error);
+      logger.error('Error cleaning up old backups:', error);
     }
   }
 
@@ -420,22 +420,22 @@ class BackupManager {
           try {
             await binaryManager.stopProcess(device.deviceHash);
             stoppedDevices.push(device.deviceHash);
-            logger.info(`Processo ${device.deviceHash} parado para backup`);
+            logger.info(`Process ${device.deviceHash} stopped for backup`);
           } catch (error) {
-            logger.warn(`Erro ao parar processo ${device.deviceHash}:`, error);
+            logger.warn(`Error stopping process ${device.deviceHash}:`, error);
           }
         }
       }
 
       if (stoppedDevices.length > 0) {
-        logger.info(`✅ ${stoppedDevices.length} processos parados para backup seguro`);
+        logger.info(`✅ ${stoppedDevices.length} stopped processes for safe backup`);
       } else {
-        logger.info('ℹ️ Nenhum processo ativo encontrado para parar');
+        logger.info('ℹ️ No active processes found to stop');
       }
 
       return stoppedDevices;
     } catch (error) {
-      logger.error('Erro ao parar processos:', error);
+      logger.error('Error stopping processes:', error);
       return [];
     }
   }
@@ -446,16 +446,16 @@ class BackupManager {
   private async startInstances(deviceHashes: string[]): Promise<void> {
     try {
       if (deviceHashes.length === 0) {
-        logger.info('ℹ️ Nenhum processo para reiniciar após backup');
+        logger.info('ℹ️ No process to restart after backup');
         return;
       }
 
-      logger.info(`🔄 Reiniciando ${deviceHashes.length} processos após backup...`);
+      logger.info(`🔄 Restarting ${deviceHashes.length} processes after backup...`);
       
       // Reload existing processes and sessions after backup
-      logger.info('🔄 Recarregando processos existentes após backup...');
+      logger.info('🔄 Reloading existing processes after backup...');
       await binaryManager.loadExistingProcesses();
-      logger.info('✅ Processos existentes recarregados com sucesso');
+      logger.info('✅ Existing processes successfully reloaded');
 
       // Give some time for process loading to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -465,19 +465,19 @@ class BackupManager {
           // Check if process was already started by loadExistingProcesses
           const processStatus = await binaryManager.getProcessStatus(deviceHash);
           if (processStatus && processStatus.running) {
-            logger.info(`✅ Processo ${deviceHash} já está rodando após recarregamento`);
+            logger.info(`✅ Process ${deviceHash} is already running after reload`);
           } else {
             await binaryManager.startProcess(deviceHash);
-            logger.info(`✅ Processo ${deviceHash} reiniciado manualmente`);
+            logger.info(`✅ Process ${deviceHash} manually restarted`);
           }
         } catch (error) {
-          logger.error(`❌ Erro ao reiniciar processo ${deviceHash}:`, error);
+          logger.error(`❌ Error restarting process ${deviceHash}:`, error);
         }
       }
 
-      logger.info(`🎉 Reinicialização concluída para ${deviceHashes.length} processos`);
+      logger.info(`🎉 Reboot completed for ${deviceHashes.length} processes`);
     } catch (error) {
-      logger.error('Erro ao reiniciar processos:', error);
+      logger.error('Error restarting processes:', error);
     }
   }
 
@@ -529,7 +529,7 @@ class BackupManager {
       return backups.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
 
     } catch (error) {
-      logger.error('Erro ao listar backups:', error);
+      logger.error('Error listing backups:', error);
       throw error;
     }
   }
@@ -539,7 +539,7 @@ class BackupManager {
    */
   async restoreBackup(backupKey: string): Promise<void> {
     try {
-      logger.info(`Iniciando restauração do backup: ${backupKey}`);
+      logger.info(`Starting backup restore: ${backupKey}`);
 
       const tempRestorePath = path.join(BASE_DIR, 'temp', `restore-${Date.now()}`);
       await fs.promises.mkdir(tempRestorePath, { recursive: true });
@@ -551,7 +551,7 @@ class BackupManager {
       let finalPath = downloadPath;
       if (downloadPath.endsWith('.enc')) {
         if (!this.config.encryptionKey) {
-          throw new Error('Chave de criptografia necessária para restaurar backup criptografado');
+          throw new Error('Encryption key required to restore encrypted backup');
         }
         finalPath = await this.decryptFile(downloadPath);
         await fs.promises.unlink(downloadPath);
@@ -561,7 +561,7 @@ class BackupManager {
       const currentBackupPath = `${DATA_DIR}.backup-${Date.now()}`;
       if (await this.fileExists(DATA_DIR)) {
         await fs.promises.rename(DATA_DIR, currentBackupPath);
-        logger.info(`Dados atuais salvos em: ${currentBackupPath}`);
+        logger.info(`Current data saved in: ${currentBackupPath}`);
       }
 
       try {
@@ -577,7 +577,7 @@ class BackupManager {
           await this.removeDirectory(currentBackupPath);
         }
 
-        logger.info('Restauração concluída com sucesso');
+        logger.info('Restoration completed successfully');
 
       } catch (error) {
         // Restore original data on failure
@@ -586,13 +586,13 @@ class BackupManager {
             await this.removeDirectory(DATA_DIR);
           }
           await fs.promises.rename(currentBackupPath, DATA_DIR);
-          logger.info('Dados originais restaurados após falha');
+          logger.info('Original data restored after failure');
         }
         throw error;
       }
 
     } catch (error) {
-      logger.error('Erro durante a restauração:', error);
+      logger.error('Error during restore:', error);
       throw error;
     }
   }
@@ -612,7 +612,7 @@ class BackupManager {
     const response = await this.s3Client.send(command);
     
     if (!response.Body) {
-      throw new Error('Não foi possível baixar o backup do S3');
+      throw new Error('Unable to download S3 backup');
     }
 
     const fileStream = fs.createWriteStream(downloadPath);
@@ -671,7 +671,7 @@ class BackupManager {
         cwd: path.dirname(DATA_DIR)
       })
       .then(() => {
-        logger.info(`Arquivo extraído: ${archivePath}`);
+        logger.info(`Extracted file: ${archivePath}`);
         resolve();
       })
       .catch(reject);
@@ -704,7 +704,7 @@ class BackupManager {
     if (this.cronJob) {
       this.cronJob.stop();
       this.cronJob = null;
-      logger.info('Backups automáticos interrompidos');
+      logger.info('Automatic backups stopped');
     }
   }
 

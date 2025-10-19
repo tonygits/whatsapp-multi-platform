@@ -6,10 +6,10 @@ import path from 'path';
  * Generate complete OpenAPI documentation with Gateway/Device Management first
  */
 function generateOpenAPIFromApp(app: any): any {
-  // Tenta carregar openapi.yaml de caminhos conhecidos; cai para estrutura padrão se não achar
+// Attempts to load openapi.yaml from known paths; falls back to default structure if not found
   const candidatePaths = [
     path.join(__dirname, '../../openapi.yaml'),      // openapi.yaml (Docker)
-    path.join(__dirname, '../../../openapi.yaml'),   // raiz do projeto
+    path.join(__dirname, '../../../openapi.yaml'),   // project root
     path.join(__dirname, '../../docs_2/openapi.yaml')  // docs/openapi.yaml
   ];
 
@@ -25,7 +25,7 @@ function generateOpenAPIFromApp(app: any): any {
         break;
       }
     } catch (_) {
-      // continua tentando próximos caminhos
+        // keep trying next paths
     }
   }
 
@@ -36,13 +36,13 @@ function generateOpenAPIFromApp(app: any): any {
 
   // Update the base document with dynamic server URL
   baseDoc.servers = [
-    { url: process.env.SERVER_URL || 'http://localhost:3000', description: 'Servidor de desenvolvimento' }
+    { url: process.env.SERVER_URL || 'http://localhost:3000', description: 'Development Server' }
   ];
 
-  // Reorganizar tags - Gateway e Device Management primeiro
+  // Reorder tags - Gateway and Device Management first
   baseDoc.tags = [
-    { name: 'Gateway', description: 'Autenticação e saúde do gateway' },
-    { name: 'Device Management', description: 'Gerenciamento de dispositivos e containers' },
+    { name: 'Gateway', description: 'Gateway Authentication and Health' },
+    { name: 'Device Management', description: 'Device and container management' },
     { name: 'app', description: 'Initial Connection to Whatsapp server' },
     { name: 'user', description: 'Getting information' },
     { name: 'send', description: 'Send Message (Text/Image/File/Video).' },
@@ -52,7 +52,7 @@ function generateOpenAPIFromApp(app: any): any {
     { name: 'newsletter', description: 'newsletter setting' }
   ];
 
-  // Alterar security global para basicAuth
+  // Change global security to basicAuth
   baseDoc.security = [{ basicAuth: [] }];
 
   // Add /api prefix to all WhatsApp API paths and add x-instance-id parameter
@@ -74,7 +74,7 @@ function generateOpenAPIFromApp(app: any): any {
           name: 'x-instance-id',
           in: 'header',
           required: true,
-          description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+          description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
           schema: {
             type: 'string',
             example: 'a1b2c3d4e5f67890'
@@ -95,12 +95,12 @@ function generateOpenAPIFromApp(app: any): any {
       get: {
         operationId: 'healthCheck',
         tags: ['Gateway'],
-        summary: 'Verificação de saúde do sistema',
-        description: 'Verifica o status de saúde da API e serviços conectados',
+        summary: 'System health check',
+        description: 'Checks the health status of the API and connected services',
         security: [{ basicAuth: [] }],
         responses: {
           '200': {
-            description: 'Sistema saudável',
+            description: 'Healthy system',
             content: {
               'application/json': {
                 schema: {
@@ -127,13 +127,13 @@ function generateOpenAPIFromApp(app: any): any {
       get: {
         operationId: 'listDevices',
         tags: ['Device Management'],
-        summary: 'Listar dispositivos registrados',
-        description: 'Retorna lista de todos os dispositivos WhatsApp registrados',
+        summary: 'List registered devices',
+        description: 'Returns list of all registered WhatsApp devices',
         parameters: [
           {
             name: 'status',
             in: 'query',
-            description: 'Filtrar por status',
+            description: 'Filter by status',
             schema: { type: 'string', enum: ['active', 'registered', 'error', 'stopped'] }
           },
           {
@@ -150,7 +150,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         responses: {
           '200': {
-            description: 'Lista de dispositivos',
+            description: 'Device list',
             content: {
               'application/json': {
                 schema: {
@@ -182,7 +182,7 @@ function generateOpenAPIFromApp(app: any): any {
       post: {
         operationId: 'createDevice',
         tags: ['Device Management'],
-        summary: 'Registrar novo dispositivo',
+        summary: 'Register new device',
         security: [{ basicAuth: [] }],
         requestBody: {
           required: true,
@@ -192,7 +192,7 @@ function generateOpenAPIFromApp(app: any): any {
                 type: 'object',
                 properties: {
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
-                  webhookSecret: { type: 'string', nullable: true, example: 'meu-secret-mensagens' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'my-secret-messages' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
                   statusWebhookSecret: { type: 'string', nullable: true, example: 'meu-secret-status' },
                   autoStart: { type: 'boolean', default: true, example: true }
@@ -203,7 +203,7 @@ function generateOpenAPIFromApp(app: any): any {
         },
         responses: {
           '201': {
-            description: 'Dispositivo criado',
+            description: 'Device created',
             content: {
               'application/json': {
                 schema: {
@@ -226,15 +226,15 @@ function generateOpenAPIFromApp(app: any): any {
       put: {
         operationId: 'updateDeviceInfo',
         tags: ['Device Management'],
-        summary: 'Atualizar informações de um dispositivo',
-        description: 'Atualiza o nome, webhooks de mensagens e webhooks de status de um dispositivo.',
+        summary: 'Update device information',
+        description: 'Updates a device\'s name, message webhooks, and status webhooks.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -250,7 +250,7 @@ function generateOpenAPIFromApp(app: any): any {
                 properties: {
                   name: { type: 'string', example: 'Novo Nome do Dispositivo' },
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
-                  webhookSecret: { type: 'string', nullable: true, example: 'novo-secret-mensagens' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'new-secret-messages' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
                   statusWebhookSecret: { type: 'string', nullable: true, example: 'novo-secret-status' }
                 }
@@ -260,14 +260,14 @@ function generateOpenAPIFromApp(app: any): any {
         },
         responses: {
           '200': {
-            description: 'Dispositivo atualizado com sucesso',
+            description: 'Device updated successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Dispositivo atualizado com sucesso' },
+                    message: { type: 'string', example: 'Device updated successfully' },
                     data: {
                       type: 'object',
                       properties: {
@@ -282,7 +282,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -294,15 +294,15 @@ function generateOpenAPIFromApp(app: any): any {
       delete: {
         operationId: 'deleteDevice',
         tags: ['Device Management'],
-        summary: 'Remover um dispositivo',
-        description: 'Remove um dispositivo e seu container Docker associado.',
+        summary: 'Remove a device',
+        description: 'Removes a device and its associated Docker container.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -312,7 +312,7 @@ function generateOpenAPIFromApp(app: any): any {
             name: 'force',
             in: 'query',
             required: false,
-            description: 'Forçar a remoção mesmo se o processo não puder ser parado.',
+            description: 'Force removal even if the process cannot be stopped.',
             schema: {
               type: 'boolean',
               default: false
@@ -321,21 +321,21 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Dispositivo removido com sucesso',
+            description: 'Device removed successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Dispositivo removido com sucesso' }
+                    message: { type: 'string', example: 'Device removed successfully' }
                   }
                 }
               }
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -343,7 +343,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Erro ao remover dispositivo',
+            description: 'Error removing device',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -357,15 +357,15 @@ function generateOpenAPIFromApp(app: any): any {
       get: {
         operationId: 'getDeviceInfo',
         tags: ['Device Management'],
-        summary: 'Obter informações de um dispositivo específico',
-        description: 'Retorna detalhes de um dispositivo WhatsApp, incluindo status e QR Code (se disponível).',
+        summary: 'Get information from a specific device',
+        description: 'Returns details of a WhatsApp device, including status and QR Code (if available).',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -374,7 +374,7 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Informações do dispositivo',
+            description: 'Device information',
             content: {
               'application/json': {
                 schema: {
@@ -382,7 +382,7 @@ function generateOpenAPIFromApp(app: any): any {
                   properties: {
                     id: { type: 'number', example: 1 },
                     deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
-                    name: { type: 'string', example: 'Atendimento Principal' },
+                    name: { type: 'string', example: 'Main Service' },
                     status: { type: 'string', example: 'connected' },
                     processStatus: {
                       type: 'object',
@@ -401,7 +401,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -415,15 +415,15 @@ function generateOpenAPIFromApp(app: any): any {
       post: {
         operationId: 'startDevice',
         tags: ['Device Management'],
-        summary: 'Iniciar um dispositivo',
-        description: 'Inicia o container Docker associado a um dispositivo.',
+        summary: 'Launch a device',
+        description: 'Starts the Docker container associated with a device.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -432,21 +432,21 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Dispositivo iniciado com sucesso',
+            description: 'Device started successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Processo iniciado com sucesso' }
+                    message: { type: 'string', example: 'Process started successfully' }
                   }
                 }
               }
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -454,7 +454,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Erro ao iniciar dispositivo',
+            description: 'Error starting device',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -468,15 +468,15 @@ function generateOpenAPIFromApp(app: any): any {
       post: {
         operationId: 'stopDevice',
         tags: ['Device Management'],
-        summary: 'Parar um dispositivo',
-        description: 'Para o container Docker associado a um dispositivo.',
+        summary: 'Stop a device',
+        description: 'For the Docker container associated with a device.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -485,21 +485,21 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Dispositivo parado com sucesso',
+            description: 'Device stopped successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Processo parado com sucesso' }
+                    message: { type: 'string', example: 'Process stopped successfully' }
                   }
                 }
               }
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -507,7 +507,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Erro ao parar dispositivo',
+            description: 'Error stopping device',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -521,15 +521,15 @@ function generateOpenAPIFromApp(app: any): any {
       post: {
         operationId: 'restartDevice',
         tags: ['Device Management'],
-        summary: 'Reiniciar um dispositivo',
-        description: 'Reinicia o container Docker associado a um dispositivo.',
+        summary: 'Restart a device',
+        description: 'Restarts the Docker container associated with a device.',
         security: [{ basicAuth: [] }],
         parameters: [
           {
             name: 'x-instance-id',
-            in: 'header',
+            in: 'query',
             required: true,
-            description: 'O deviceHash da instância (ex: a1b2c3d4e5f67890)',
+            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -538,21 +538,21 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Dispositivo reiniciado com sucesso',
+            description: 'Device restarted successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Processo reiniciado com sucesso' }
+                    message: { type: 'string', example: 'Process restarted successfully' }
                   }
                 }
               }
             }
           },
           '404': {
-            description: 'Dispositivo não encontrado',
+            description: 'Device not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -560,7 +560,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Erro ao reiniciar dispositivo',
+            description: 'Error restarting device',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -572,10 +572,10 @@ function generateOpenAPIFromApp(app: any): any {
     }
   };
 
-  // Organizar paths na ordem correta: Gateway -> Device -> WhatsApp API
+  // Arrange paths in the correct order: Gateway -> Device -> WhatsApp API
   const orderedPaths: Record<string, any> = {};
 
-  // 1. Gateway paths primeiro
+  // 1. Gateway paths first
   const gatewayPathKeys = Object.keys(gatewayPaths).filter(p => 
     p.startsWith('/api/auth') || p.startsWith('/api/health')
   ).sort();
@@ -597,7 +597,7 @@ function generateOpenAPIFromApp(app: any): any {
   const groupPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/group')).sort();
   const newsletterPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/newsletter')).sort();
 
-  // Adicionar paths na ordem desejada
+ // Add paths in the desired order
   [...gatewayPathKeys, ...devicePathKeys, ...appPaths, ...userPaths, 
    ...sendPaths, ...messagePaths, ...chatsPaths, ...chatPaths, 
    ...groupPaths, ...newsletterPaths].forEach(pathKey => {
@@ -629,14 +629,14 @@ function createFallbackStructure(): any {
     info: {
       title: "WhatsApp API MultiDevice",
       version: "6.9.0",
-      description: "API para envio de mensagens WhatsApp com suporte a múltiplos dispositivos e webhooks de status.\n\n## Webhooks de Status\n\nEste sistema suporta webhooks para notificações de status dos dispositivos:\n\n### Configuração\n- `statusWebhook`: URL para receber notificações de status\n- `statusWebhookSecret`: Chave secreta para assinatura HMAC-SHA256\n\n### Eventos Suportados\n- **login_success**: Dispositivo conectado com sucesso\n- **connected**: Dispositivo pronto para uso\n- **disconnected**: Dispositivo desconectado\n\n- **auth_failed**: Falha na autenticação\n- **container_event**: Outros eventos do container\n\n### Formato do Webhook\n```json\n{\n  \"device\": {\n    \"deviceHash\": \"a1b2c3d4e5f67890\",\n    \"status\": \"active\"\n  },\n  \"event\": {\n    \"type\": \"connected\",\n    \"code\": \"LIST_DEVICES\",\n    \"message\": \"Device connected and ready\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Verificação de Assinatura\nSe `statusWebhookSecret` foi configurado, o header `X-Webhook-Signature` conterá a assinatura HMAC-SHA256 do payload."
+      description: "API for sending WhatsApp messages with support for multiple devices and status webhooks.\n\n## Status Webhooks\n\nThis system supports webhooks for device status notifications:\n\n### Configuration\n- `statusWebhook`: URL to receive status notifications\n- `statusWebhookSecret`: Secret key for HMAC-SHA256 signature\n\n### Supported Events\n- **login_success**: Device connected successfully\n- **connected**: Device ready to use\n- **disconnected**: Device disconnected\n\n- **auth_failed**: Authentication failed\n- **container_event**: Other container events\n\n### Webhook Format\n```json\n{\n \"device\": {\n \"deviceHash\": \"a1b2c3d4e5f67890\",\n \"status\": \"active\"\n },\n \"event\": {\n \"type\": \"connected\",\n \"code\": \"LIST_DEVICES\",\n \"message\": \"Device connected and ready\"\n },\n \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Signature Check\nIf `statusWebhookSecret` was set, the `X-Webhook-Signature` header will contain the HMAC-SHA256 signature of the payload."
     },
     servers: [
       { url: "http://localhost:3000" }
     ],
     tags: [
-      { name: "Gateway", description: "Autenticação e saúde do gateway" },
-      { name: "Device Management", description: "Gerenciamento de dispositivos e containers" },
+      { name: "Gateway", description: "Gateway Authentication and Health" },
+      { name: "Device Management", description: "Device and container management" },
       { name: "app", description: "Initial Connection to Whatsapp server" },
       { name: "user", description: "Getting information" },
       { name: "send", description: "Send Message (Text/Image/File/Video)." },

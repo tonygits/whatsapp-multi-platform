@@ -2,17 +2,17 @@ import crypto from 'crypto';
 
 class DeviceUtils {
   /**
-   * Gera um ID único aleatório para o dispositivo
-   * @returns {string} - ID único do dispositivo (16 caracteres hexadecimais)
+   * Generates a random unique ID for the device
+   * @returns {string} - Unique device ID (16 hexadecimal characters)
    */
   static generateDeviceHash(): string {
     return crypto.randomBytes(8).toString('hex');
   }
 
   /**
-   * Valida formato de device hash
+   * Validates device hash format
    * @param {string} deviceHash - Device hash
-   * @returns {boolean} - Se é válido
+   * @returns {boolean} - Whether valid
    */
   static validateDeviceHash(deviceHash: string): boolean {
     if (!deviceHash || typeof deviceHash !== 'string') return false;

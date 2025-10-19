@@ -20,7 +20,7 @@ class DeviceRepository {
       } = deviceData;
 
       if (!device_hash) {
-        throw new Error('Device hash é obrigatório');
+        throw new Error('Device hash is mandatory');
       }
 
       const result = await database.run(
@@ -42,16 +42,14 @@ class DeviceRepository {
         'SELECT * FROM devices WHERE id = ?',
         [result.lastID]
       );
-      logger.info(`Dispositivo criado com hash: ${device_hash}`, { deviceId: result.lastID, deviceHash: device_hash });
+      logger.info(`Hashed device created: ${device_hash}`, { deviceId: result.lastID, deviceHash: device_hash });
       
       return device;
     } catch (error) {
-      logger.error('Erro ao criar dispositivo:', error);
+      logger.error('Error creating device:', error);
       throw error;
     }
   }
-
-
 
   /**
    * Find device by device hash
@@ -66,7 +64,7 @@ class DeviceRepository {
       );
       return device;
     } catch (error) {
-      logger.error('Erro ao buscar dispositivo por hash:', error);
+      logger.error('Error fetching device by hash:', error);
       throw error;
     }
   }
@@ -96,7 +94,7 @@ class DeviceRepository {
       const devices = await database.all(sql, params);
       return devices;
     } catch (error) {
-      logger.error('Erro ao listar dispositivos:', error);
+      logger.error('Error listing devices:', error);
       throw error;
     }
   }
@@ -140,7 +138,7 @@ class DeviceRepository {
       }
 
       if (fields.length === 0) {
-        throw new Error('Nenhum campo válido para atualização');
+        throw new Error('No valid fields to update');
       }
 
       params.push(id);
@@ -155,11 +153,11 @@ class DeviceRepository {
         'SELECT * FROM devices WHERE id = ?',
         [id]
       );
-      logger.info(`Dispositivo atualizado: ${id}`);
+      logger.info(`Updated Device: ${id}`);
       
       return updatedDevice;
     } catch (error) {
-      logger.error('Erro ao atualizar dispositivo:', error);
+      logger.error('Error updating device:', error);
       throw error;
     }
   }
@@ -178,17 +176,15 @@ class DeviceRepository {
 
       const success = result.changes > 0;
       if (success) {
-        logger.info(`Dispositivo removido: ${id}`);
+        logger.info(`Device removed: ${id}`);
       }
       
       return success;
     } catch (error) {
-      logger.error('Erro ao remover dispositivo:', error);
+      logger.error('Error removing device:', error);
       throw error;
     }
   }
-
-
 
 
   /**
@@ -209,7 +205,7 @@ class DeviceRepository {
 
       return stats;
     } catch (error) {
-      logger.error('Erro ao obter estatísticas:', error);
+      logger.error('Error getting statistics:', error);
       throw error;
     }
   }

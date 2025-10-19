@@ -44,13 +44,13 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
     checks["deviceManager"] = {
       status: 'healthy',
       stats,
-      message: 'Device Manager operacional'
+      message: 'Device Manager operational'
     };
   } catch (error: any) {
     checks["deviceManager"] = {
       status: 'unhealthy',
       error: error?.message,
-      message: 'Erro no Device Manager'
+      message: 'Error in Device Manager'
     };
   }
 
@@ -61,13 +61,13 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
       status: 'healthy',
       processCount: processes.length,
       runningProcesses: processes.filter((p: any) => p.running).length,
-      message: 'Binary Manager operacional'
+      message: 'Binary Manager operational'
     };
   } catch (error: any) {
     checks["binaryManager"] = {
       status: 'unhealthy',
       error: error?.message,
-      message: 'Erro no Binary Manager'
+      message: 'Error in Binary Manager'
     };
   }
 
@@ -76,13 +76,13 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
     await fsPromises.access(BIN_PATH, fsPromises.constants.F_OK | fsPromises.constants.X_OK);
     checks["whatsappBinary"] = {
       status: 'healthy',
-      message: 'Binário WhatsApp acessível'
+      message: 'Accessible WhatsApp Binary'
     };
   } catch (error: any) {
     checks["whatsappBinary"] = {
       status: 'unhealthy',
       error: error?.message,
-      message: 'Erro no binário WhatsApp'
+      message: 'Error in WhatsApp binary'
     };
   }
 
@@ -97,7 +97,7 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
     checks["fileSystem"] = {
       status: 'unhealthy',
       error: error?.message,
-      message: 'Erro no sistema de arquivos'
+      message: 'File system error'
     };
   }
 
@@ -282,7 +282,7 @@ router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
   const { services = [] } = req.body;
   const healingResults: Record<string, any> = {};
 
-  logger.info('Iniciando processo de auto-healing...');
+  logger.info('Starting the self-healing process...');
 
   // Heal specific services or all if none specified
   const servicesToHeal = services.length > 0 ? services : ['processes'];
@@ -301,9 +301,9 @@ router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
               try {
                 await binaryManager.startProcess(device.deviceHash);
                 healedProcesses++;
-                logger.info(`Processo ${device.deviceHash} reiniciado`);
+                logger.info(`Process ${device.deviceHash} restarted`);
               } catch (error) {
-                logger.error(`Erro ao reiniciar processo ${device.deviceHash}:`, error);
+                logger.error(`Error restarting process ${device.deviceHash}:`, error);
               }
             }
           }
@@ -311,7 +311,7 @@ router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
       healingResults["processes"] = {
             status: 'success',
             healedCount: healedProcesses,
-            message: `${healedProcesses} processos reiniciados`
+            message: `${healedProcesses} restarted processes`
           };
           break;
 
@@ -319,19 +319,19 @@ router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
         default:
           healingResults[service] = {
             status: 'error',
-            message: `Serviço ${service} não suportado para auto-healing`
+            message: `Service ${service} not supported for auto-healing`
           };
       }
     } catch (error) {
       healingResults[service] = {
         status: 'error',
         error: (error as any)?.message,
-        message: `Erro durante healing do serviço ${service}`
+        message: `Error while healing service ${service}`
       };
     }
   }
 
-  logger.info('Processo de auto-healing concluído');
+  logger.info('Self-healing process completed');
 
   res.json({
     status: 'completed',

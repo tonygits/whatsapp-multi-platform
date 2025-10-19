@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Simplificado: detecta SO/arch, baixa e extrai direto em api-gateway/whatsapp
+# Simplified: detect OS/arch, download and extract directly in api-gateway/whatsapp
 set -e
 
 VER="${WHATSAPP_VERSION:-7.5.0}"
@@ -9,20 +9,20 @@ uname_s=$(uname -s)
 case "$uname_s" in
   Darwin) os="darwin" ;;
   Linux)  os="linux"  ;;
-  *) echo "SO não suportado: $uname_s" >&2; exit 1 ;;
+  *) echo "Unsupported OS: $uname_s" >&2; exit 1 ;;
 esac
 
 uname_m=$(uname -m)
 case "$uname_m" in
   x86_64|amd64) arch="amd64" ;;
   arm64|aarch64) arch="arm64" ;;
-  *) echo "Arquitetura não suportada: $uname_m" >&2; exit 1 ;;
+  *) echo "Unsupported architecture: $uname_m" >&2; exit 1 ;;
 esac
 
 ZIP="whatsapp_${VER}_${os}_${arch}.zip"
 URL="https://github.com/aldinokemal/go-whatsapp-web-multidevice/releases/download/v${VER}/${ZIP}"
 
-echo "Baixando: ${URL}"
+echo "Downloading: ${URL}"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 

@@ -53,7 +53,7 @@ logger.exceptions.handle(
 );
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (ex) => {
+process.on('unhandled rejection', (ex) => {
   logger.error('Unhandled Promise Rejection:', ex);
 });
 

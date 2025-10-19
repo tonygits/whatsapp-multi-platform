@@ -2,7 +2,7 @@
 
 ## Overview
 
-WhatsApp Multi-Platform API Gateway para gerenciar múltiplos dispositivos WhatsApp.
+WhatsApp Multi-Platform API Gateway to manage multiple WhatsApp devices.
 
 ## Authentication
 
@@ -56,8 +56,6 @@ x-instance-id: a1b2c3d4e5f67890
   "message": "Hello World"
 }
 ```
-
-
 
 ## Environment Configuration
 

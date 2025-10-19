@@ -1,65 +1,66 @@
-# Configuração do Docker Hub para GitHub Actions
+# Docker Hub Configuration for GitHub Actions
 
-## Passos para configurar o deploy automático no Docker Hub
+## Steps to configure automatic deployment on Docker Hub
 
-### 1. Configurar Secrets no GitHub
+### 1. Configure Secrets on GitHub
 
-Acesse o repositório no GitHub e vá em **Settings > Secrets and variables > Actions**
+Access the repository on GitHub and go to **Settings > Secrets and variables > Actions**
 
-Adicione os seguintes secrets:
+Add the following secrets:
 
-- `DOCKER_USERNAME`: Seu nome de usuário do Docker Hub
-- `DOCKER_PASSWORD`: Sua senha do Docker Hub ou Access Token (recomendado)
+- `DOCKER_USERNAME`: Your Docker Hub username
+- `DOCKER_PASSWORD`: Your Docker Hub password or Access Token (recommended)
 
-### 2. Criar Access Token no Docker Hub (Recomendado)
+### 2. Create an Access Token on Docker Hub (recommended)
 
-1. Acesse [Docker Hub](https://hub.docker.com/)
-2. Vá em **Account Settings > Security**
-3. Clique em **New Access Token**
-4. Dê um nome descritivo (ex: "GitHub Actions")
-5. Selecione as permissões necessárias
-6. Copie o token gerado e use como `DOCKER_PASSWORD`
+1. Access [Docker Hub](https://hub.docker.com/)
+2. Go to **Account Settings > Security**
+3. Click **New Access Token**
+4. Give it a descriptive name (e.g., "GitHub Actions")
+5. Select the necessary permissions
+6. Copy the generated token and use it as `DOCKER_PASSWORD`
 
-### 3. Nome da Imagem
+### 3. Image Name
 
-O workflow está configurado para usar o formato:
+The workflow is configured to use the format:
 ```
-docker.io/SEU_USERNAME/whatsapp-multi-platform-api
+docker.io/YOUR_USERNAME/whatsapp-multi-platform-api
 ```
 
-### 4. Tags Automáticas
+### 4. Automatic Tags
 
-O workflow criará automaticamente as seguintes tags:
-- `latest` - para builds da branch main
-- `v1.0.0` - para tags de versão semântica
-- `main` - para builds da branch main
-- `pr-123` - para pull requests
+The workflow will automatically create the following tags:
+- `latest` - for builds from the main branch
+- `v1.0.0` - for semantic version tags
+- `main` - for builds from the main branch
+- `pr-123` - for pull requests
 
-### 5. Plataformas Suportadas
+### 5. Supported Platforms
 
-A imagem será buildada para:
+The image will be built for:
 - `linux/amd64`
 - `linux/arm64`
 
-### 6. Recursos do Workflow
+### 6. Workflow Features
 
-- ✅ Build multi-arquitetura
-- ✅ Cache otimizado do Docker
-- ✅ Atualização automática da descrição no Docker Hub
-- ✅ Metadados e labels automáticos
-- ✅ Segurança: não executa push em pull requests
+- ✅ Multi-architecture build
+- ✅ Optimized Docker cache
+- ✅ Automatic description update on Docker Hub
+- ✅ Automatic metadata and labels
+- ✅ Security: does not push on pull requests
 
-### 7. Primeiro Deploy
+### 7. First Deployment
 
-Após configurar os secrets, faça um commit na branch `main` ou crie uma tag para iniciar o primeiro build.
+After configuring the secrets, commit to the `main` branch or create a tag to start the first build.
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-### 8. Monitoramento
+### 8. Monitoring
 
-Monitore o progresso do build em:
-- **Actions** tab do seu repositório GitHub
-- **Builds** section do Docker Hub
+Monitor build progress in:
+- **Actions** tab of your GitHub repository
+- **Builds** section of Docker Hub
+- 

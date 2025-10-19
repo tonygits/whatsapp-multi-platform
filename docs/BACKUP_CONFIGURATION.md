@@ -1,20 +1,20 @@
-# Configuração de Backup Automático
+# Automatic Backup Configuration
 
-## Variáveis de Ambiente
+## Environment Variables
 
-### Configurações Básicas
+### Basic Settings
 
-| Variável | Padrão | Descrição |
+| Variable | Standard | Description |
 |----------|--------|-----------|
-| `BACKUP_ENABLED` | `false` | Habilita/desabilita o sistema de backup automático |
-| `BACKUP_SCHEDULE` | `0 2 * * *` | Cronograma do backup (formato cron) - padrão: 2h da manhã todos os dias |
-| `BACKUP_TIMEZONE` | `America/Sao_Paulo` | Fuso horário para execução dos backups |
-| `BACKUP_MAX_BACKUPS` | `3` | Número máximo de backups a manter (versões mais antigas são removidas) |
-| `BACKUP_STOP_INSTANCES` | `false` | Para instâncias antes do backup para maior segurança dos dados |
+| `BACKUP_ENABLED` | `false` | Enables/disables the automatic backup system|
+| `BACKUP_SCHEDULE` | `0 2 * * *` | Backup schedule (cron format) - default: 2 AM every day |
+| `BACKUP_TIMEZONE` | `America/Sao_Paulo` | Time zone for running backups|
+| `BACKUP_MAX_BACKUPS` | `3` | Maximum number of backups to keep (older versions are removed)|
+| `BACKUP_STOP_INSTANCES` | `false` | For instances before backup for greater data security|
 
-### Configurações do S3
+### S3 Settings
 
-| Variável | Padrão | Descrição |
+| Variable | Standard | Description |
 |----------|--------|-----------|
 | `BACKUP_S3_BUCKET` | - | Nome do bucket S3 (obrigatório) |
 | `BACKUP_S3_REGION` | `us-east-1` | Região do S3 |
@@ -22,20 +22,20 @@
 | `BACKUP_S3_SECRET_KEY` | - | Secret Key do S3 (obrigatório) |
 | `BACKUP_S3_ENDPOINT` | - | Endpoint customizado S3 (opcional - para S3 compatível) |
 
-### Configurações de Compressão e Segurança
+### Compression and Security Settings
 
-| Variável | Padrão | Descrição |
+| Variable | Standard | Description |
 |----------|--------|-----------|
-| `BACKUP_COMPRESSION_LEVEL` | `6` | Nível de compressão (1-9, onde 9 é máxima compressão) |
-| `BACKUP_ENCRYPTION_KEY` | - | Chave para criptografia AES-256 (opcional) |
+| `BACKUP_COMPRESSION_LEVEL` | `6` | Compression level (1-9, where 9 is maximum compression)|
+| `BACKUP_ENCRYPTION_KEY` | - | Key for AES-256 encryption (optional)|
 
-## Exemplo de Configuração
+## Configuration Example
 
 ```bash
 # .env
 BACKUP_ENABLED=true
 BACKUP_SCHEDULE="0 2 * * *"
-BACKUP_TIMEZONE=America/Sao_Paulo
+BACKUP_TIMEZONE=Africa/Nairobi
 BACKUP_MAX_BACKUPS=3
 BACKUP_STOP_INSTANCES=true
 
@@ -50,28 +50,28 @@ BACKUP_COMPRESSION_LEVEL=6
 BACKUP_ENCRYPTION_KEY=minha-chave-super-secreta-256-bits
 ```
 
-## Cronogramas de Backup Comuns
+## Common Backup Schedules
 
-| Expressão Cron | Descrição |
+| Cron Expression| Description |
 |----------------|-----------|
-| `0 2 * * *` | Todos os dias às 2h |
-| `0 2 * * 0` | Domingos às 2h |
-| `0 */6 * * *` | A cada 6 horas |
-| `0 2 1 * *` | No primeiro dia do mês às 2h |
+| `0 2 * * *` | Every day at 2am|
+| `0 2 * * 0` | Sundays at 2am|
+| `0 */6 * * *` | Every 6 hours|
+| `0 2 1 * *` | On the first day of the month at 2 am|
 
 ## Endpoints da API
 
 ### GET /api/backup/status
-Retorna o status atual do sistema de backup.
+Returns the current status of the backup system.
 
 ### POST /api/backup/trigger
-Executa um backup manual imediatamente.
+Performs a manual backup immediately.
 
 ### GET /api/backup/list
-Lista todos os backups disponíveis no S3.
+Lists all available backups in S3.
 
 ### POST /api/backup/restore
-Restaura um backup específico.
+Restores a specific backup.
 
 ```json
 {
@@ -79,9 +79,9 @@ Restaura um backup específico.
 }
 ```
 
-## Estrutura dos Backups
+## Backup Structure
 
-Os backups são salvos no S3 com a seguinte estrutura:
+Backups are saved to S3 with the following structure:
 
 ```
 s3://meu-bucket/
@@ -93,9 +93,9 @@ s3://meu-bucket/
 │   └── ...
 ```
 
-### Metadados do Backup
+### Backup Metadata
 
-Cada backup inclui um arquivo de metadados JSON:
+Each backup includes a JSON metadata file:
 
 ```json
 {
@@ -108,33 +108,33 @@ Cada backup inclui um arquivo de metadados JSON:
 }
 ```
 
-## Segurança
+## Security
 
-- **Criptografia**: Use `BACKUP_ENCRYPTION_KEY` para criptografar backups
-- **Acesso S3**: Configure IAM policies restritivas
-- **Credenciais**: Mantenha as chaves S3 seguras
-- **Rede**: Use HTTPS/TLS para todas as transferências
+- **Cryptography**: Use `BACKUP_ENCRYPTION_KEY` to encrypt backups
+- **S3 Access**: Configure restrictive IAM policies
+- **Credentials**: Keep S3 keys safe
+- **Network**: Use HTTPS/TLS for all transfers
 
-## Monitoramento
+## Monitoring
 
-- Logs detalhados em `/logs/app.log`
-- WebSocket notifications para status de backup
-- Métricas via endpoint `/api/backup/status`
+- Detailed logs in `/logs/app.log`
+- WebSocket notifications for backup status
+- Endpoint metrics `/api/backup/status`
 
-## Restauração
+## Restoration
 
-⚠️ **ATENÇÃO**: A restauração substitui completamente a pasta `data` atual. Um backup da pasta atual é criado antes da restauração como medida de segurança.
+⚠️ **ATTENTION**: Restoring completely replaces the current `data` folder. A backup of the current folder is created before restoring as a safety precaution.
 
 ## Troubleshooting
 
-### Erro: "BACKUP_S3_BUCKET não está configurado"
-Configure a variável `BACKUP_S3_BUCKET` com o nome do seu bucket S3.
+### Error: "BACKUP_S3_BUCKET is not configured"
+Set the `BACKUP_S3_BUCKET` variable to the name of your S3 bucket.
 
-### Erro: "Falha ao conectar com S3"
-Verifique as credenciais e a conectividade com a AWS.
+### Error: "Failed to connect to S3"
+Verify AWS credentials and connectivity.
 
-### Backup falha durante compressão
-Verifique se há espaço em disco suficiente na pasta `temp`.
+### Backup fails during compression
+Check that there is enough disk space in the `temp` folder.
 
-### Criptografia falha
-Verifique se `BACKUP_ENCRYPTION_KEY` tem pelo menos 32 caracteres.
+### Encryption failed
+Verify that `BACKUP_ENCRYPTION_KEY` is at least 32 characters long.

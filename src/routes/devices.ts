@@ -38,7 +38,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
     paginatedDevices = devicesArray.slice(offsetNum, offsetNum + limitNum);
   }
 
-  // Add container/process status e enriquecer dados de saída
+// Add container/process status and enrich output data
   const devicesWithStatus = await Promise.all(
     paginatedDevices.map(async (device: any) => {
       const process = await binaryManager.getProcessStatus(device.deviceHash);
@@ -97,12 +97,13 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
  * Register a new device (generates deviceHash automatically)
  */
 router.post('/', asyncHandler(async (req: Request, res: Response) => {
+    console.log("Received request to register new device");
   const { autoStart = true, webhookUrl, webhookSecret, statusWebhookUrl, statusWebhookSecret } = req.body;
 
   // Generate unique device hash
   const deviceHash = DeviceUtils.generateDeviceHash();
   
-  logger.info(`Iniciando registro para novo dispositivo: ${deviceHash}`);
+  logger.info(`Starting registration for new device: ${deviceHash}`);
 
   try {
     // Create device in DB
@@ -113,16 +114,16 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
       statusWebhookSecret
     });
 
-    logger.info(`Dispositivo ${deviceHash} criado no DB.`);
+    logger.info(`Device ${deviceHash} created in DB.`);
 
     // Start process if requested
     let process = null;
     if (autoStart) {
-      logger.info(`Iniciando processo para ${deviceHash}...`);
+      logger.info(`Starting process for ${deviceHash}...`);
       try {
         process = await binaryManager.startProcess(deviceHash);
       } catch (processError) {
-        logger.warn(`Erro ao iniciar processo para ${deviceHash}, mas dispositivo foi criado:`, (processError as any)?.message);
+        logger.warn(`Error starting process for ${deviceHash}, but device was created:`, (processError as any)?.message);
       }
     }
     
@@ -130,11 +131,11 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
     const finalDeviceState = await deviceManager.getDevice(deviceHash);
     const finalProcessState = process || await binaryManager.getProcessStatus(deviceHash);
 
-    logger.info(`Registro para ${deviceHash} concluído com sucesso.`);
+    logger.info(`Registration for ${deviceHash} completed successfully.`);
 
     res.status(201).json({
       success: true,
-      message: 'Dispositivo registrado com sucesso.',
+      message: 'Device registered successfully.',
       data: {
         deviceHash: finalDeviceState?.deviceHash ?? deviceHash,
         status: finalDeviceState?.status ?? 'unknown',
@@ -143,8 +144,8 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    logger.error(`Erro catastrófico ao registrar dispositivo ${deviceHash}:`, error);
-    throw new CustomError('Ocorreu um erro inesperado durante o registro.', 500, 'REGISTRATION_UNEXPECTED_ERROR');
+    logger.error(`Catastrophic error registering device ${deviceHash}:`, error);
+    throw new CustomError('An unexpected error occurred during registration.', 500, 'REGISTRATION_UNEXPECTED_ERROR');
   }
 }));
 
@@ -156,7 +157,7 @@ router.put('/', resolveInstance, asyncHandler(async (req: Request, res: Response
   const device = (req as any).device;
   const updates = req.body;
 
-  // Filter allowed updates (não permitir alteração de hashes, etc.)
+// Filter allowed updates (do not allow changing hashes, etc.)
   const allowedFields = ['webhookUrl', 'webhookSecret', 'statusWebhookUrl', 'statusWebhookSecret'];
   const filteredUpdates: { [key: string]: any } = {};
   
@@ -168,11 +169,11 @@ router.put('/', resolveInstance, asyncHandler(async (req: Request, res: Response
 
   const updatedDevice = await DeviceRepository.update(device.id, filteredUpdates);
 
-  logger.info(`Dispositivo ${device.deviceHash} atualizado`);
+  logger.info(`Device ${device.deviceHash} updated`);
 
   res.json({
     success: true,
-    message: 'Dispositivo atualizado com sucesso',
+    message: 'Device updated successfully',
     data: {
       deviceHash: updatedDevice.device_hash,
       status: updatedDevice.status
@@ -188,7 +189,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
   const device = (req as any).device;
   const { force = false } = req.query;
 
-  logger.info(`Removendo dispositivo: ${device.deviceHash}`);
+  logger.info(`Removing device: ${device.deviceHash}`);
 
   try {
     // Stop process first
@@ -196,7 +197,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
       await binaryManager.stopProcess(device.deviceHash);
     } catch (error) {
       if (!force) throw error;
-      logger.warn(`Erro ao parar processo, mas continuando devido ao force=true: ${(error as any)?.message}`);
+      logger.warn(`Error stopping process, but continuing due to force=true: ${(error as any)?.message}`);
     }
 
     // Remove from device manager
@@ -204,21 +205,21 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
 
     if (!removed) {
       throw new CustomError(
-        'Erro ao remover dispositivo',
+        'Error removing device',
         500,
         'REMOVAL_ERROR'
       );
     }
 
-    logger.info(`Dispositivo ${device.deviceHash} removido com sucesso`);
+    logger.info(`Device ${device.deviceHash} successfully removed`);
 
     res.json({
       success: true,
-      message: 'Dispositivo removido com sucesso'
+      message: 'Device removed successfully'
     });
 
   } catch (error) {
-    logger.error(`Erro ao remover dispositivo ${device.deviceHash}:`, error);
+    logger.error(`Error removing device ${device.deviceHash}:`, error);
     throw error;
   }
 }));
@@ -230,6 +231,7 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
  * Get specific device information by instance ID
  */
 router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+    console.log('Received request for device info');
   const device = (req as any).device;
   const process = await binaryManager.getProcessStatus(device.deviceHash);
   const containerPort = device.containerInfo?.port || process?.port || null;
@@ -270,15 +272,16 @@ router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Resp
  * Start device container by instance ID
  */
 router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+  console.log('Received request to start device');
   const device = (req as any).device;
 
-  logger.info(`Iniciando container para ${device.deviceHash}`);
+  logger.info(`Starting container for ${device.deviceHash}`);
 
   await binaryManager.startProcess(device.deviceHash);
 
   res.json({
     success: true,
-    message: 'Processo iniciado com sucesso'
+    message: 'Process started successfully'
   });
 }));
 
@@ -287,15 +290,16 @@ router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Re
  * Stop device container by instance ID
  */
 router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+    console.log('Received request to stop device');
   const device = (req as any).device;
 
-  logger.info(`Parando container para ${device.deviceHash}`);
+  logger.info(`Stopping container for ${device.deviceHash}`);
 
   await binaryManager.stopProcess(device.deviceHash);
 
   res.json({
     success: true,
-    message: 'Processo parado com sucesso'
+    message: 'Process stopped successfully'
   });
 }));
 
@@ -304,15 +308,16 @@ router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Res
  * Restart device container by instance ID
  */
 router.post('/restart', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
+    console.log('Received request to restart device');
   const device = (req as any).device;
 
-  logger.info(`Reiniciando container para ${device.deviceHash}`);
+  logger.info(`Restarting container for ${device.deviceHash}`);
 
   await binaryManager.restartProcess(device.deviceHash);
 
   res.json({
     success: true,
-    message: 'Processo reiniciado com sucesso'
+    message: 'Process restarted successfully'
   });
 }));
 

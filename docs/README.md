@@ -1,64 +1,65 @@
-# 📚 Documentação do WhatsApp Multi-Platform API Gateway
 
-## 📋 Índice da Documentação
+# 📚 WhatsApp Multi-Platform API Gateway Documentation
+
+## 📋 Documentation Index
 
 ### 🚀 Getting Started
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Quick start guide for new users
 
-### 🏗️ Arquitetura e Conceitos
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitetura técnica do sistema
-- **[DEVICE_SECURITY.md](./DEVICE_SECURITY.md)** - Segurança e identificação por deviceHash
-- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - Variáveis de ambiente completas
+### 🏗️ Architecture and Concepts
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System technical architecture
+- **[DEVICE_SECURITY.md](./DEVICE_SECURITY.md)** - Security and deviceHash identification
+- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - Complete environment variables
 
-### 🔄 APIs e Integrações
-- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Documentação completa das APIs
-- **[WEBHOOK_STATUS.md](./WEBHOOK_STATUS.md)** - Sistema de webhooks de status
-- **[openapi.yaml](./openapi.yaml)** - Especificação OpenAPI/Swagger
-- **[openapi.json](./openapi.json)** - Especificação OpenAPI (JSON)
+### 🔄 APIs and Integrations
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API documentation
+- **[WEBHOOK_STATUS.md](./WEBHOOK_STATUS.md)** - Status webhook system
+- **[openapi.yaml](./openapi.yaml)** - OpenAPI/Swagger specification
+- **[openapi.json](./openapi.json)** - OpenAPI specification (JSON)
 
-### 🐳 Deploy e Infraestrutura
-- **[DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)** - Deploy automático para Docker Hub
-- **[DOCKER_HUB_SETUP.md](./DOCKER_HUB_SETUP.md)** - Configuração do GitHub Actions
+### 🐳 Deployment and Infrastructure
+- **[DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)** - Automatic deployment to Docker Hub
+- **[DOCKER_HUB_SETUP.md](./DOCKER_HUB_SETUP.md)** - GitHub Actions configuration
 
+## 🚀 Links Fast
 
-## 🚀 Links Rápidos
-
-### APIs Disponíveis
+### Available APIs
 - **Swagger UI**: `http://localhost:3000/docs`
 - **OpenAPI YAML**: `http://localhost:3000/docs/openapi.yaml`
 - **Health Check**: `http://localhost:3000/api/health`
 
-### Principais Endpoints
+### Main Endpoints
+
 ```bash
-# Registrar dispositivo
+# Register device
 POST /api/devices
 
-# Obter QR code
+# Get QR code
 GET /api/login
 Header: x-instance-id: {deviceHash}
 
-# Enviar mensagem
+# Send message
 POST /api/send/message
 Header: x-instance-id: {deviceHash}
 ```
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 docs/
-├── README.md                 # Este arquivo (índice)
-├── GETTING_STARTED.md        # Guia de primeiros passos  
-├── API_DOCUMENTATION.md      # Docs das APIs
-├── ARCHITECTURE.md           # Arquitetura técnica
-├── DEVICE_SECURITY.md        # Segurança deviceHash
-├── WEBHOOK_STATUS.md         # Sistema de webhooks
-├── DOCKER_DEPLOY.md          # Deploy Docker Hub
-├── DOCKER_HUB_SETUP.md       # Setup GitHub Actions
-├── openapi.yaml              # Especificação OpenAPI
-└── openapi.json              # Especificação OpenAPI (JSON)
+├── README.md                   # This file (index)
+├── GETTING_STARTED.md          # Getting started guide
+├── API_DOCUMENTATION.md        # API docs
+├── ARCHITECTURE.md             # Technical architecture
+├── DEVICE_SECURITY.md          # Security deviceHash
+├── WEBHOOK_STATUS.md           # Webhook system
+├── DOCKER_DEPLOY.md            # Deploy Docker Hub
+├── DOCKER_HUB_SETUP.md         # Setup GitHub Actions
+├── openapi.yaml                # OpenAPI specification
+└── openapi.json                # OpenAPI Specification (JSON)
 ```
 
-## 📖 Como Usar Esta Documentação
+## 📖 How to Use This Documentation
 
 1. **New Users**: Start with [GETTING_STARTED.md](./GETTING_STARTED.md)
 2. **Developers**: Go directly to [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
@@ -67,4 +68,4 @@ docs/
 
 ---
 
-*Documentação organizada e centralizada - Projeto WhatsApp Multi-Platform API Gateway*
+*Organized and centralized documentation - WhatsApp Multi-Platform API Gateway Project*

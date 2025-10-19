@@ -39,28 +39,28 @@ class APIGateway {
   wss!: WebSocket.Server;
 
   constructor() {
-    console.log('🏗️ Iniciando constructor...');
+    console.log('🏗️ Starting constructor...');
     this.app = express();
     this.server = http.createServer(this.app);
     this.port = process.env.API_PORT || 3000;
-    console.log('✅ Express e server criados');
+    console.log('✅ Express and server created');
     
-    console.log('⚙️ Configurando middleware...');
+    console.log('⚙️ Configuring middleware...');
     this.setupMiddleware();
-    console.log('✅ Middleware configurado');
+    console.log('✅ Configured middleware');
     
-    console.log('🛣️ Configurando rotas...');
+    console.log('🛣️ Configuring routes...');
     this.setupRoutes();
-    console.log('✅ Rotas configuradas');
+    console.log('✅ Configured routes');
     
-    console.log('🔌 Configurando WebSocket...');
+    console.log('🔌 Configuring WebSocket...');
     this.setupWebSocket();
-    console.log('✅ WebSocket configurado');
+    console.log('✅ Configured WebSocket');
     
-    console.log('❌ Configurando error handling...');
+    console.log('❌ Configuring error handling...');
     this.setupErrorHandling();
-    console.log('✅ Error handling configurado');
-    console.log('🎉 Constructor finalizado!');
+    console.log('✅ Error handling configured');
+    console.log('🎉 Builder finished!');
   }
 
   setupMiddleware() {
@@ -75,7 +75,7 @@ class APIGateway {
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
       max: typeof process.env.API_RATE_LIMIT === 'string' ? parseInt(process.env.API_RATE_LIMIT) : 100,
-      message: 'Muitas requisições deste IP, tente novamente em 15 minutos.',
+      message: 'Too many requests from this IP, please try again in 15 minutes.',
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
       // Use a more reliable key generator that handles proxied requests
@@ -209,7 +209,7 @@ class APIGateway {
     // 404 handler
     this.app.use('*', (req, res) => {
       res.status(404).json({
-        error: 'Endpoint não encontrado',
+        error: 'Endpoint not found',
         path: req.originalUrl,
         method: req.method
       });
@@ -219,35 +219,35 @@ class APIGateway {
   async start() {
     try {
       // Initialize services in correct order
-      console.log('🔐 Inicializando authManager...');
+      console.log('🔐 Initializing authManager...');
       await authManager.initialize();
-      console.log('✅ authManager inicializado');
+      console.log('✅ authManager initialized');
 
-      console.log('📱 Inicializando deviceManager...');
+      console.log('📱 Initializing deviceManager...');
       await deviceManager.initialize();
-      console.log('✅ deviceManager inicializado');
+      console.log('✅ deviceManager initialized');
       
-      console.log('📦 Inicializando binaryManager...');
+      console.log('📦 Initializing binaryManager...');
       await binaryManager.initialize();
-      console.log('✅ binaryManager inicializado');
+      console.log('✅ initialized binaryManager');
 
       // Initialize Update Manager (non-async)
-      console.log('🔄 Inicializando updateManager...');
+      console.log('🔄 Initializing updateManager...');
       updateManager.initialize();
-      console.log('✅ updateManager inicializado');
+      console.log('✅ updateManager initialized');
 
       // Initialize Backup Manager
-      console.log('💾 Inicializando backupManager...');
+      console.log('💾 Initializing backupManager...');
       await backupManager.initialize();
-      console.log('✅ backupManager inicializado');
+      console.log('✅ backupManager initialized');
 
       // Start server last
       this.server.listen(this.port, () => {
-        logger.info(`🚀 API Gateway rodando na porta ${this.port}`);
-        logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-        logger.info(`🔐 Autenticação: ${process.env.API_AUTH_ENABLED === 'true' ? 'Ativada' : 'Desativada'}`);
-        logger.info(`🔄 Verificações de atualização: ${process.env.UPDATE_CHECK_CRON || '0 2 * * *'}`);
-        logger.info('✅ Todos os serviços inicializados com sucesso!');
+        logger.info(`🚀 API Gateway running on the port ${this.port}`);
+        logger.info(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+        logger.info(`🔐 Authentication: ${process.env.API_AUTH_ENABLED === 'true' ? 'Activated' : 'Disabled'}`);
+        logger.info(`🔄 Update checks: ${process.env.UPDATE_CHECK_CRON || '0 2 * * *'}`);
+        logger.info('✅ All services started successfully!');
       });
 
       // Graceful shutdown
@@ -255,15 +255,15 @@ class APIGateway {
       process.on('SIGINT', () => this.shutdown());
 
     } catch (error) {
-      logger.error('Erro ao inicializar API Gateway:', error);
-  console.error('ERRO CRÍTICO:', (error as any).message);
+      logger.error('Error initializing API Gateway:', error);
+  console.error('CRITICAL ERROR:', (error as any).message);
   console.error('STACK:', (error as any).stack);
       process.exit(1);
     }
   }
 
   async shutdown() {
-    logger.info('Iniciando shutdown graceful...');
+    logger.info('Starting graceful shutdown...');
     
     try {
       // Stop update manager
@@ -274,25 +274,25 @@ class APIGateway {
       
       // Close server
       this.server.close(() => {
-        logger.info('Servidor HTTP fechado');
+        logger.info('HTTP server closed');
       });
 
       // Cleanup processes
       await binaryManager.cleanup();
       
-      logger.info('Shutdown concluído');
+      logger.info('Shutdown completed');
       process.exit(0);
     } catch (error) {
-      logger.error('Erro durante shutdown:', error);
+      logger.error('Error during shutdown:', error);
       process.exit(1);
     }
   }
 }
 
 // Initialize and start the API Gateway
-console.log('🏗️ Criando instância do APIGateway...');
+console.log('🏗️ Creating APIGateway instance...');
 const gateway = new APIGateway();
-console.log('✅ Instância criada, iniciando start()...');
+console.log('✅ Instance created, starting start()...');
 gateway.start();
 
 export default gateway;

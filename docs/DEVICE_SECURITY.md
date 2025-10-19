@@ -1,87 +1,87 @@
-# Segurança de Dispositivos
+# Device Security
 
-## Visão Geral
+## Overview
 
-Sistema que utiliza deviceHash para identificação segura de dispositivos sem exposição de dados pessoais.
+A system that uses deviceHash to securely identify devices without exposing personal data.
 
-## Comportamento Automático
+## Automatic Behavior
 
-| Ambiente | Logs | APIs | Uso |
+| Environment | Logs | APIs | Use |
 |----------|------|------|-----|
-| `development` | deviceHash | deviceHash | Desenvolvimento local |
-| `staging` | deviceHash | deviceHash | Testes |  
-| `production` | deviceHash | deviceHash | Produção |
+| `development` | deviceHash | deviceHash | Local development|
+| `staging` | deviceHash | deviceHash | Tests |  
+| `production` | deviceHash | deviceHash | Production |
 
-*Sistema sempre utiliza deviceHash gerado automaticamente*
+*The system always uses an automatically generated deviceHash*
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 ```bash
-# Sistema utiliza deviceHash automaticamente
-NODE_ENV=development  # deviceHash para desenvolvimento
-NODE_ENV=production   # deviceHash para produção
+# System automatically uses deviceHash
+NODE_ENV=development # deviceHash for development
+NODE_ENV=production # deviceHash for production
 ```
 
-### Exemplos de Uso
+### Usage Examples
 ```bash
-# Desenvolvimento
+# Development
 NODE_ENV=development npm start
 
-# Produção
+# Production
 NODE_ENV=production npm start
 
 # Staging
 NODE_ENV=staging npm start
 ```
 
-## Implementação
+## Implementation
 
-### Device Hash para Identificação
-```javascript
-// Sistema gera deviceHash automaticamente
-// URLs utilizam deviceHash: /api/devices (via header x-instance-id)
+### Device Hash for Identification
+```Javascript
+// System automatically generates deviceHash
+// URLs use deviceHash: /api/devices (via x-instance-id header)
 
 POST /api/devices
 {
   "webhookUrl": "https://meusite.com/webhook",
   "statusWebhookUrl": "https://meusite.com/status"
 }
-// Retorna deviceHash gerado automaticamente
+// Returns automatically generated deviceHash
 ```
 
-### Logs Seguros
+### Secure Logs
 ```javascript
-// Sistema sempre usa deviceHash
+// System always uses deviceHash
 logger.info(`Device: ${deviceHash}`);
 
-// Debug com deviceHash
+// Debug with deviceHash
 logger.debug(`Debug device: ${deviceHash}`);
 ```
 
 ## Device Hash
 
-### Padrões
-- **Formato**: Hash hexadecimal de 16 caracteres (`a1b2c3d4e5f67890`)
-- **Geração**: Automática via `crypto.randomBytes(8).toString('hex')`
+### Defaults
+- **Format**: 16-character hexadecimal hash (`a1b2c3d4e5f67890`)
+- **Generation**: Automatic via `crypto.randomBytes(8).toString('hex')`
 
-### Identificação
-- **Único**: Cada dispositivo tem um hash único
-- **Seguro**: Não expõe dados pessoais
+### Identification
+- **Unique**: Each device has a unique hash
+- **Secure**: Does not expose personal data
 
-## Estrutura de Arquivos
+## File Structure
 
 ```
-src/utils/deviceUtils.js    # Utilitários de deviceHash
-src/database/schema.sql     # device_hash único
-src/repositories/           # Gerenciamento de deviceHash
-src/routes/devices.js       # APIs com x-instance-id
+src/utils/deviceUtils.js # deviceHash Utilities
+src/database/schema.sql # unique device_hash
+src/repositories/ # deviceHash Management
+src/routes/devices.js # APIs with x-instance-id
 ```
 
-## Benefícios
+## Benefits
 
-✅ **Desenvolvimento**: deviceHash consistente  
-✅ **Produção**: Segurança por design  
-✅ **APIs Limpas**: Headers em vez de URLs  
-✅ **Privacy**: Sem exposição de dados pessoais  
-✅ **Escalável**: Identificação única e simples
+✅ **Development**: Consistent deviceHash
+✅ **Production**: Security by design
+✅ **Clean APIs**: Headers instead of URLs
+✅ **Privacy**: No personal data exposure
+✅ **Scalable**: Simple and unique identification

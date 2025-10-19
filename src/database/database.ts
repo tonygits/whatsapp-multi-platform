@@ -22,12 +22,12 @@ class Database {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      logger.info('Banco de dados já foi inicializado');
+      logger.info('Database has already been initialized');
       return;
     }
 
     try {
-      logger.info('Inicializando banco de dados SQLite...');
+      logger.info('Initializing SQLite database...');
       
       // Ensure volumes directory exists
       const dbDir = path.dirname(this.dbPath);
@@ -36,7 +36,7 @@ class Database {
       // Create database connection
       this.db = new sqlite3.Database(this.dbPath, (err) => {
         if (err) {
-          logger.error('Erro ao conectar ao banco de dados:', err);
+          logger.error('Error connecting to database:', err);
           throw err;
         }
       });
@@ -53,10 +53,10 @@ class Database {
       
       this.isConnected = true;
       this.initialized = true;
-      logger.info('Banco de dados SQLite inicializado com sucesso');
+      logger.info('SQLite database initialized successfully');
       
     } catch (error) {
-      logger.error('Erro ao inicializar banco de dados:', error);
+      logger.error('Error initializing database:', error);
       throw error;
     }
   }
@@ -98,9 +98,9 @@ class Database {
         }
       }
       
-      logger.info('Schema do banco de dados aplicado com sucesso');
+      logger.info('Database schema successfully applied');
     } catch (error) {
-      logger.error('Erro ao aplicar schema:', error);
+      logger.error('Error applying schema:', error);
       throw error;
     }
   }
@@ -114,11 +114,11 @@ class Database {
   run(sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        return reject(new Error('Database não inicializado'));
+        return reject(new Error('Database not initialized'));
       }
       this.db.run(sql, params, function(this: sqlite3.RunResult, err: Error | null) {
         if (err) {
-          logger.error('Erro ao executar query:', { sql, params, error: err });
+          logger.error('Error executing query:', { sql, params, error: err });
           reject(err);
         } else {
           resolve({
@@ -139,12 +139,12 @@ class Database {
   get(sql: string, params: any[] = []): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        return reject(new Error('Database não inicializado'));
+        return reject(new Error('Database not initialized'));
       }
 
   this.db.get(sql, params, (err: Error | null, row: any) => {
         if (err) {
-          logger.error('Erro ao executar query:', { sql, params, error: err });
+          logger.error('Error executing query:', { sql, params, error: err });
           reject(err);
         } else {
           resolve(row || null);
@@ -162,12 +162,12 @@ class Database {
   all(sql: string, params: any[] = []): Promise<any[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        return reject(new Error('Database não inicializado'));
+        return reject(new Error('Database not initialized'));
       }
 
   this.db.all(sql, params, (err: Error | null, rows: any[]) => {
         if (err) {
-          logger.error('Erro ao executar query:', { sql, params, error: err });
+          logger.error('Error executing query:', { sql, params, error: err });
           reject(err);
         } else {
           resolve(rows || []);
@@ -184,7 +184,7 @@ class Database {
   async transaction(callback: (db: Database) => Promise<void> | void): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        return reject(new Error('Database não inicializado'));
+        return reject(new Error('Database not initialized'));
       }
       this.db.serialize(() => {
         this.db.run('BEGIN TRANSACTION');
@@ -224,10 +224,10 @@ class Database {
       if (this.db) {
         this.db.close((err: any) => {
           if (err) {
-            logger.error('Erro ao fechar banco de dados:', err);
+            logger.error('Error closing database:', err);
             reject(err);
           } else {
-            logger.info('Conexão com banco de dados fechada');
+            logger.info('Database connection closed');
             this.isConnected = false;
             resolve(void 0);
           }

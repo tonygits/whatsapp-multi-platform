@@ -50,10 +50,10 @@ class StatusWebhookManager {
 
       await this.sendWebhook(device.statusWebhookUrl, device.statusWebhookSecret, payload);
       
-      logger.info(`Status webhook enviado para ${deviceHash}: ${statusData.type}`);
+      logger.info(`Webhook status sent to ${deviceHash}: ${statusData.type}`);
       
     } catch (error: any) {
-      logger.error(`Erro ao enviar status webhook para ${deviceHash}:`, error?.message);
+      logger.error(`Error sending webhook status to ${deviceHash}:`, error?.message);
     }
   }
 
@@ -85,7 +85,7 @@ class StatusWebhookManager {
           validateStatus: (status: number) => status >= 200 && status < 300
         });
 
-        logger.debug(`Webhook enviado com sucesso (tentativa ${attempt}): ${response.status}`);
+        logger.debug(`Webhook sent successfully (attempt) ${attempt}): ${response.status}`);
         return response;
 
       } catch (error: any) {
@@ -93,7 +93,7 @@ class StatusWebhookManager {
         
         if (attempt < this.retryAttempts) {
           const delay = Math.pow(2, attempt - 1) * 1000; // Exponential backoff
-          logger.warn(`Webhook falhou (tentativa ${attempt}/${this.retryAttempts}), tentando novamente em ${delay}ms`);
+          logger.warn(`Webhook failed (attempt ${attempt}/${this.retryAttempts}), retrying in ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -199,7 +199,7 @@ class StatusWebhookManager {
           status: deviceStatus,
           lastSeen: new Date().toISOString()
         });
-        logger.info(`Status do dispositivo ${deviceHash} atualizado para: ${deviceStatus}`);
+        logger.info(`Device status ${deviceHash} updated to: ${deviceStatus}`);
       }
 
       // Send webhook notification
@@ -208,7 +208,7 @@ class StatusWebhookManager {
       }
 
     } catch (error: any) {
-      logger.error(`Erro ao processar evento do container ${deviceHash}:`, error);
+      logger.error(`Error processing container event ${deviceHash}:`, error);
     }
   }
 }

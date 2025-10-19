@@ -15,16 +15,16 @@ class DeviceManager {
    * Initialize the device manager
    */
   async initialize() {
-    logger.info('Inicializando Device Manager (SQLite)...');
+    logger.info('Initializing Device Manager (SQLite)...');
     
     try {
       // Load existing ports to avoid conflicts
       await this.loadUsedPorts();
       
       
-      logger.info('Device Manager inicializado com sucesso');
+      logger.info('Device Manager initialized successfully');
     } catch (error) {
-      logger.error('Erro ao inicializar Device Manager:', error);
+      logger.error('Error initializing Device Manager:', error);
       throw error;
     }
   }
@@ -41,12 +41,12 @@ class DeviceManager {
             this.usedPorts.add(device.container_port);
           }
         }
-        logger.info(`Carregadas ${this.usedPorts.size} portas em uso`);
+        logger.info(`Loaded ${this.usedPorts.size} ports in use`);
       } else {
-        logger.warn('findAll() não retornou um array de dispositivos');
+        logger.warn('findAll() did not return an array of devices');
       }
     } catch (error) {
-      logger.error('Erro ao carregar portas usadas:', error);
+      logger.error('Error loading used ports:', error);
     }
   }
 
@@ -77,12 +77,12 @@ class DeviceManager {
    */
   async registerDevice(deviceHash: string, options: any = {}) {
     try {
-      logger.info(`Registrando dispositivo: ${deviceHash}`);
+      logger.info(`Registering device: ${deviceHash}`);
 
       // Check if device already exists
       const existingDevice = await deviceRepository.findByDeviceHash(deviceHash);
       if (existingDevice) {
-        throw new Error(`Dispositivo ${deviceHash} já registrado`);
+        throw new Error(`Device ${deviceHash} already registered`);
       }
 
       // Allocate port for the device
@@ -98,7 +98,7 @@ class DeviceManager {
         status_webhook_secret: options.statusWebhookSecret
       });
 
-      logger.info(`Dispositivo registrado com sucesso: ${deviceHash}`, { deviceId: device.id, port });
+      logger.info(`Device registered successfully: ${deviceHash}`, { deviceId: device.id, port });
       
       return {
         id: device.id,
@@ -112,7 +112,7 @@ class DeviceManager {
         createdAt: device.created_at
       };
     } catch (error) {
-      logger.error(`Erro ao registrar dispositivo ${deviceHash}:`, error);
+      logger.error(`Error registering device ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -124,11 +124,11 @@ class DeviceManager {
    */
   async removeDevice(deviceHash: string) {
     try {
-      logger.info(`Removendo dispositivo: ${deviceHash}`);
+      logger.info(`Removing device: ${deviceHash}`);
 
       const device = await deviceRepository.findByDeviceHash(deviceHash);
       if (!device) {
-        throw new Error(`Dispositivo ${deviceHash} não encontrado`);
+        throw new Error(`Device ${deviceHash} not found`);
       }
 
       // Release the port
@@ -140,12 +140,12 @@ class DeviceManager {
       const success = await deviceRepository.delete(device.id);
       
       if (success) {
-        logger.info(`Dispositivo removido com sucesso: ${deviceHash}`);
+        logger.info(`Device successfully removed: ${deviceHash}`);
       }
       
       return success;
     } catch (error) {
-      logger.error(`Erro ao remover dispositivo ${deviceHash}:`, error);
+      logger.error(`Error removing device ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -180,7 +180,7 @@ class DeviceManager {
         lastSeen: device.last_seen
       };
     } catch (error) {
-      logger.error(`Erro ao buscar dispositivo ${deviceHash}:`, error);
+      logger.error(`Error searching for device ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -195,16 +195,16 @@ class DeviceManager {
     try {
       const device = await deviceRepository.findByDeviceHash(deviceHash);
       if (!device) {
-        throw new Error(`Dispositivo ${deviceHash} não encontrado`);
+        throw new Error(`Device ${deviceHash} not found`);
       }
 
       const updatedDevice = await deviceRepository.update(device.id, updateData);
       
-      logger.info(`Dispositivo ${deviceHash} atualizado`);
+      logger.info(`Device ${deviceHash} updated`);
       
       return updatedDevice;
     } catch (error) {
-      logger.error(`Erro ao atualizar dispositivo ${deviceHash}:`, error);
+      logger.error(`Error updating device ${deviceHash}:`, error);
       throw error;
     }
   }
@@ -235,11 +235,11 @@ class DeviceManager {
           lastSeen: device.last_seen
         }));
       } else {
-        logger.warn('findAll({ status }) não retornou um array de dispositivos');
+        logger.warn('findAll({ status }) did not return an array of devices');
         return [];
       }
     } catch (error) {
-      logger.error('Erro ao listar dispositivos por status:', error);
+      logger.error('Error listing devices by status:', error);
       throw error;
     }
   }
@@ -269,11 +269,11 @@ class DeviceManager {
           lastSeen: device.last_seen
         }));
       } else {
-        logger.warn('findAll() não retornou um array de dispositivos');
+        logger.warn('findAll() did not return an array of devices');
         return [];
       }
     } catch (error) {
-      logger.error('Erro ao listar dispositivos:', error);
+      logger.error('Error listing devices:', error);
       throw error;
     }
   }
@@ -287,7 +287,7 @@ class DeviceManager {
       const stats = await deviceRepository.getStatistics();
       return stats;
     } catch (error) {
-      logger.error('Erro ao obter estatísticas:', error);
+      logger.error('Error getting statistics:', error);
       throw error;
     }
   }

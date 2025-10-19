@@ -11,9 +11,9 @@ class AuthManager {
       if (!database.isReady()) {
         await database.initialize();
       }
-      logger.info('AuthManager inicializado com sucesso');
+      logger.info('AuthManager initialized successfully');
     } catch (error) {
-      logger.error('Erro ao inicializar AuthManager:', error);
+      logger.error('Error initializing AuthManager:', error);
       throw error;
     }
   }
@@ -34,14 +34,14 @@ class AuthManager {
       const defaultPass = process.env.DEFAULT_ADMIN_PASS || 'admin';
 
       if (username === defaultUser && password === defaultPass) {
-        logger.info(`Usuário autenticado: ${username}`);
+        logger.info(`Authenticated user: ${username}`);
         return { username, role: 'admin' };
       } else {
-        logger.warn(`Falha na autenticação: ${username}`);
+        logger.warn(`Authentication failed: ${username}`);
         return null;
       }
     } catch (error) {
-      logger.error('Erro ao autenticar usuário:', error);
+      logger.error('Error authenticating user:', error);
       return null;
     }
   }
@@ -62,7 +62,7 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
     if (!authHeader || !authHeader.startsWith('Basic ')) {
       return res.status(401).json({
         success: false,
-        message: 'Credenciais de acesso requeridas',
+        message: 'Required access credentials',
         error: 'MISSING_CREDENTIALS'
       });
     }
@@ -75,7 +75,7 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Credenciais inválidas',
+        message: 'Invalid credentials',
         error: 'INVALID_CREDENTIALS'
       });
     }
@@ -85,10 +85,10 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
 
     next();
   } catch (error) {
-    logger.error('Erro no middleware de auth:', error);
+    logger.error('Error in auth middleware:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erro interno do servidor',
+      message: 'Internal server error',
       error: 'AUTH_ERROR'
     });
   }
