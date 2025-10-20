@@ -4,9 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      platforms:
-        - linux/arm64
-        - linux/amd64
+#      platforms:
+#        - linux/arm64
+#        - linux/amd64
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:
@@ -19,7 +19,7 @@ services:
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
     networks:
-      - whatsapp_network
+      - hapaniwapi-net
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
@@ -29,4 +29,4 @@ services:
       start_period: 30s
 
 networks:
-  whatsapp_network:
+  hapaniwapi-net:
