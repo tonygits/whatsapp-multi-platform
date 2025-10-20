@@ -123,8 +123,8 @@ class UpdateManager {
 
     try {
       const images = [
-        'node:18-alpine',
-        'golang:1.21-alpine',
+        'node:24-alpine',
+        'golang:1.24-alpine',
         'alpine:latest'
       ];
 

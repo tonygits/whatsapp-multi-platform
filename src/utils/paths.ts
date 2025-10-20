@@ -27,5 +27,3 @@ export const BIN_PATH = process.env.BIN_PATH || path.join(BASE_DIR, 'whatsapp');
 export const SESSIONS_DIR = process.env.SESSIONS_DIR || path.join(DATA_DIR, 'sessions');
 export const VOLUMES_DIR = path.join(DATA_DIR, 'volumes');
 export { BASE_DIR, DATA_DIR };
-
-

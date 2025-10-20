@@ -1,80 +1,80 @@
 # 🤖 CLAUDE.md
 
-## 📋 Projeto: WhatsApp Multi-Platform API Gateway
+## 📋 Project: WhatsApp Multi-Platform API Gateway
 
-### 🎯 Visão Geral
-Sistema escalável para gerenciar múltiplos dispositivos WhatsApp através de uma API Gateway com processos isolados e identificação por deviceHash.
+### 🎯 Overview
+A scalable system for managing multiple WhatsApp devices through an API Gateway with isolated processes and deviceHash identification.
 
-### 🏗️ Arquitetura Atual
-- **API Gateway**: Node.js/Express rodando na porta 3000 (acesso direto)
-- **Processos WhatsApp**: Binário `go-whatsapp-web-multidevice` em portas dinâmicas (8000+)
-- **Identificação**: deviceHash hexadecimal de 16 caracteres (auto-gerado)
-- **Banco de dados**: SQLite para persistência
-- **Sessões**: Volumes persistentes por deviceHash
-- **Deploy**: GitHub Actions com build multi-arquitetura para Docker Hub
+### 🏗️ Current Architecture
+- **API Gateway**: Node.js/Express running on port 3000 (direct access)
+- **WhatsApp Processes**: `go-whatsapp-web-multidevice` binary on dynamic ports (8000+)
+- **Identification**: 16-character hexadecimal deviceHash (auto-generated)
+- **Database**: SQLite for persistence
+- **Sessions**: Persistent volumes per deviceHash
+- **Deploy**: GitHub Actions with multi-architecture build for Docker Hub
 
-### 🔑 Identificação de Dispositivos
-- **Sistema**: Baseado em `deviceHash` (ex: `a1b2c3d4e5f67890`)
-- **Geração**: `crypto.randomBytes(8).toString('hex')`
-- **Headers**: `x-instance-id` para identificar dispositivo nas APIs
-- **Privacy**: Zero exposição de dados pessoais (phoneNumber removido)
+### 🔑 Device Identification
+- **System**: Based on `deviceHash` (e.g., `a1b2c3d4e5f67890`)
+- **Generation**: `crypto.randomBytes(8).toString('hex')`
+- **Headers**: `x-instance-id` to identify the device in APIs
+- **Privacy**: Zero exposure of personal data (phoneNumber removed)
 
-### 📁 Estrutura de Código Principal
+### 📁 Main Code Structure
 
 #### Core Services
-- `src/services/newDeviceManager.js` - Gerenciamento de dispositivos
-- `src/services/binaryManager.js` - Gerenciamento de processos WhatsApp
-- `src/services/statusWebhookManager.js` - Sistema de webhooks
-- `src/services/updateManager.js` - Verificações de atualização
+- `src/services/newDeviceManager.js` - Device Management
+- `src/services/binaryManager.js` - WhatsApp Process Management
+- `src/services/statusWebhookManager.js` - Webhook System
+- `src/services/updateManager.js` - Update Checks
 
 #### Repositories & Database
-- `src/repositories/DeviceRepository.js` - Acesso ao banco SQLite
-- `src/database/database.js` - Conexão e schema SQLite
+- `src/repositories/DeviceRepository.js` - SQLite Database Access
+- `src/database/database.js` - SQLite Connection and Schema
 
-#### Routes & API (Consolidado)
-- `src/routes/proxy.js` - **CONSOLIDADO** - Todos os 52 endpoints de proxy
-- `src/routes/devices.js` - CRUD de dispositivos
-- `src/routes/health.js` - Health checks
-- `src/routes/docs.js` - Documentação
+#### Routes & API (Consolidated)
+- `src/routes/proxy.js` - **CONSOLIDATED** - All 52 proxy endpoints
+- `src/routes/devices.js` - Device CRUD
+- `src/routes/health.js` - Health Checks
+- `src/routes/docs.js` - Documentation
 
-#### Middleware (Otimizado)
-- `src/middleware/proxyToActiveDevice.js` - **ÚNICO** middleware para proxy (consolidado)
-- `src/middleware/loginHandler.js` - Interceptação de QR codes
-- `src/middleware/auth.js` - Autenticação básica
+#### Middleware (Optimized)
+- `src/middleware/proxyToActiveDevice.js` - **SOLE** proxy middleware (consolidated)
+- `src/middleware/loginHandler.js` - QR code interception
+- `src/middleware/auth.js` - Basic authentication
 
 #### Utils
-- `src/utils/deviceUtils.js` - Utilitários de deviceHash
-- `src/utils/paths.js` - Gerenciamento de caminhos (Docker/Local)
-- `src/utils/logger.js` - Sistema de logs
+- `src/utils/deviceUtils.js` - DeviceHash utilities
+- `src/utils/paths.js` - Path management (Docker/Local)
+- `src/utils/logger.js` - Logging system
 
-### 🔄 Convenções de Nomenclatura
-- **Aplicação**: camelCase (`deviceHash`, `webhookUrl`)
-- **Banco de dados**: snake_case (`device_hash`, `webhook_url`)
-- **Conversão automática**: Repository layer faz mapeamento
+### 🔄 Naming Conventions
+- **Application**: camelCase(`deviceHash`, `webhookUrl`)
+- **Database**: snake_case(`device_hash`, (`webhook_url`)
+- **Automatic conversion**: Repository layer performs mapping
 
-### 🚀 APIs Principais
+### 🚀 Core APIs
 
-#### Registro de Dispositivo
+#### Device Registration
 ```bash
 POST /api/devices
 {
-  "webhookUrl": "https://meusite.com/webhook",
-  "statusWebhookUrl": "https://meusite.com/status"
+"webhookUrl": "https://mysite.com/webhook",
+"statusWebhookUrl": "https://mysite.com/status"
 }
-# Retorna: { deviceHash: "a1b2c3d4e5f67890", status: "registered" }
+# Returns: { deviceHash: "a1b2c3d4e5f67890", status: "registered" }
 ```
 
-#### Operações de Dispositivo
+#### Device Operations
 ```bash
-# Todas usam header: x-instance-id: a1b2c3d4e5f67890
-GET /api/devices/info          # Informações do dispositivo
-POST /api/devices/start        # Iniciar processo
-POST /api/devices/stop         # Parar processo
-DELETE /api/devices           # Remover dispositivo
-GET /api/login                # Obter QR code
+# All use header: x-instance-id: a1b2c3d4e5f67890
+GET /api/devices/info # Device information
+POST /api/devices/start # Start process
+POST /api/devices/stop # Stop process
+DELETE /api/devices # Remove device
+GET /api/login # Get QR code
 ```
 
-#### Envio de Mensagens
+#### Sending Messages
 ```bash
 POST /api/send/message
 x-instance-id: a1b2c3d4e5f67890
@@ -84,24 +84,24 @@ x-instance-id: a1b2c3d4e5f67890
 }
 ```
 
-### 📦 Sistema de Processos
+### 📦 Process System
 
-#### Iniciação
-1. DeviceHash gerado automaticamente
-2. Porta dinâmica alocada (8000+)
-3. Processo WhatsApp iniciado
-4. WebSocket conectado
-5. Health monitoring ativado
+#### Initiation
+1. DeviceHash automatically generated
+2. Dynamic port allocated (8000+)
+3. WhatsApp process started
+4. WebSocket connected
+5. Health monitoring enabled
 
-#### Gerenciamento
-- **Isolamento**: Cada deviceHash = processo separado
-- **Sessões**: Persistidas em `sessions/{deviceHash}/`
-- **Volumes**: SQLite individual por processo
-- **Auto-restart**: Sessões existentes são retomadas
+#### Management
+- **Isolation**: Each deviceHash = separate process
+- **Sessions**: Persisted in `sessions/{deviceHash}/`
+- **Volumes**: Individual SQLite per process
+- **Auto-restart**: Existing sessions are resumed
 
 ### 🔐 Webhooks de Status
 
-#### Configuração
+#### Settings
 ```json
 {
   "device": {
@@ -117,31 +117,31 @@ x-instance-id: a1b2c3d4e5f67890
 }
 ```
 
-#### Eventos
-- `login_success` - Login realizado
-- `connected` - Dispositivo conectado
-- `disconnected` - Dispositivo desconectado
-- `auth_failed` - Falha de autenticação
-- `container_event` - Eventos do processo
+#### Events
+- `login_success` - Login successful
+- `connected` - Connected device
+- `disconnected` - Disconnected device
+- `auth_failed` - Authentication failure
+- `container_event` - Process events
 
-### 🛠️ Desenvolvimento
+### 🛠️ Development
 
-#### Comandos Úteis
+#### Useful Commands
 ```bash
-# Iniciar servidor
+# Start server
 npm start
 
-# Desenvolvimento com hot-reload
+# Development with hot-reload
 npm run dev
 
-# Testes
+# Testing
 npm test
 
-# Lint e format
+# Lint and format
 npm run lint
 npm run format
 
-# Limpeza completa do sistema
+# Complete system cleanup
 ./scripts/maintenance/cleanup.sh
 ```
 
@@ -150,9 +150,9 @@ npm run format
 - **Health**: GET /api/health
 - **Diagnostics**: GET /api/health/detailed
 
-### 🔧 Configuração
+### 🔧 Configuration
 
-#### Variáveis de Ambiente
+#### Environment Variables
 ```bash
 # API Gateway
 API_PORT=3000
@@ -160,7 +160,7 @@ NODE_ENV=production
 API_RATE_LIMIT=100
 API_AUTH_ENABLED=true
 
-# Autenticação
+# Authentication
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=admin
 
@@ -183,7 +183,7 @@ MASK_PHONE_NUMBERS=true
 APP_BASE_DIR=/custom/path
 ```
 
-#### Estrutura de Arquivos
+#### File Structure
 ```
 /
 ├── api-gateway/
@@ -212,13 +212,14 @@ APP_BASE_DIR=/custom/path
 └── README.md             # Documentação principal
 ```
 
-### 📊 Schema do Banco
+### 📊 Bank Schema
 
 ```sql
 CREATE TABLE devices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   device_hash VARCHAR(16) UNIQUE NOT NULL,
   status VARCHAR(20) DEFAULT 'registered',
+  phone_number VARCHAR(20) UNIQUE NOT NULL,
   container_id VARCHAR(100),
   container_port INTEGER,
   webhook_url TEXT,
@@ -231,34 +232,34 @@ CREATE TABLE devices (
 );
 ```
 
-### 🚨 Problemas Conhecidos e Soluções
+### 🚨 Known Issues and Solutions
 
-#### Server não inicia
-- **Sintoma**: Processo morre após logs de inicialização
-- **Causa**: Ordem de inicialização incorreta
-- **Solução**: Database deve ser inicializado antes dos managers
+#### Server won't start
+- **Symptom**: Process dies after startup logs
+- **Cause**: Incorrect startup order
+- **Solution**: Database must be initialized before managers
 
-#### QR codes não aparecem fora do Docker
-- **Problema**: Path hardcoded para `/app/sessions`
-- **Solução**: Usar `SESSIONS_DIR` do `paths.js`
-- **Status**: ✅ Corrigido
+#### QR codes don't appear outside of Docker
+- **Problem**: Hardcoded path to `/app/sessions`
+- **Solution**: Use `SESSIONS_DIR` from `paths.js`
+- **Status**: ✅ Fixed
 
-#### Referências antigas a phoneNumber
-- **Problema**: Vestígios de phoneNumber em código/docs
-- **Solução**: Refatoração completa para deviceHash
-- **Status**: ✅ Concluído
+#### Old references to phoneNumber
+- **Problem**: Traces of phoneNumber in code/docs
+- **Solution**: Complete refactoring to deviceHash
+- **Status**: ✅ Complete
 
-### 🔄 Refatoração Recente (Concluída)
+### 🔄 Recent Refactoring (Completed)
 
-#### Principais Mudanças
-1. **Remoção completa de phoneNumber/name**
-2. **Introdução de deviceHash auto-gerado**
-3. **APIs usando headers x-instance-id**
-4. **Convenções camelCase/snake_case**
-5. **Limpeza de métodos duplicados**
-6. **Documentação atualizada**
+#### Major Changes
+1. **Complete removal of phoneNumber/name**
+2. **Introduction of auto-generated deviceHash**
+3. **APIs using x-instance-id headers**
+4. **CamelCase/snake_case conventions**
+5. **Duplicate method cleanup**
+6. **Updated documentation**
 
-#### Antes vs Depois
+#### Before vs After
 ```bash
 # ANTES
 POST /api/devices { "phoneNumber": "5511999999999", "name": "Device" }
@@ -269,72 +270,72 @@ POST /api/devices { "webhookUrl": "https://..." }
 GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 ```
 
-### 📝 Tasks Executadas
+### 📝 Tasks Completed
 
-#### 🔄 Refatoração Principal (Concluída)
-1. ✅ Auto-geração de deviceHash
-2. ✅ Remoção de phoneNumber/name da API
-3. ✅ Headers x-instance-id implementados
-4. ✅ Convenções de nomenclatura padronizadas
-5. ✅ Limpeza de código duplicado
-6. ✅ QR code path corrigido para ambientes não-Docker
+#### 🔄 Major Refactoring (Completed)
+1. ✅ DeviceHash auto-generation
+2. ✅ Removal of phoneNumber/name from the API
+3. ✅ Implemented x-instance-id headers
+4. ✅ Standardized naming conventions
+5. ✅ Duplicate code cleanup
+6. ✅ Fixed QR code path for non-Docker environments
 
-#### 📚 Organização da Documentação (Recente)
-1. ✅ Documentação centralizada na pasta `docs/`
-2. ✅ Criação do `docs/README.md` como índice
-3. ✅ Documentação completa de variáveis de ambiente
-4. ✅ Correção de inconsistências no `.env.example`
-5. ✅ Atualização do README principal
+#### 📚 Documentation Organization (Recent)
+1. ✅ Centralized documentation in the `docs/` folder
+2. ✅ Creation of `docs/README.md` as an index
+3. ✅ Complete documentation of environment variables
+4. ✅ Fixed inconsistencies in `.env.example`
+5. ✅ Updated the main README
 
-#### 🏗️ Simplificação da Arquitetura (Recente)
-1. ✅ Remoção do nginx (arquitetura simplificada)
-2. ✅ Acesso direto na porta 3000
-3. ✅ Consolidação de scripts de limpeza
-4. ✅ Atualização do docker-compose.yml
+#### 🏗️ Architecture Simplification (Recent)
+1. ✅ Nginx Removal (Simplified Architecture)
+2. ✅ Direct Access to Port 3000
+3. ✅ Cleanup Script Consolidation
+4. ✅ Docker-compose.yml Update
 
-#### 🚀 Deploy e CI/CD (Recente)
-1. ✅ GitHub Actions para build Docker
-2. ✅ Deploy automático para Docker Hub
-3. ✅ Build multi-arquitetura (amd64/arm64)
-4. ✅ Workflow de releases automático
-5. ✅ Documentação completa de deploy
+#### 🚀 Deployment and CI/CD (Recent)
+1. ✅ GitHub Actions for Docker builds
+2. ✅ Automatic deployment to Docker Hub
+3. ✅ Multi-architecture build (amd64/arm64)
+4. ✅ Automatic release workflow
+5. ✅ Complete deployment documentation
 
-#### 🗂️ Consolidação Radical de Rotas (Atual)
-1. ✅ Consolidação de 8 arquivos de rota em 1
-2. ✅ Redução de 3 middlewares para 1 otimizado
-3. ✅ 52 endpoints consolidados em proxy.js
-4. ✅ Middleware unificado proxyToActiveDevice
-5. ✅ Simplificação de 75% no código de rotas
-6. ✅ Performance e manutenibilidade melhoradas
+#### 🗂️ Radical Route Consolidation (Current)
+1. ✅ Consolidation of 8 route files into 1
+2. ✅ Reduction of 3 middleware files to 1 optimized one
+3. ✅ 52 endpoints consolidated in proxy.js
+4. ✅ Unified proxyToActiveDevice middleware
+5. ✅ 75% simplification of route code
+6. ✅ Improved performance and maintainability
 
-### 🎯 Próximos Passos Sugeridos
-1. **Implementar rate limiting** por deviceHash
-2. **Adicionar métricas** de uso por dispositivo
-3. **Sistema de backup** automático das sessões
-4. **Dashboard web** para monitoramento
-5. **Testes automatizados** completos
-6. **Monitoramento avançado** com métricas personalizadas
-7. **Load balancing** para múltiplas instâncias
+### 🎯 Suggested Next Steps
+1. Implement rate limiting by deviceHash
+2. Add usage metrics per device
+3. Automatic session backup system
+4. Web dashboard for monitoring
+5. Complete automated testing
+6. Advanced monitoring with custom metrics
+7. Load balancing for multiple instances
 
-### 🔗 Links Úteis
+### 🔗 Useful Links
 - **API Docs**: http://localhost:3000/docs
 - **Health Check**: http://localhost:3000/api/health
 - **OpenAPI**: http://localhost:3000/docs/openapi.yaml
-- **Documentação**: [docs/README.md](docs/README.md)
-- **Variáveis de Ambiente**: [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
+- **Documentation**: [docs/README.md](docs/README.md)
+- **Environment Variables**: [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
 - **Deploy Docker**: [docs/DOCKER_DEPLOY.md](docs/DOCKER_DEPLOY.md)
 
 ---
 
-*Última atualização: Agosto 2025*
+*Last updated: August 2025*
 
-**Estado atual do projeto**: Altamente otimizado e pronto para lançamento ✅
-- 🏗️ Arquitetura simplificada (sem nginx)  
-- 📚 Documentação centralizada e focada em novos usuários
-- 🚀 Deploy automático configurado com GitHub Actions
-- 🧹 Sistema de limpeza consolidado
-- 🔧 Variáveis de ambiente documentadas
-- 🗂️ **NOVO:** Rotas consolidadas (8→1 arquivo, 75% menos código)
-- 📦 **NOVO:** Middleware unificado para melhor performance
+**Current project status**: Highly optimized and ready for release ✅
+- 🏗️ Simplified architecture (no Nginx)
+- 📚 Centralized documentation focused on new users
+- 🚀 Automatic deployment configured with GitHub Actions
+- 🧹 Consolidated cleaning system
+- 🔧 Documented environment variables
+- 🗂️ **NEW:** Consolidated routes (8→1 file, 75% less code)
+- 📦 **NEW:** Unified middleware for better performance
 
-*Este documento é mantido atualizado automaticamente pelo Claude*
+*This document is kept automatically updated by Claude*

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS devices (
     device_hash VARCHAR(16) NOT NULL UNIQUE,
     container_id VARCHAR(100),
     container_port INTEGER,
+    phone_number VARCHAR(20) NOT NULL UNIQUE,
     status VARCHAR(20) DEFAULT 'disconnected',
     webhook_url TEXT,
     webhook_secret TEXT,

@@ -49,6 +49,7 @@ Direct access to device APIs:
 devices:
   - id (primary)
   - device_hash (unique)
+  - phone_number(unique)
   - status
   - container_port
   - webhook_url

@@ -32,6 +32,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       device = {
         id: dbDevice.id,
         deviceHash: dbDevice.device_hash,
+        phoneNumber: dbDevice.phone_number,
         status: dbDevice.status,
         containerInfo: {
           containerId: dbDevice.container_id,

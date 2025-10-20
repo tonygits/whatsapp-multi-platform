@@ -91,7 +91,7 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
     await fsPromises.access(database.dbPath);
     checks["fileSystem"] = {
       status: 'healthy',
-      message: 'Banco de dados acessível'
+      message: 'Accessible database'
     };
   } catch (error: any) {
     checks["fileSystem"] = {

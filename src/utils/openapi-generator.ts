@@ -164,6 +164,7 @@ function generateOpenAPIFromApp(app: any): any {
                           id: { type: 'number', example: 1 },
                           deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
                           status: { type: 'string', example: 'active' },
+                          phoneNumber: { type: 'string', example: '1234567890' },
                           webhookUrl: { type: 'string', format: 'url', nullable: true },
                           webhookSecret: { type: 'string', nullable: true },
                           statusWebhookUrl: { type: 'string', format: 'url', nullable: true },
@@ -193,6 +194,7 @@ function generateOpenAPIFromApp(app: any): any {
                 properties: {
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
                   webhookSecret: { type: 'string', nullable: true, example: 'my-secret-messages' },
+                  phoneNumber: { type: 'string', nullable: false, example: '1553765112' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
                   statusWebhookSecret: { type: 'string', nullable: true, example: 'meu-secret-status' },
                   autoStart: { type: 'boolean', default: true, example: true }
@@ -212,6 +214,7 @@ function generateOpenAPIFromApp(app: any): any {
                     deviceHash: { type: 'string' },
                     name: { type: 'string' },
                     status: { type: 'string' },
+                    phoneNumber: { type: 'string' },
                     webhookUrl: { type: 'string', format: 'url', nullable: true },
                     webhookSecret: { type: 'string', nullable: true },
                     statusWebhookUrl: { type: 'string', format: 'url', nullable: true },
@@ -248,7 +251,7 @@ function generateOpenAPIFromApp(app: any): any {
               schema: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string', example: 'Novo Nome do Dispositivo' },
+                  name: { type: 'string', example: 'New Device Name' },
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
                   webhookSecret: { type: 'string', nullable: true, example: 'new-secret-messages' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
@@ -384,6 +387,7 @@ function generateOpenAPIFromApp(app: any): any {
                     deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
                     name: { type: 'string', example: 'Main Service' },
                     status: { type: 'string', example: 'connected' },
+                    phoneNumber: { type: 'string', example: '1234567890' },
                     processStatus: {
                       type: 'object',
                       properties: {
@@ -670,7 +674,7 @@ function createFallbackStructure(): any {
           type: "object",
           properties: {
             code: { type: "string", example: "INTERNAL_SERVER_ERROR" },
-            message: { type: "string", example: "you are not loggin" },
+            message: { type: "string", example: "you are not logged in" },
             results: { type: "object", example: null }
           }
         },

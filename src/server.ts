@@ -11,7 +11,6 @@ import WebSocket from 'ws';
 dotenv.config();
 
 // Import custom modules
-
 import logger from './utils/logger';
 import binaryManager from './services/binaryManager';
 import deviceManager from './services/newDeviceManager';
@@ -21,14 +20,12 @@ import { authMiddleware, authManager } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 
 // Import routes
-
 import deviceRoutes from './routes/devices';
 import healthRoutes from './routes/health';
 import docsRoutes from './routes/docs';
 import backupRoutes from './routes/backup';
 
 // Import consolidated proxy route
-
 import proxyRoutes from './routes/proxy';
 
 
@@ -80,7 +77,7 @@ class APIGateway {
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
       // Use a more reliable key generator that handles proxied requests
       keyGenerator: (req) => {
-        return req.ip || req.connection.remoteAddress || 'unknown';
+        return req.ip || req.socket.remoteAddress || 'unknown';
       }
     });
     this.app.use(limiter);
