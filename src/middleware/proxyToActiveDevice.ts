@@ -105,7 +105,12 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       data: response.data
     };
 
-    res.status(response.status).json(response.data);
+      // If there's a next middleware, call it; otherwise send the response
+      if (next) {
+          next();
+      } else {
+          res.status(response.status).json(response.data);
+      }
   } catch (error) {
     const err = error as any;
     if (err.response) {
