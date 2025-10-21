@@ -105,6 +105,8 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       data: response.data
     };
 
+    console.log("target url", targetUrl)
+
     if (targetUrl != 'http://localhost:8000/app/login') {
         next = undefined; // Prevent calling next middleware except for login route
     }
