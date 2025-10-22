@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_agent TEXT NOT NULL UNIQUE,
     ip_address ARCHAR(100),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 -- WhatsApp device table
 CREATE TABLE IF NOT EXISTS devices (
