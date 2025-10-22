@@ -5,7 +5,7 @@ const JWT_EXPIRES_IN = 365 * 24 * 60 * 60;
 
 export interface TokenPayload extends JwtPayload {
     sub: string; // subject (session ID)
-    iss: string; // user (email)
+    iss?: string; // user (email)
     [key: string]: any;
 }
 
