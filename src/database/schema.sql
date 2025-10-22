@@ -1,6 +1,36 @@
 -- WhatsApp Multi-Platform Database Schema
 
 -- WhatsApp device table
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email VARCHAR(250) NOT NULL UNIQUE,
+    name VARCHAR(200),
+    first_name VARCHAR(150),
+    last_name VARCHAR(150),
+    contact_phone VARCHAR(150),
+    picture TEXT,
+    locale TEXT,
+    password_hash TEXT,
+    is_verified BOOLEAN DEFAULT false,
+    verification_code TEXT,
+    verification_code_expires DATETIME,
+    reset_token TEXT,
+    reset_token_expires DATETIME,
+    provider VARCHAR(150),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL UNIQUE,
+    deactivated_at DATETIME,
+    user_agent TEXT NOT NULL UNIQUE,
+    ip_address ARCHAR(100),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+
+-- WhatsApp device table
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_hash VARCHAR(16) NOT NULL UNIQUE,
@@ -35,10 +65,12 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 -- Performance indices
-CREATE INDEX IF NOT EXISTS idx_devices_hash ON devices(device_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_hash ON devices(device_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_phone_number ON devices(phone_number);
 CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status);
 CREATE INDEX IF NOT EXISTS idx_messages_device ON messages(device_id);
 CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);
-
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 -- Trigger temporarily removed to avoid parsing issues
 -- Will be added via JavaScript code if necessary

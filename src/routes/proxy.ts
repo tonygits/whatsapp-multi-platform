@@ -1,7 +1,7 @@
 
 import express from 'express';
 import proxyToActiveDevice from '../middleware/proxyToActiveDevice';
-import loginHandler from '../middleware/loginHandler';
+import {loginHandler} from '../middleware/loginHandler';
 
 const router = express.Router();
 
