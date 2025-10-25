@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import deviceRepository from '../repositories/DeviceRepository';
+import {Device} from "../types/device";
 
 class DeviceManager {
     basePort: number;
@@ -33,7 +34,8 @@ class DeviceManager {
      */
     async loadUsedPorts() {
         try {
-            const devices = await deviceRepository.findAll();
+            const filter = {}
+            const devices = await deviceRepository.findAll(filter);
             if (Array.isArray(devices)) {
                 for (const device of devices) {
                     if (device.container_port) {
@@ -71,11 +73,11 @@ class DeviceManager {
     /**
      * Register a new device by hash
      * @param {string} deviceHash - Device hash
-     * @param {string} phoneNumber
+     * @param {string} phoneNumber - Phone Number
      * @param {Object} options - Additional options
      * @returns {Promise<Object>} - Device configuration
      */
-    async registerDevice(deviceHash: string, phoneNumber: string, options: any = {}) {
+    async registerDevice(deviceHash: string, phoneNumber: string, options: any = {}): Promise<Device> {
         try {
             logger.info(`Registering device: ${deviceHash}`);
 
@@ -96,19 +98,21 @@ class DeviceManager {
 
             // Create device record
             const device = await deviceRepository.create({
+                user_id: options.userId,
                 device_hash: deviceHash,
                 container_port: port,
                 phone_number: phoneNumber,
                 webhook_url: options.webhookUrl,
                 webhook_secret: options.webhookSecret,
                 status_webhook_url: options.statusWebhookUrl,
-                status_webhook_secret: options.statusWebhookSecret
+                status_webhook_secret: options.statusWebhookSecret,
             });
 
             logger.info(`Device registered successfully: ${deviceHash}`, {deviceId: device.id, port});
 
             return {
                 id: device.id,
+                userId: device.user_id,
                 deviceHash: device.device_hash,
                 status: device.status,
                 phoneNumber: device.phone_number,
@@ -130,7 +134,7 @@ class DeviceManager {
      * @param {string} deviceHash - Device hash
      * @returns {Promise<boolean>} - Success status
      */
-    async removeDevice(deviceHash: string) {
+    async removeDevice(deviceHash: string): Promise<boolean> {
         try {
             logger.info(`Removing device: ${deviceHash}`);
 
@@ -145,7 +149,7 @@ class DeviceManager {
             }
 
             // Remove from database
-            const success = await deviceRepository.delete(device.id);
+            const success = await deviceRepository.delete(device);
 
             if (success) {
                 logger.info(`Device successfully removed: ${deviceHash}`);
@@ -163,7 +167,7 @@ class DeviceManager {
      * @param {string} deviceHash - Device hash
      * @returns {Promise<Object|null>} - Device information
      */
-    async getDevice(deviceHash: string) {
+    async getDevice(deviceHash: string): Promise<any> {
         try {
             const device = await deviceRepository.findByDeviceHash(deviceHash);
 
@@ -173,6 +177,7 @@ class DeviceManager {
 
             return {
                 id: device.id,
+                userId: device.user_id,
                 deviceHash: device.device_hash,
                 status: device.status,
                 phoneNumber: device.phone_number,
@@ -209,6 +214,7 @@ class DeviceManager {
 
             return {
                 id: device.id,
+                userId: device.user_id,
                 deviceHash: device.device_hash,
                 status: device.status,
                 phoneNumber: device.phone_number,
@@ -243,6 +249,7 @@ class DeviceManager {
                 throw new Error(`Device ${deviceHash} not found`);
             }
 
+
             const updatedDevice = await deviceRepository.update(device.id, updateData);
 
             logger.info(`Device ${deviceHash} updated`);
@@ -256,15 +263,17 @@ class DeviceManager {
 
     /**
      * Get devices by status
+     * @param userId
      * @param {string} status - Device status
      * @returns {Promise<Array>} - Array of devices
      */
-    async getDevicesByStatus(status: string) {
+    async getUserDevicesByStatus(userId: string, status: string) {
         try {
-            const devices = await deviceRepository.findAll({status});
+            const devices = await deviceRepository.findAll({user_id: userId, status});
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,
+                    userId: device.user_id,
                     deviceHash: device.device_hash,
                     status: device.status,
                     phoneNumber: device.phone_number,
@@ -294,12 +303,49 @@ class DeviceManager {
      * Get all devices
      * @returns {Promise<Array>} - Array of devices
      */
+    async getUserDevices(userId: string) {
+        try {
+            const devices = await deviceRepository.findAll({user_id: userId});
+            if (Array.isArray(devices)) {
+                return devices.map((device: any) => ({
+                    id: device.id,
+                    userId: device.user_id,
+                    deviceHash: device.device_hash,
+                    status: device.status,
+                    phoneNumber: device.phone_number,
+                    containerInfo: {
+                        containerId: device.container_id,
+                        port: device.container_port
+                    },
+                    webhookUrl: device.webhook_url,
+                    webhookSecret: device.webhook_secret,
+                    statusWebhookUrl: device.status_webhook_url,
+                    statusWebhookSecret: device.status_webhook_secret,
+                    createdAt: device.created_at,
+                    updatedAt: device.updated_at,
+                    lastSeen: device.last_seen
+                }));
+            } else {
+                logger.warn('findAll() did not return an array of devices');
+                return [];
+            }
+        } catch (error) {
+            logger.error('Error listing devices:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get all devices
+     * @returns {Promise<Array>} - Array of devices
+     */
     async getAllDevices() {
         try {
             const devices = await deviceRepository.findAll();
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,
+                    userId: device.user_id,
                     deviceHash: device.device_hash,
                     status: device.status,
                     phoneNumber: device.phone_number,

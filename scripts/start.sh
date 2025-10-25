@@ -62,6 +62,9 @@ DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=admin
 DOCKER_SOCKET=/var/run/docker.sock
 CONTAINER_BASE_PORT=4000
+DB_USER=admin
+DB_PASS=pass123
+DB_NAME=postgres_db
 EOF
     fi
 fi

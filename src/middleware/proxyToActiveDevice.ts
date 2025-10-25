@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { asyncHandler, CustomError } from './errorHandler';
-import deviceManager from '../services/newDeviceManager';
+import deviceManager from '../services/deviceManager';
 import DeviceRepository from '../repositories/DeviceRepository';
 import logger from '../utils/logger';
 
@@ -31,6 +31,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
     if (dbDevice) {
       device = {
         id: dbDevice.id,
+        userId: dbDevice.user_id,
         deviceHash: dbDevice.device_hash,
         phoneNumber: dbDevice.phone_number,
         status: dbDevice.status,

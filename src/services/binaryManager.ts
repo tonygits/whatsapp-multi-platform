@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import WebSocket from 'ws';
 import logger from '../utils/logger';
 import { BIN_PATH, SESSIONS_DIR } from '../utils/paths';
-import deviceManager from './newDeviceManager';
+import deviceManager from './deviceManager';
 import statusWebhookManager from './statusWebhookManager';
 
 class BinaryManager {

@@ -1,10 +1,13 @@
 import 'dotenv/config';
-import express, {Request, Response, NextFunction} from 'express';
-import {verifyIdTokenAndUpsertUser, exchangeCodeAndProcess} from '../services/google';
+import express, {Request, Response} from 'express';
+import {exchangeCodeAndProcess, verifyIdTokenAndUpsertUser} from '../services/google';
 import {signJwt} from '../utils/jwt';
-import {initiateResetPassword, loginUser, setNewPassword, registerNewUser, User} from "../services/userService";
+import {getUserById, initiateResetPassword, loginUser, registerNewUser, setNewPassword} from "../services/userService";
 import crypto from "crypto";
-import {hashPassword} from "../utils/password";
+import {hashPassword, verifyPassword} from "../utils/password";
+import {createNewSession, listSessionsForUser} from "../services/sessionService";
+import {User} from "../types/user";
+import {Session} from "../types/session";
 
 const router = express.Router();
 
@@ -50,20 +53,55 @@ router.post('/login', async (req: Request, res: Response) => {
         if (!password) return res.status(400).json({error: 'password is required'});
 
         //login user
-        const resp = await loginUser(email, password);
-        const {token, user} = resp;
+        const user = await loginUser(email);
+
+        if (!user?.passwordHash) res.status(400).json({message: "user password is not set. please reset password"});
+
+        if (user?.passwordHash) {
+            console.log("verifying password")
+            const isValidated = verifyPassword(password, user?.passwordHash as string)
+            if (!isValidated){
+                throw new Error("invalid credentials")
+            }
+        }
+
+        //check if there is active sessions
+        let activeSession: Session | null = null;
+        const sessions = await listSessionsForUser(user.id);
+        const userAgent = req.headers["user-agent"];
+        if (sessions.length>0){
+            sessions.forEach((session) => {
+                if (session.userAgent === userAgent){
+                    activeSession = session
+                }
+            });
+        }
+
+        // //create session
+        if (!activeSession) {
+            const sessionId = crypto.randomBytes(16).toString('hex');
+            const ip = req.ip;
+             activeSession = await createNewSession({
+                id: sessionId,
+                userId: user.id,
+                userAgent: userAgent as string,
+                ipAddress: ip as string
+            })
+        }
+
+        const token = signJwt({sub: activeSession.id, name: user.name, admin: true, iss: user.id});
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('access_token', token);
-        res.status(200).json({user});
+        const {passwordHash: userPassword, ...userWithoutPassword} = user
+        res.status(200).json({user: userWithoutPassword});
     } catch (err: any) {
-        console.error('initiate_reset_password error', err);
-        res.status(400).json({error: err.message ?? 'Failed to initiate reset password'});
+        console.error('failed to login with error', err);
+        res.status(400).json({error: err.message ?? 'Failed to failed to login'});
     }
 });
 
 // Optional: POST /register user
 router.post('/register', async (req: Request, res: Response) => {
-    console.log("register user called")
     try {
         const {email, password, confirm_password, first_name, last_name, contact_phone} = req.body as {
             email: string, password: string, confirm_password: string, first_name?: string,
@@ -72,6 +110,9 @@ router.post('/register', async (req: Request, res: Response) => {
         if (!password) return res.status(400).json({error: 'password is required'});
         if (!confirm_password) return res.status(400).json({error: 'confirm password is required'});
 
+        const userAgent = req.headers["user-agent"];
+        const ip = req.ip;
+        const sessionId = crypto.randomBytes(16).toString('hex');
         if (password !== confirm_password) {
             return res.status(400).json({error: 'passwords do not match'});
         }
@@ -84,7 +125,7 @@ router.post('/register', async (req: Request, res: Response) => {
         const userId = crypto.randomBytes(16).toString('hex');
         const passwordHash = await hashPassword(password);
 
-        const user: Partial<User> = {
+        const partial: Partial<User> = {
             id: userId,
             email: email,
             firstName: first_name ?? undefined,
@@ -95,12 +136,14 @@ router.post('/register', async (req: Request, res: Response) => {
             provider: 'application'
         };
 
-        //login user
-        const newUser = await registerNewUser(user);
-        const token = signJwt({sub: newUser.id, name: newUser.name, admin: true, iss: newUser.email});
+        //register user
+        const user = await registerNewUser(partial);
+        console.log('user1', user);
+        const session = await createNewSession({id: sessionId, userId: user.id, userAgent: userAgent, ipAddress: ip})
+        const token = signJwt({sub: session.id, name: user.name, admin: true, iss: user.id});
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('access_token', token);
-        res.status(200).json({user: newUser});
+        res.status(201).json({user: user});
     } catch (err: any) {
         console.error('failed to register user with error', err);
         res.status(400).json({error: err.message ?? 'failed to register user'});

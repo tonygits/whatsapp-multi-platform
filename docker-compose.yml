@@ -4,9 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-#      platforms:
-#        - linux/arm64
-#        - linux/amd64
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:
@@ -18,13 +15,14 @@ services:
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
+
     networks:
       - hapaniwapi-net
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 10s
-      timeout: 5s
+      interval: 3s
+      timeout: 8s
       retries: 5
       start_period: 30s
 

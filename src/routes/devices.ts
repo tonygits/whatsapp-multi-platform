@@ -2,11 +2,12 @@ import resolveInstance from '../middleware/resolveInstance';
 
 import express, {Request, Response} from 'express';
 import {asyncHandler, CustomError} from '../middleware/errorHandler';
-import deviceManager from '../services/newDeviceManager';
+import deviceManager from '../services/deviceManager';
 import binaryManager from '../services/binaryManager';
 import DeviceRepository from '../repositories/DeviceRepository';
 import logger from '../utils/logger';
 import DeviceUtils from '../utils/deviceUtils';
+import {AuthenticatedRequest} from "../types/session";
 
 const router = express.Router();
 
@@ -14,15 +15,17 @@ const router = express.Router();
  * GET /api/devices
  * List all devices
  */
-router.get('/', asyncHandler(async (req: Request, res: Response) => {
+router.get('/users/:id/devices', asyncHandler(async (req: Request, res: Response) => {
     const {status, limit, offset} = req.query;
+    const {id} = req.params;
 
     let devices;
     const statusStr = typeof status === 'string' ? status : Array.isArray(status) ? status[0] : undefined;
+    const  userId = id
     if (statusStr) {
-        devices = await deviceManager.getDevicesByStatus(statusStr as string);
+        devices = await deviceManager.getUserDevicesByStatus(userId, statusStr as string);
     } else {
-        devices = await deviceManager.getAllDevices();
+        devices = await deviceManager.getUserDevices(userId);
     }
 
     // Convert to array and apply pagination
@@ -97,12 +100,12 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
  * POST /api/devices
  * Register a new device (generates deviceHash automatically)
  */
-router.post('/', asyncHandler(async (req: Request, res: Response) => {
+router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     console.log("Received request to register new device");
-
 
     const {autoStart = true, webhookUrl, webhookSecret, phoneNumber, statusWebhookUrl, statusWebhookSecret} = req.body;
 
+    const userId = req.user?.userId
     // Generate unique device hash
     const deviceHash = DeviceUtils.generateDeviceHash();
     logger.info(`Starting registration for new device: ${deviceHash}`);
@@ -124,6 +127,7 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
     try {
         // Create device in DB
         await deviceManager.registerDevice(deviceHash, phoneNumber, {
+            userId,
             webhookUrl,
             webhookSecret,
             statusWebhookUrl,
@@ -153,6 +157,7 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
             success: true,
             message: 'Device registered successfully.',
             data: {
+                userId: finalDeviceState?.userId ?? userId,
                 deviceHash: finalDeviceState?.deviceHash ?? deviceHash,
                 phoneNumber: finalDeviceState?.phoneNumber ?? phoneNumber,
                 status: finalDeviceState?.status ?? 'unknown',

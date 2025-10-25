@@ -1,5 +1,6 @@
 import database from '../database/database';
 import logger from '../utils/logger';
+import {Session} from "../types/session";
 
 class SessionRepository {
     /**
@@ -11,25 +12,23 @@ class SessionRepository {
         try {
             const {
                 id,
-                user_id,
-                deactivated_at,
-                user_agent,
-                ip_address,
+                userId,
+                userAgent,
+                ipAddress,
             } = sessionData;
 
-            if (!user_id) {
+            if (!userId) {
                 throw new Error('User id is mandatory');
             }
 
             const result = await database.run(
-                `INSERT INTO sessions (id, user_id, deactivated_at, user_agent, ip_address)
-                 VALUES (?, ?, ?, ?, ?)`,
+                `INSERT INTO sessions (id, user_id, user_agent, ip_address)
+                 VALUES (?, ?, ?, ?)`,
                 [
                     id,
-                    user_id,
-                    deactivated_at || null,
-                    user_agent,
-                    ip_address || null,
+                    userId,
+                    userAgent,
+                    ipAddress || null,
                 ]
             );
 
@@ -37,7 +36,7 @@ class SessionRepository {
                 'SELECT * FROM sessions WHERE id = ?',
                 [id]
             );
-            logger.info(`Session created: ${id}`, {sessionId: id, user_id: user_id});
+            logger.info(`Session created: ${id}`, {sessionId: id, user_id: userId});
 
             return session;
         } catch (error) {
@@ -54,7 +53,7 @@ class SessionRepository {
     async findById(id: string): Promise<any> {
         try {
             return await database.get(
-                'SELECT * FROM sessions WHERE id = ?',
+                'SELECT * FROM sessions WHERE id = ? AND deactivated_at IS NULL',
                 [id]
             );
         } catch (error) {
@@ -71,7 +70,7 @@ class SessionRepository {
     async listForUserId(userId: string): Promise<any> {
         try {
             return database.all(
-                'SELECT * FROM sessions WHERE user_id = ?',
+                'SELECT * FROM sessions WHERE user_id = ? AND deactivated_at IS NULL',
                 [userId]
             )
         } catch (error) {
@@ -85,11 +84,11 @@ class SessionRepository {
      * @param {number} id - Session ID
      * @returns {Promise<boolean>} - Success status
      */
-    async delete(id: string): Promise<boolean> {
+    async delete(id: string): Promise<any> {
         try {
             await database.run(
                 `UPDATE sessions
-                 SET deactivated_at=now()
+                 SET deactivated_at=datetime('now')
                  WHERE id = ?`,
                 [id]
             );

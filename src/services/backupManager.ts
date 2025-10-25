@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import logger from '../utils/logger';
 import { DATA_DIR, BASE_DIR } from '../utils/paths';
-import deviceManager from './newDeviceManager';
+import deviceManager from './deviceManager';
 import binaryManager from './binaryManager';
 
 interface BackupConfig {

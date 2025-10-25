@@ -14,12 +14,12 @@ class UserRepository {
                 id,
                 email,
                 name,
-                first_name,
-                last_name,
-                contact_phone,
+                firstName,
+                lastName,
+                contactPhone,
                 picture,
                 locale,
-                password_hash,
+                passwordHash,
                 provider,
             } = userData;
 
@@ -35,12 +35,12 @@ class UserRepository {
                     id,
                     email,
                     name || null,
-                    first_name || null,
-                    last_name || null,
-                    contact_phone || null,
+                    firstName || null,
+                    lastName || null,
+                    contactPhone || null,
                     picture || null,
                     locale || null,
-                    password_hash || null,
+                    passwordHash || null,
                     provider || 'application'
                 ]
             );

@@ -3,11 +3,19 @@
     "target": "ES2020",
     "module": "commonjs",
     "rootDir": "src",
-  "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "lib": ["ES2020", "dom"],
+    "allowJs": true,
+    "checkJs": true /* Specify a set of bundled library declaration files that describe the target runtime environment. */,
+    "outDir": "./dist",
+    "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
+    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
+    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    /* Type Checking */
+    "strict": true /* Enable all strict type-checking options. */,
+    "strictPropertyInitialization": false,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

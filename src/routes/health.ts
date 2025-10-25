@@ -1,7 +1,7 @@
 
 import express, { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
-import deviceManager from '../services/newDeviceManager';
+import deviceManager from '../services/deviceManager';
 import binaryManager from '../services/binaryManager';
 import logger from '../utils/logger';
 import fs from 'fs';
@@ -10,6 +10,7 @@ import database from '../database/database';
 import { BIN_PATH } from '../utils/paths';
 import axios from 'axios';
 import os from 'os';
+import {AuthenticatedRequest} from "../types/session";
 
 const router = express.Router();
 
@@ -278,12 +279,13 @@ router.get('/system', asyncHandler(async (req: Request, res: Response) => {
  * POST /api/health/auto-heal
  * Attempt to auto-heal unhealthy services
  */
-router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
+router.post('/auto-heal', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { services = [] } = req.body;
   const healingResults: Record<string, any> = {};
 
   logger.info('Starting the self-healing process...');
 
+  const userId = req.user?.userId
   // Heal specific services or all if none specified
   const servicesToHeal = services.length > 0 ? services : ['processes'];
 
@@ -291,7 +293,7 @@ router.post('/auto-heal', asyncHandler(async (req: Request, res: Response) => {
     try {
       switch (service) {
         case 'processes':
-          const devices = await deviceManager.getDevicesByStatus('active');
+          const devices = await deviceManager.getUserDevicesByStatus(userId as string,'active');
           let healedProcesses = 0;
           
           for (const device of devices) {

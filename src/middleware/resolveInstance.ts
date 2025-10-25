@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import deviceManager from '../services/newDeviceManager';
+import deviceManager from '../services/deviceManager';
 
 // Middleware to resolve the device instance
 const resolveInstance = async (req: Request, res: Response, next: NextFunction) => {

@@ -13,10 +13,11 @@ dotenv.config();
 // Import custom modules
 import logger from './utils/logger';
 import binaryManager from './services/binaryManager';
-import deviceManager from './services/newDeviceManager';
+import deviceManager from './services/deviceManager';
 import updateManager from './services/updateManager';
 import backupManager from './services/backupManager';
 import {authMiddleware, authManager} from './middleware/auth';
+import database from './database/database';
 import {errorHandler} from './middleware/errorHandler';
 
 // Import routes
@@ -26,18 +27,10 @@ import docsRoutes from './routes/docs';
 import backupRoutes from './routes/backup';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import sessionRoutes from './routes/session'
 
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
-import {requireAuth} from "./middleware/loginHandler";
-
-interface MinimalUser {
-    id: string;
-    displayName?: string;
-    emails?: { value: string }[];
-    photos?: { value: string }[];
-    provider?: string;
-}
 
 class APIGateway {
     app: Application;
@@ -124,6 +117,7 @@ class APIGateway {
 
         // Consolidated proxy routes with instance_id support
         this.app.use('/api', userRoutes);
+        this.app.use('/api', sessionRoutes)
         this.app.use('/api', proxyRoutes);
 
         // Root endpoint
@@ -231,6 +225,10 @@ class APIGateway {
     async start() {
         try {
             // Initialize services in correct order
+            console.log('🔐 Initializing database...');
+            await database.initialize();
+            console.log('✅ database initialized');
+
             console.log('🔐 Initializing authManager...');
             await authManager.initialize();
             console.log('✅ authManager initialized');
@@ -305,6 +303,6 @@ class APIGateway {
 console.log('🏗️ Creating APIGateway instance...');
 const gateway = new APIGateway();
 console.log('✅ Instance created, starting start()...');
-gateway.start();
+gateway.start()
 
 export default gateway;

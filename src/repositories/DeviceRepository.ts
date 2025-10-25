@@ -10,6 +10,7 @@ class DeviceRepository {
     async create(deviceData: any): Promise<any> {
         try {
             const {
+                user_id,
                 device_hash,
                 container_port,
                 phone_number,
@@ -24,10 +25,11 @@ class DeviceRepository {
             }
 
             const result = await database.run(
-                `INSERT INTO devices (device_hash, container_port, phone_number, webhook_url,
+                `INSERT INTO devices (user_id, device_hash, container_port, phone_number, webhook_url,
                                       webhook_secret, status_webhook_url, status_webhook_secret)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
+                    user_id,
                     device_hash,
                     container_port || null,
                     phone_number,
@@ -103,14 +105,19 @@ class DeviceRepository {
                 params.push(filters.status);
             }
 
+            if (filters.user_id) {
+                conditions.push('user_id = ?');
+                params.push(filters.user_id);
+            }
+
             if (conditions.length > 0) {
                 sql += ' WHERE ' + conditions.join(' AND ');
             }
 
             sql += ' ORDER BY created_at DESC';
 
-            const devices = await database.all(sql, params);
-            return devices;
+            console.log('sql', sql, filters);
+            return await database.all(sql, params);
         } catch (error) {
             logger.error('Error listing devices:', error);
             throw error;

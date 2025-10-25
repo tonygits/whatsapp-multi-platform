@@ -11,7 +11,10 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "docker:compose": "docker-compose up -d --build",
     "test": "jest",
-    "logs": "docker-compose logs -f"
+    "logs": "docker-compose logs -f",
+    "watch": "tsc -w",
+    "remove": "rm -rf ./build",
+    "build:lib": "tsc"
   },
   "keywords": [
     "whatsapp",
@@ -26,9 +29,13 @@
     "@aws-sdk/client-s3": "^3.879.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
     "@types/express-session": "^1.18.2",
-    "@types/passport": "^1.0.17",
+    "@types/http-status": "^0.2.30",
+    "@types/jest": "^30.0.0",
+    "@types/morgan": "^1.9.10",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/supertest": "^6.0.3",
     "axios": "^1.6.2",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
@@ -47,13 +54,19 @@
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.16.3",
     "qrcode": "^1.5.3",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.7.4",
     "sqlite3": "^5.1.6",
+    "supertest": "^7.1.4",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "tar": "^7.4.3",
+    "test": "^3.3.0",
+    "ts-jest": "^29.4.5",
+    "typeorm": "^0.3.27",
     "uuid": "^11.1.0",
     "winston": "^3.11.0"
   },
@@ -67,6 +80,7 @@
     "@types/ws": "^8.18.1",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
-    "typescript": "^5.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

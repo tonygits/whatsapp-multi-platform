@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
-import {registerNewUser, User} from './userService';
-import fetch from 'node-fetch'; // only if you need to call Google endpoints (not required in many cases)
+import {registerNewUser} from './userService';
+import {User} from "../types/user"; // only if you need to call Google endpoints (not required in many cases)
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';

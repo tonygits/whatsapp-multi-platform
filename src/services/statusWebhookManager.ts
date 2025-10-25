@@ -2,7 +2,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import logger from '../utils/logger';
-import deviceManager from './newDeviceManager';
+import deviceManager from './deviceManager';
 
 export interface StatusData {
   type: string;
