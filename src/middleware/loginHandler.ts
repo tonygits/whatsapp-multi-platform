@@ -27,20 +27,21 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
       logger.info(`QR code detected in response to ${deviceHash}`);
       
       try {
-        // Extract QR file path from the link
+          // Extract QR file name from the link
         const qrFileName = responseData.results.qr_link.split('/').pop();
-        const sessionPath = path.join(SESSIONS_DIR, deviceHash);
-        const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
+          // Always use the direct path to the QR file in /app/statics/qrcode/
+          const qrFilePath = path.join('/app', 'statics', 'qrcode', qrFileName);
+
+          // Log path for debug
+          logger.debug(`Original path: ${responseData.results.qr_link}, Corrected path: ${qrFilePath}`);
         
         logger.info(`Trying to read QR file: ${qrFilePath}`);
         
         // Wait a bit for the file to be written
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Check if file exists and read it
-        const qrExists = await fs.access(qrFilePath).then(() => true).catch(() => false);
-        
-        if (qrExists) {
+
+          try {
+              // Try to read the QR file
           // Read the QR code file and convert to base64
           const qrBuffer = await fs.readFile(qrFilePath);
           const qrBase64 = qrBuffer.toString('base64');
@@ -50,16 +51,18 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
           
           // Remove the old qr_link field
           delete responseData.results.qr_link;
-          
-          logger.info(`QR code converted to base64 to ${deviceHash}`);
-        } else {
+
+          logger.info(`QR code successfully converted to base64: ${qrFileName}`);
+          } catch (error) {
           logger.warn(`QR file not found: ${qrFilePath}`);
-          // Keep original response if file doesn't exist
+              // Keep the original qr_link so the client can try to access it directly
+              // This allows a fallback to the previous behavior
+              logger.info(`Keeping the original qr_link: ${responseData.results.qr_link}`);
         }
         
       } catch (qrError) {
-        logger.error(`Error processing QR code for ${deviceHash}:`, qrError);
-        // Continue with original response if QR processing fails
+          logger.error(`Error processing QR code for ${deviceHash}:`, qrError);
+          // Continue with original response if QR processing fails
       }
     }
 

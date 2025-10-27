@@ -386,7 +386,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "query",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -434,7 +434,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -460,7 +460,7 @@
         "summary": "Login with pairing code",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -539,7 +539,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -587,7 +587,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -613,7 +613,7 @@
         "summary": "User Avatar",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -744,7 +744,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -771,7 +771,7 @@
         "description": "Retrieve detailed business profile information for a WhatsApp business account",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -839,7 +839,7 @@
         "summary": "Check if user is on WhatsApp",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -906,7 +906,7 @@
         "summary": "User Info",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -995,7 +995,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1043,7 +1043,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1091,7 +1091,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1139,7 +1139,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1217,7 +1217,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1311,7 +1311,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1400,7 +1400,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1494,7 +1494,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1588,7 +1588,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1697,7 +1697,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
@@ -1791,7 +1791,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -1885,7 +1885,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -1979,7 +1979,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2087,7 +2087,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2174,7 +2174,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2283,7 +2283,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2309,7 +2309,7 @@
         "summary": "Delete Message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2392,7 +2392,7 @@
         "summary": "Send reaction to message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2480,7 +2480,7 @@
         "summary": "Mark as read message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2566,7 +2566,7 @@
         "summary": "Revoke Message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2649,7 +2649,7 @@
         "summary": "Star message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2735,7 +2735,7 @@
         "summary": "Unstar message",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2821,7 +2821,7 @@
         "summary": "Edit message by message ID before 15 minutes",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -2914,7 +2914,7 @@
         "description": "Retrieve a list of chat conversations with their basic information",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3019,7 +3019,7 @@
         "description": "Apply or remove a label from a chat conversation",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3139,7 +3139,7 @@
         "description": "Retrieve messages from a specific chat conversation with filtering options",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3290,7 +3290,7 @@
         "description": "Pin or unpin a chat conversation to the top of the chat list",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3460,7 +3460,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3544,7 +3544,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3570,7 +3570,7 @@
         "summary": "Group Info",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3638,7 +3638,7 @@
         "description": "Retrieve group information without joining the group using its invitation link",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3753,7 +3753,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3826,7 +3826,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3910,7 +3910,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -3994,7 +3994,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4020,7 +4020,7 @@
         "summary": "Get list of participant requests to join group",
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4150,7 +4150,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4238,7 +4238,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4305,7 +4305,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4372,7 +4372,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4439,7 +4439,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4506,7 +4506,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4588,7 +4588,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4671,7 +4671,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
@@ -4744,7 +4744,7 @@
         },
         "parameters": [
           {
-            "name": "x-instance-id",
+            "name": "deviceHash",
             "in": "header",
             "required": true,
             "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",

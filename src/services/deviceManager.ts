@@ -264,12 +264,12 @@ class DeviceManager {
     /**
      * Get devices by status
      * @param userId
-     * @param {string} status - Device status
+     * @param statuses
      * @returns {Promise<Array>} - Array of devices
      */
-    async getUserDevicesByStatus(userId: string, status: string) {
+    async getUserDevicesByStatus(userId: string, statuses: string[]) {
         try {
-            const devices = await deviceRepository.findAll({user_id: userId, status});
+            const devices = await deviceRepository.findAll({ user_id: userId, status: { $in: statuses } });
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,

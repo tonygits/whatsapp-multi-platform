@@ -40,7 +40,7 @@ NODE_ENV=staging npm start
 ### Device Hash for Identification
 ```Javascript
 // System automatically generates deviceHash
-// URLs use deviceHash: /api/devices (via x-instance-id header)
+// URLs use deviceHash: /api/devices (via deviceHash header)
 
 POST /api/devices
 {
@@ -75,7 +75,7 @@ logger.debug(`Debug device: ${deviceHash}`);
 src/utils/deviceUtils.js # deviceHash Utilities
 src/database/schema.sql # unique device_hash
 src/repositories/ # deviceHash Management
-src/routes/devices.js # APIs with x-instance-id
+src/routes/devices.js # APIs with deviceHash
 ```
 
 ## Benefits

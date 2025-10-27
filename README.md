@@ -6,7 +6,9 @@
 [![Docker](https://img.shields.io/badge/Docker-20+-blue.svg)](https://docker.com/)
 [![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+## ⚠️ Important
 
+This project serves as a bridge to the original [go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice) project, extending its functionality to support multiple instances. All credits for the base WhatsApp Web implementation belong to the original project.
 ## 📋 Overview
 
 The **WhatsApp Multi-Platform API Gateway** is a robust and scalable solution for managing multiple WhatsApp devices simultaneously through isolated processes. Each WhatsApp instance runs as a separate process with persistent sessions, ensuring complete isolation and maximum availability.
@@ -115,7 +117,7 @@ curl -X POST http://localhost:3000/api/devices \
     "statusWebhookUrl": "https://yoursite.com/status"
   }'
 
-# Response: {"deviceHash": "a1b2c3d4e5f67890", "status": "registered"}
+# Response: {"x-instance-id": "a1b2c3d4e5f67890", "status": "registered"}
 ```
 
 ### QR Code & Connection
@@ -124,7 +126,7 @@ curl -X POST http://localhost:3000/api/devices \
 # Get QR code for device connection
 curl -X GET http://localhost:3000/api/login \
   -H "Authorization: Bearer <token>" \
-  -H "x-instance-id: a1b2c3d4e5f67890"
+  -H "deviceHash: a1b2c3d4e5f67890"
 
 # Response: {"qrCode": "data:image/png;base64,iVBORw0KGgoA..."}
 ```

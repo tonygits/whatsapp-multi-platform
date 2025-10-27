@@ -248,7 +248,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -277,7 +277,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -293,7 +293,7 @@ paths:
         - app
       summary: Login with pairing code
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -341,7 +341,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -370,7 +370,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -386,7 +386,7 @@ paths:
         - user
       summary: User Avatar
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -467,7 +467,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -486,7 +486,7 @@ paths:
         Retrieve detailed business profile information for a WhatsApp business
         account
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -528,7 +528,7 @@ paths:
         - user
       summary: Check if user is on WhatsApp
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -569,7 +569,7 @@ paths:
         - user
       summary: User Info
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -623,7 +623,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -652,7 +652,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -681,7 +681,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -710,7 +710,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -758,7 +758,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -819,7 +819,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -880,7 +880,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -941,7 +941,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1002,7 +1002,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1075,7 +1075,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1136,7 +1136,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1197,7 +1197,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1258,7 +1258,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1332,7 +1332,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1387,7 +1387,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1460,7 +1460,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1476,7 +1476,7 @@ paths:
         - message
       summary: Delete Message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1527,7 +1527,7 @@ paths:
         - message
       summary: Send reaction to message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1582,7 +1582,7 @@ paths:
         - message
       summary: Mark as read message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1635,7 +1635,7 @@ paths:
         - message
       summary: Revoke Message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1686,7 +1686,7 @@ paths:
         - message
       summary: Star message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1739,7 +1739,7 @@ paths:
         - message
       summary: Unstar message
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1792,7 +1792,7 @@ paths:
         - message
       summary: Edit message by message ID before 15 minutes
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1851,7 +1851,7 @@ paths:
       summary: Get list of chats
       description: Retrieve a list of chat conversations with their basic information
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1917,7 +1917,7 @@ paths:
       summary: Label or unlabel a chat
       description: Apply or remove a label from a chat conversation
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -1998,7 +1998,7 @@ paths:
         Retrieve messages from a specific chat conversation with filtering
         options
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2100,7 +2100,7 @@ paths:
       summary: Pin or unpin a chat
       description: Pin or unpin a chat conversation to the top of the chat list
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2208,7 +2208,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2261,7 +2261,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2277,7 +2277,7 @@ paths:
         - group
       summary: Group Info
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2321,7 +2321,7 @@ paths:
         Retrieve group information without joining the group using its
         invitation link
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2391,7 +2391,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2435,7 +2435,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2488,7 +2488,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2541,7 +2541,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2557,7 +2557,7 @@ paths:
         - group
       summary: Get list of participant requests to join group
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2638,7 +2638,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2693,7 +2693,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2733,7 +2733,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2773,7 +2773,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2813,7 +2813,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2853,7 +2853,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2906,7 +2906,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -2960,7 +2960,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'
@@ -3004,7 +3004,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
       parameters:
-        - name: x-instance-id
+        - name: deviceHash
           in: header
           required: true
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)'

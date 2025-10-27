@@ -31,6 +31,7 @@ router.post('/send/image', proxyToActiveDevice);
 router.post('/send/audio', proxyToActiveDevice);
 router.post('/send/file', proxyToActiveDevice);
 router.post('/send/video', proxyToActiveDevice);
+router.post('/send/sticker', proxyToActiveDevice);
 
 // Send other content types
 router.post('/send/contact', proxyToActiveDevice);
@@ -75,6 +76,7 @@ router.post('/group/leave', proxyToActiveDevice);
 
 // Group participants management
 router.post('/group/participants', proxyToActiveDevice);
+router.post('/group/participants/export', proxyToActiveDevice);
 router.post('/group/participants/remove', proxyToActiveDevice);
 router.post('/group/participants/promote', proxyToActiveDevice);
 router.post('/group/participants/demote', proxyToActiveDevice);
@@ -83,6 +85,7 @@ router.post('/group/participants/demote', proxyToActiveDevice);
 router.get('/group/participant-requests', proxyToActiveDevice);
 router.post('/group/participant-requests/approve', proxyToActiveDevice);
 router.post('/group/participant-requests/reject', proxyToActiveDevice);
+router.post('/group/invite-link', proxyToActiveDevice);
 
 // Group settings
 router.post('/group/photo', proxyToActiveDevice);

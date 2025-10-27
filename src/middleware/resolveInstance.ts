@@ -3,7 +3,7 @@ import deviceManager from '../services/deviceManager';
 
 // Middleware to resolve the device instance
 const resolveInstance = async (req: Request, res: Response, next: NextFunction) => {
-  const deviceHash = req.query['x-instance-id'] || req.body['x-instance-id'] || req.params['x-instance-id'];
+  const deviceHash = req.query.deviceHash || req.body.deviceHash || req.params.deviceHash || req.get('deviceHash');
   if (!deviceHash || typeof deviceHash !== 'string') {
     return res.status(400).json({ success: false, message: 'deviceHash is required' });
   }

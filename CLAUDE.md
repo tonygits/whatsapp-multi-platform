@@ -16,7 +16,7 @@ A scalable system for managing multiple WhatsApp devices through an API Gateway 
 ### 🔑 Device Identification
 - **System**: Based on `deviceHash` (e.g., `a1b2c3d4e5f67890`)
 - **Generation**: `crypto.randomBytes(8).toString('hex')`
-- **Headers**: `x-instance-id` to identify the device in APIs
+- **Headers**: `deviceHash` to identify the device in APIs
 - **Privacy**: Zero exposure of personal data (phoneNumber removed)
 
 ### 📁 Main Code Structure
@@ -66,7 +66,7 @@ POST /api/devices
 
 #### Device Operations
 ```bash
-# All use header: x-instance-id: a1b2c3d4e5f67890
+# All use header: deviceHash: a1b2c3d4e5f67890
 GET /api/devices/info # Device information
 POST /api/devices/start # Start process
 POST /api/devices/stop # Stop process
@@ -254,7 +254,7 @@ CREATE TABLE devices (
 #### Major Changes
 1. **Complete removal of phoneNumber/name**
 2. **Introduction of auto-generated deviceHash**
-3. **APIs using x-instance-id headers**
+3. **APIs using deviceHash headers**
 4. **CamelCase/snake_case conventions**
 5. **Duplicate method cleanup**
 6. **Updated documentation**
@@ -267,7 +267,7 @@ GET /api/devices/5511999999999/qr
 
 # DEPOIS  
 POST /api/devices { "webhookUrl": "https://..." }
-GET /api/login + header x-instance-id: a1b2c3d4e5f67890
+GET /api/login + header deviceHash: a1b2c3d4e5f67890
 ```
 
 ### 📝 Tasks Completed
@@ -275,7 +275,7 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 #### 🔄 Major Refactoring (Completed)
 1. ✅ DeviceHash auto-generation
 2. ✅ Removal of phoneNumber/name from the API
-3. ✅ Implemented x-instance-id headers
+3. ✅ Implemented deviceHash headers
 4. ✅ Standardized naming conventions
 5. ✅ Duplicate code cleanup
 6. ✅ Fixed QR code path for non-Docker environments

@@ -55,13 +55,13 @@ function generateOpenAPIFromApp(app: any): any {
   // Change global security to basicAuth
   baseDoc.security = [{ basicAuth: [] }];
 
-  // Add /api prefix to all WhatsApp API paths and add x-instance-id parameter
+  // Add /api prefix to all WhatsApp API paths and add deviceHash parameter
   const whatsappPaths: Record<string, any> = {};
   Object.keys(baseDoc.paths).forEach(originalPath => {
     const newPath = `/api${originalPath}`;
     const pathObj = { ...baseDoc.paths[originalPath] };
     
-    // Add x-instance-id parameter to all WhatsApp API routes
+    // Add deviceHash parameter to all WhatsApp API routes
     Object.keys(pathObj).forEach(method => {
       if (pathObj[method] && typeof pathObj[method] === 'object') {
         // Initialize parameters array if not exists
@@ -69,9 +69,9 @@ function generateOpenAPIFromApp(app: any): any {
           pathObj[method].parameters = [];
         }
         
-        // Add x-instance-id header parameter
+        // Add deviceHash header parameter
         pathObj[method].parameters.unshift({
-          name: 'x-instance-id',
+          name: 'deviceHash',
           in: 'header',
           required: true,
           description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -234,7 +234,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -302,7 +302,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -365,7 +365,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -424,7 +424,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -477,7 +477,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
@@ -530,7 +530,7 @@ function generateOpenAPIFromApp(app: any): any {
         security: [{ basicAuth: [] }],
         parameters: [
           {
-            name: 'x-instance-id',
+            name: 'deviceHash',
             in: 'query',
             required: true,
             description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',

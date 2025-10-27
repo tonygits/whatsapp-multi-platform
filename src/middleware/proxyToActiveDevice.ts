@@ -18,9 +18,9 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 import { Request, Response, NextFunction } from 'express';
 const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, next?: NextFunction) => {
   // 1. Extract instanceId from header
-  const instanceId = req.get('x-instance-id');
+  const instanceId = req.get('deviceHash');
   if (!instanceId) {
-    throw new CustomError('Header x-instance-id is required', 400, 'MISSING_INSTANCE_ID');
+    throw new CustomError('Header deviceHash is required', 400, 'MISSING_INSTANCE_ID');
   }
 
   // 2. Resolve device (combines resolveInstance logic)
@@ -80,6 +80,9 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
   const containerPort = device.containerInfo.port;
   const targetUrl = `http://localhost:${containerPort}${req.originalUrl.replace('/api', '')}`;
 
+  // Only pass-through for specific routes that need additional processing
+  const isLoginRoute = req.path === '/app/login';
+
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Basic ${Buffer.from(`${DEFAULT_ADMIN_USER}:${DEFAULT_ADMIN_PASS}`).toString('base64')}`
@@ -106,12 +109,8 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       data: response.data
     };
 
-    if (targetUrl !== `http://localhost:${containerPort}/app/login`) {
-        next = undefined; // Prevent calling next middleware except for login route
-    }
-
-    // If there's a next middleware, call it; otherwise send the response
-    if (next) {
+      // Pass-through only for login route, otherwise respond directly
+      if (isLoginRoute && next) {
       next();
     } else {
       res.status(response.status).json(response.data);
@@ -121,14 +120,15 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
     if (err.response) {
       // Container responded with error
       logger.warn(`Container error for device ${instanceId}: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
-      
-      // Store error response in request or send directly
-      if (next) {
+
+        // Store error response in request or send directly
         (req as any).proxyResponse = {
-          status: err.response.status,
-          data: err.response.data
+            status: err.response.status,
+            data: err.response.data
         };
-        next();
+
+        if (isLoginRoute && next) {
+            next();
       } else {
         res.status(err.response.status).json(err.response.data);
       }

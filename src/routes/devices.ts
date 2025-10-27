@@ -20,10 +20,10 @@ router.get('/users/:id/devices', asyncHandler(async (req: Request, res: Response
     const {id} = req.params;
 
     let devices;
-    const statusStr = typeof status === 'string' ? status : Array.isArray(status) ? status[0] : undefined;
+    const statusStr = status as string[];
     const  userId = id
     if (statusStr) {
-        devices = await deviceManager.getUserDevicesByStatus(userId, statusStr as string);
+        devices = await deviceManager.getUserDevicesByStatus(userId, statusStr);
     } else {
         devices = await deviceManager.getUserDevices(userId);
     }
