@@ -90,7 +90,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
 
   try {
     logger.debug(`Proxying ${req.method} ${req.originalUrl} to ${targetUrl} for device ${instanceId}`);
-    
+
     const response = await axios({
       method: req.method,
       url: targetUrl,
@@ -106,7 +106,7 @@ const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, nex
       data: response.data
     };
 
-    if (targetUrl != 'http://localhost:8000/app/login') {
+    if (targetUrl != `http://localhost:${containerPort}/app/login`) {
         next = undefined; // Prevent calling next middleware except for login route
     }
 
