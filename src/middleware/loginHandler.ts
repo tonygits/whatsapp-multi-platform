@@ -4,8 +4,7 @@ import {NextFunction, Request, Response} from 'express';
 import {asyncHandler, CustomError} from './errorHandler';
 import logger from '../utils/logger';
 import {SESSIONS_DIR} from '../utils/paths';
-import {verifyJwt} from "../utils/jwt";
-import {getUserById} from "../services/userService";
+import {verifyApiToken} from "../utils/encryption";
 
 /**
  * Handle login request and intercept QR code generation
@@ -76,16 +75,14 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Simple JWT auth middleware
-function requireAuth(req: Request, res: Response, next: NextFunction) {
+async function requireAuth(req: Request, res: Response, next: NextFunction) {
     const auth = (req.headers.authorization || '').split(' ');
     if (auth.length !== 2 || auth[0] !== 'Bearer') return res.status(401).json({error: 'Missing token'});
     const token = auth[1];
     try {
-        const payload = verifyJwt(token);
+        const payload = await verifyApiToken(token);
         // attach user to req
-        const user = getUserById(payload.sub);
-        if (!user) return res.status(401).json({error: 'User not found'});
-        (req as any).user = user;
+        if (!payload) return res.status(401).json({error: 'user is unauthorized'});
         next();
     } catch (err: any) {
         return res.status(401).json({error: 'Invalid token'});

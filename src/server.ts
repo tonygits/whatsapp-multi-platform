@@ -31,6 +31,7 @@ import sessionRoutes from './routes/session'
 
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
+import {requireAuth} from "./middleware/loginHandler";
 
 class APIGateway {
     app: Application;
@@ -109,15 +110,16 @@ class APIGateway {
         this.app.use('/docs', docsRoutes);
         this.app.use('/api/auth', authRoutes);
 
+        // Consolidated proxy routes with instance_id support
+        this.app.use('/api', requireAuth, proxyRoutes);
+
         // Protected routes
-        this.app.use('/api', authMiddleware, proxyRoutes);
         this.app.use('/api/devices', authMiddleware, deviceRoutes);
         this.app.use('/api/backup', authMiddleware, backupRoutes);
 
-        // Consolidated proxy routes with instance_id support
-        this.app.use('/api', authMiddleware, userRoutes);
-        this.app.use('/api', authMiddleware, sessionRoutes)
-        this.app.use('/api', authMiddleware, proxyRoutes);
+        //user auth
+        this.app.use('/users', authMiddleware, userRoutes);
+        this.app.use('/sessions', authMiddleware, sessionRoutes)
 
         // Root endpoint
         this.app.get('/', (req, res) => {

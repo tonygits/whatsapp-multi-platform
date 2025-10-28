@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 // Optional: POST /initiate_email_verification
-router.get('/users', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
         const users = await listUsers();
         res.status(200).json({users});
@@ -33,7 +33,7 @@ router.get('/user_by_email', async (req: Request, res: Response) => {
 });
 
 // Optional: POST /get user by id
-router.get('/users/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id?: string };
         if (!id) return res.status(400).json({error: 'id is required'});
@@ -59,7 +59,7 @@ router.get('/initiate_email_verification', async (req: Request, res: Response) =
 });
 
 // Optional: POST /reset_password
-router.put('/users/:id/verify_email', async (req: Request, res: Response) => {
+router.put('/:id/verify_email', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id: string };
         const {code} = req.query as { code: string };

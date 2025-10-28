@@ -15,6 +15,7 @@ services:
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
+      - MASTER_KEY_HEX=b7a3f2c4e98f1a56d9c72e5f8b0d143a6cf907e2b4a1d5f63c8e214a6b39d7c1
 #      - DB_URI=postgres://whatsapp:whatsapp@postgres:5432/whatsapp?sslmode=disable
 
     networks:

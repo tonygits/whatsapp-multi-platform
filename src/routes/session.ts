@@ -1,11 +1,14 @@
 import 'dotenv/config';
 import express, {Request, Response, NextFunction} from 'express';
 import {deleteSession, getSessionById, listSessionsForUser} from "../services/sessionService";
+import {AuthenticatedRequest} from "../types/session";
+import {asyncHandler} from "../middleware/errorHandler";
+import {createApiToken, revokeKey} from "../utils/encryption";
 
 const router = express.Router();
 
 // Optional: POST /list sessions
-router.get('/users/:id/sessions', async (req: Request, res: Response) => {
+router.get('/user_sessions/:id', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id: string };
         if (!id) return res.status(400).json({error: 'user id is required'});
@@ -17,8 +20,21 @@ router.get('/users/:id/sessions', async (req: Request, res: Response) => {
     }
 });
 
+router.post('/device_keys', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const {device_id} = req.body as { device_id: number };
+        if (!device_id) return res.status(400).json({error: 'user id is required'});
+        const userId = req.user?.userId as string
+        const clientToken = await createApiToken(userId, device_id);
+        res.status(201).json({access_token: clientToken, message: 'api key created. Store the key as you will not access it again.'});
+    } catch (err: any) {
+        console.error('failed to create device key with error', err);
+        res.status(400).json({error: err.message ?? 'failed to create device key for device'});
+    }
+}));
+
 // Optional: POST /get session by id
-router.get('/sessions/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id: string };
         if (!id) return res.status(400).json({error: 'session id is required'});
@@ -31,7 +47,7 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
 });
 
 // Optional: POST /logout user
-router.delete('/sessions/:id/logout', async (req: Request, res: Response) => {
+router.delete('/:id/logout', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id?: string };
         if (!id) return res.status(400).json({error: 'session id is required'});
@@ -40,6 +56,18 @@ router.delete('/sessions/:id/logout', async (req: Request, res: Response) => {
     } catch (err: any) {
         console.error('failed to logout user with error', err);
         res.status(400).json({error: err.message ?? 'failed to logout user'});
+    }
+});
+
+router.delete('/device_keys/:id', async (req: Request, res: Response) => {
+    try {
+        const {id} = req.params as { id?: string };
+        if (!id) return res.status(400).json({error: 'device key id is required'});
+        const deviceKey = await revokeKey(id);
+        res.status(200).json({deviceKey});
+    } catch (err: any) {
+        console.error('failed to deactivate device key with error', err);
+        res.status(400).json({error: err.message ?? 'failed to deactivate device key'});
     }
 });
  export default router;
