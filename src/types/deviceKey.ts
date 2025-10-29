@@ -1,7 +1,7 @@
 export type DeviceKey = {
     id: number,
     userId: string,
-    deviceId: number,
+    deviceHash: string,
     apiKeyId: string,
     deactivatedAt?: string,
     encryptedToken: string,

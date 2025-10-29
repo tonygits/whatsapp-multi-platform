@@ -106,16 +106,16 @@ class APIGateway {
 
     setupRoutes() {
         // Public routes
-        this.app.use('/api/health', healthRoutes);
+        this.app.use('/health', healthRoutes);
         this.app.use('/docs', docsRoutes);
-        this.app.use('/api/auth', authRoutes);
+        this.app.use('/auth', authRoutes);
+
+        // Protected routes
+        this.app.use('/devices', authMiddleware, deviceRoutes);
+        this.app.use('/backup', authMiddleware, backupRoutes);
 
         // Consolidated proxy routes with instance_id support
         this.app.use('/api', requireAuth, proxyRoutes);
-
-        // Protected routes
-        this.app.use('/api/devices', authMiddleware, deviceRoutes);
-        this.app.use('/api/backup', authMiddleware, backupRoutes);
 
         //user auth
         this.app.use('/users', authMiddleware, userRoutes);

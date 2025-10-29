@@ -8,7 +8,7 @@ import {createApiToken, revokeKey} from "../utils/encryption";
 const router = express.Router();
 
 // Optional: POST /list sessions
-router.get('/user_sessions/:id', async (req: Request, res: Response) => {
+router.get('/users/:id', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id: string };
         if (!id) return res.status(400).json({error: 'user id is required'});
@@ -22,10 +22,10 @@ router.get('/user_sessions/:id', async (req: Request, res: Response) => {
 
 router.post('/device_keys', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const {device_id} = req.body as { device_id: number };
-        if (!device_id) return res.status(400).json({error: 'user id is required'});
+        const {device_hash} = req.body as { device_hash: string };
+        if (!device_hash) return res.status(400).json({error: 'user id is required'});
         const userId = req.user?.userId as string
-        const clientToken = await createApiToken(userId, device_id);
+        const clientToken = await createApiToken(userId, device_hash);
         res.status(201).json({access_token: clientToken, message: 'api key created. Store the key as you will not access it again.'});
     } catch (err: any) {
         console.error('failed to create device key with error', err);

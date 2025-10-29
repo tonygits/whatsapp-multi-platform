@@ -58,8 +58,6 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
 
     try {
         const authHeader = req.headers.authorization;
-        const header = req.headers;
-
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
@@ -81,9 +79,6 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
                 error: 'INVALID_CREDENTIALS'
             });
         }
-
-        //verify that logged-in user owns the device
-        console.log('header device hash', header['x-instance-id']);
 
         // Add user info to request
         req.user = {

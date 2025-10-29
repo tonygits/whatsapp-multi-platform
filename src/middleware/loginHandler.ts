@@ -80,7 +80,9 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
     if (auth.length !== 2 || auth[0] !== 'Bearer') return res.status(401).json({error: 'Missing token'});
     const token = auth[1];
     try {
-        const payload = await verifyApiToken(token);
+        //verify that logged-in user owns the device
+        const deviceHash = req.get('deviceHash');
+        const payload = await verifyApiToken(token, deviceHash as string);
         // attach user to req
         if (!payload) return res.status(401).json({error: 'user is unauthorized'});
         next();

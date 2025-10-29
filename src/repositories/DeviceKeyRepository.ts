@@ -12,7 +12,7 @@ class DeviceKeyRepository {
         try {
             const {
                 deviceKeyId,
-                deviceId,
+                deviceHash,
                 userId,
                 apiKeyId,
                 deactivatedAt,
@@ -24,11 +24,11 @@ class DeviceKeyRepository {
             }
 
             const result = await database.run(
-                `INSERT INTO device_keys (id, device_id, user_id, api_key_id, deactivated_at, encrypted_token)
+                `INSERT INTO device_keys (id, device_hash, user_id, api_key_id, deactivated_at, encrypted_token)
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     deviceKeyId,
-                    deviceId,
+                    deviceHash,
                     userId,
                     apiKeyId,
                     deactivatedAt || null,
@@ -44,7 +44,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceId: deviceKey.device_id,
+                deviceHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -76,7 +76,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceId: deviceKey.device_id,
+                deviceHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -95,13 +95,13 @@ class DeviceKeyRepository {
      * Find device by phone number
      * @returns {Promise<Object|null>} - DeviceKey or null
      * @param userId
-     * @param deviceId
+     * @param device_hash
      */
-    async findByUserIdAndDeviceId(userId: string, deviceId: number): Promise<DeviceKey |null> {
+    async findByUserIdAndDeviceId(userId: string, deviceHash: string): Promise<DeviceKey |null> {
         try {
             const deviceKey = await database.get(
-                `SELECT * FROM device_keys WHERE user_id = ? AND device_id = ? AND deactivated_at IS NULL`,
-                [userId, deviceId]
+                `SELECT * FROM device_keys WHERE user_id = ? AND device_hash = ? AND deactivated_at IS NULL`,
+                [userId, deviceHash]
             );
 
             if (!deviceKey) {
@@ -110,7 +110,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceId: deviceKey.device_id,
+                deviceHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -130,7 +130,7 @@ class DeviceKeyRepository {
      * @returns {Promise<any>} - deviceKey
      * @param deviceKeyId
      */
-    async deactivateKey(deviceKeyId: string): Promise<any> {
+    async deactivateKey(deviceKeyId: string): Promise<DeviceKey> {
         try {
             await database.run(
                 `UPDATE device_keys
@@ -146,7 +146,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceId: deviceKey.device_id,
+                deviceHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,

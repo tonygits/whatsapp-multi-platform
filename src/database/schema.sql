@@ -83,11 +83,11 @@ CREATE TABLE IF NOT EXISTS device_keys (
     id VARCHAR(150) PRIMARY KEY,
     user_id VARCHAR(150) NOT NULL,
     deactivated_at DATETIME,
-    device_id INTEGER NOT NULL,
+    device_hash VARCHAR(150) NOT NULL,
     api_key_id TEXT NOT NULL,
     encrypted_token TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-CREATE UNIQUE INDEX IF NOT EXISTS idx_device_keys_user_device_deactivated_at ON device_keys(user_id, device_id, deactivated_at) WHERE deactivated_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_device_keys_user_device_deactivated_at ON device_keys(user_id, device_hash, deactivated_at) WHERE deactivated_at IS NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_device_keys_api_key ON device_keys(api_key_id);

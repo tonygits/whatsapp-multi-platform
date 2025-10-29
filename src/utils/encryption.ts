@@ -41,7 +41,7 @@ function decryptPayload(tokenB64: string) {
 
 // create API token (returns keyId and encrypted token)
 // NOTE: token is ciphertext (client never sees raw secret)
-export async function createApiToken(userId: string, deviceId: number) {
+export async function createApiToken(userId: string, deviceHash: string) {
     // payload can include random nonce, userId and creation timestamp
     const nonce = crypto.randomBytes(16).toString("hex");
     const createdAt = Date.now();
@@ -49,7 +49,7 @@ export async function createApiToken(userId: string, deviceId: number) {
     const token = encryptPayload(payload);
     const keyId: string = crypto.randomUUID();
 
-    const deviceKey = await deviceKeyRepository.findByUserIdAndDeviceId(userId, deviceId);
+    const deviceKey = await deviceKeyRepository.findByUserIdAndDeviceId(userId, deviceHash);
     if (deviceKey) {
         throw new Error('You already have a key. Please delete the current active key and then create a new one');
     }
@@ -57,7 +57,7 @@ export async function createApiToken(userId: string, deviceId: number) {
     // store token server-side for revocation / lookup (optional)
     const newKey = {
         deviceKeyId: crypto.randomBytes(16).toString('hex'),
-        deviceId: deviceId,
+        deviceHash: deviceHash,
         userId: userId,
         apiKeyId: keyId,
         encryptedToken: nonce,
@@ -70,14 +70,16 @@ export async function createApiToken(userId: string, deviceId: number) {
 }
 
 // verifyApiToken: accepts "keyId:token" or "token" (but recommended keyId:token)
-export async function verifyApiToken(raw: string) {
+export async function verifyApiToken(raw: string, deviceHash: string) {
     // allow "keyId:token" format
     const [maybeKeyId, maybeToken] = raw.includes(":") ? raw.split(":") : [null, raw];
     const keyId = maybeKeyId;
     const token = maybeToken;
     let record = await deviceKeyRepository.findByApiKey(keyId as string);
     if (!record) return null; // unknown or revoked
-
+    if (record.deviceHash !== deviceHash){
+        throw new Error(`device hash mismatch for api key and device ${deviceHash} making request`)
+    }
     // if keyId provided, quick lookup (and optional revocation check)
     if (keyId) {
         // decrypt to validate payload more strongly
