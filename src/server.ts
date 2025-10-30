@@ -127,21 +127,21 @@ class APIGateway {
                 name: 'WhatsApp Multi-Platform API Gateway',
                 version: '1.0.0',
                 status: 'running',
-                timestamp: new Date().toISOString(),
-                endpoints: {
-                    health: '/api/health',
-                    devices: '/api/devices',
-                    backup: '/api/backup',
-                    proxy: '/api/* (app, send, user, message, chat, group, newsletter)',
-                    docs: '/docs'
-                },
-                links: {
-                    documentation: '/docs',
-                    openapi_yaml: '/docs/openapi.yaml',
-                    'openapi_json': '/docs/openapi.json',
-                    postman_collection: '/docs/postman',
-                    'regenerate_docs': '/docs/generate'
-                }
+                timestamp: new Date().toISOString()
+                // endpoints: {
+                //     health: '/api/health',
+                //     devices: '/api/devices',
+                //     backup: '/api/backup',
+                //     proxy: '/api/* (app, send, user, message, chat, group, newsletter)',
+                //     docs: '/docs'
+                // },
+                // links: {
+                //     documentation: '/docs',
+                //     openapi_yaml: '/docs/openapi.yaml',
+                //     'openapi_json': '/docs/openapi.json',
+                //     postman_collection: '/docs/postman',
+                //     'regenerate_docs': '/docs/generate'
+                // }
             });
         });
     }
