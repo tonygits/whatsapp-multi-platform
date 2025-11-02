@@ -95,7 +95,7 @@ class DeviceKeyRepository {
      * Find device by phone number
      * @returns {Promise<Object|null>} - DeviceKey or null
      * @param userId
-     * @param device_hash
+     * @param deviceHash
      */
     async findByUserIdAndDeviceId(userId: string, deviceHash: string): Promise<DeviceKey |null> {
         try {

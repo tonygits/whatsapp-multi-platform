@@ -7,6 +7,7 @@ export async function registerNewUser(partial: Partial<User>): Promise<User> {
     try {
         logger.info(`Registering user: ${partial.email as string}`);
 
+        if (!partial) throw new Error('no user data');
         if (!partial.id) throw new Error('missing id');
         const now = new Date().toISOString();
 
@@ -24,7 +25,7 @@ export async function registerNewUser(partial: Partial<User>): Promise<User> {
             lastName: partial.lastName,
             name: partial.name,
             picture: partial.picture,
-            isVerified: true,
+            isVerified: partial.isVerified,
             passwordHash: partial.passwordHash ?? null,
             provider: partial.provider ?? 'google',
             createdAt: now,

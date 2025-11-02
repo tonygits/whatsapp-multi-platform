@@ -2,6 +2,7 @@ export type Device = {
     id: number,
     userId: string,
     deviceHash: string,
+    deviceDate?: DeviceState,
     containerId?: string,
     containerPort?: string,
     status: string,
@@ -12,4 +13,28 @@ export type Device = {
     statusWebhookUrl?: string,
     statusWebhookSecret?: string,
     createdAt: string
+}
+
+export type DeviceState = {
+    id: string,
+    deviceId: number,
+    deviceHash: string,
+    userId: string,
+    status: string,
+    lastPaymentDate?: string,
+    nextPaymentDate?: string,
+    paymentPeriod: string,
+    periodType: string,
+    isRecurring: boolean,
+    createdAt: string,
+    updatedAt: string,
+}
+
+export type DevicePayment = {
+    id: string,
+    deviceId: number,
+    deviceHash: string,
+    paymentId: string,
+    createdAt: string,
+    updatedAt: string,
 }

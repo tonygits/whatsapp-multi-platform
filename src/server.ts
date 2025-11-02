@@ -28,6 +28,8 @@ import backupRoutes from './routes/backup';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import sessionRoutes from './routes/session'
+import webhookRoutes from './routes/webhooks'
+import paystackRoutes from "./routes/paystack";
 
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
@@ -46,6 +48,10 @@ class APIGateway {
         this.port = process.env.API_PORT || 3000;
         console.log('✅ Express and server created');
 
+        console.log('📡 Configuring webhooks')
+        this.setupWebhooks();
+        console.log('✅ Configured webhooks')
+
         console.log('⚙️ Configuring middleware...');
         this.setupMiddleware();
         console.log('✅ Configured middleware');
@@ -62,6 +68,10 @@ class APIGateway {
         this.setupErrorHandling();
         console.log('✅ Error handling configured');
         console.log('🎉 Builder finished!');
+    }
+
+    setupWebhooks() {
+        this.app.use('/webhook', webhookRoutes);
     }
 
     setupMiddleware() {
@@ -84,6 +94,7 @@ class APIGateway {
                 return req.ip || req.socket.remoteAddress || 'unknown';
             }
         });
+
         this.app.use(limiter);
 
         // Body parsing
@@ -109,6 +120,9 @@ class APIGateway {
         this.app.use('/health', healthRoutes);
         this.app.use('/docs', docsRoutes);
         this.app.use('/auth', authRoutes);
+
+        //paystack
+        this.app.use('/paystack', paystackRoutes);
 
         // Protected routes
         this.app.use('/devices', authMiddleware, deviceRoutes);

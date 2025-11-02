@@ -19,6 +19,7 @@ class UserRepository {
                 contactPhone,
                 picture,
                 locale,
+                isVerified,
                 passwordHash,
                 provider,
             } = userData;
@@ -29,8 +30,8 @@ class UserRepository {
 
             const result = await database.run(
                 `INSERT INTO users (id, email, name, first_name, last_name, contact_phone, picture,
-                                      locale, password_hash, provider)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                      locale, password_hash, provider, is_verified)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id,
                     email,
@@ -41,7 +42,8 @@ class UserRepository {
                     picture || null,
                     locale || null,
                     passwordHash || null,
-                    provider || 'application'
+                    provider || 'application',
+                    isVerified
                 ]
             );
 

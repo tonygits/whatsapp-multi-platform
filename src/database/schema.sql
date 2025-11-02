@@ -91,3 +91,59 @@ CREATE TABLE IF NOT EXISTS device_keys (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_device_keys_user_device_deactivated_at ON device_keys(user_id, device_hash, deactivated_at) WHERE deactivated_at IS NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_device_keys_api_key ON device_keys(api_key_id);
+
+CREATE TABLE IF NOT EXISTS device_states (
+    id VARCHAR(150) PRIMARY KEY,
+    device_id INTEGER NOT NULL,
+    device_hash VARCHAR(150) NOT NULL,
+    user_id VARCHAR(150) NOT NULL,
+    status VARCHAR(150) NOT NULL,
+    payment_period INTEGER NOT NULL,
+    period_type VARCHAR(150) NOT NULL,
+    is_recurring BOOLEAN NOT NULL DEFAULT false,
+    last_payment_date DATETIME,
+    next_payment_date DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_device_states_device_hash ON device_states(device_hash);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(150) PRIMARY KEY,
+    access_code VARCHAR(150),
+    transaction_reference VARCHAR(150) NOT NULL,
+    amount NUMERIC(11,2) NOT NULL,
+    call_back_url  VARCHAR(150),
+    currency VARCHAR(50) NOT NULL,
+    description TEXT,
+    merchant_request_id VARCHAR(150),
+    checkout_request_id VARCHAR(150),
+    payment_mode VARCHAR(150) NOT NULL,
+    phone_number VARCHAR(150),
+    email VARCHAR(150),
+    resource_id VARCHAR(150) NOT NULL,
+    resource_name VARCHAR(150) NOT NULL,
+    resource_type VARCHAR(150) NOT NULL,
+    transaction_id VARCHAR(150) NOT NULL,
+    status VARCHAR(150) NOT NULL,
+    user_id VARCHAR(150) NOT NULL,
+    transaction_date VARCHAR(150),
+    paystack_response TEXT,
+    mpesa_stk_push_response TEXT,
+    is_recurring BOOLEAN NOT NULL DEFAULT true,
+    paymen_period VARCHAR(150) NOT NULL,
+    period_type VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_transaction_reference ON payments(transaction_reference);
+
+CREATE TABLE IF NOT EXISTS device_payments (
+    id VARCHAR(150) PRIMARY KEY,
+    device_id INTEGER NOT NULL,
+    device_hash VARCHAR(150) NOT NULL,
+    payment_id VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_device_payments_device_hash_payment_id ON device_payments(device_hash, payment_id);

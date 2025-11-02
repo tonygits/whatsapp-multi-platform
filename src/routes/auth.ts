@@ -30,17 +30,16 @@ router.post('/google', async (req: Request, res: Response) => {
 
 // Optional: POST /auth/google/code - server-side exchange of authorization code
 // (useful if your UI does server-side auth, or you need refresh tokens server-side)
-router.post('/google/code', async (req: Request, res: Response) => {
+router.post('/google/callback', async (req: Request, res: Response) => {
     try {
         const {code} = req.body as { code?: string };
         if (!code) return res.status(400).json({error: 'code is required'});
         const {user} = await exchangeCodeAndProcess(code);
-        const token = signJwt({sub: user.id});
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('access_token', token)
-        res.status(200).json(user);
+
+        res = await getSession(req, res, user)
+        res.status(200).json({user: user});
     } catch (err: any) {
-        console.error('auth/google/code error', err);
+        console.error('auth/google/callback error', err);
         res.status(400).json({error: err.message ?? 'Failed to exchange code'});
     }
 });
@@ -65,33 +64,7 @@ router.post('/login', async (req: Request, res: Response) => {
             }
         }
 
-        //check if there is active sessions
-        let activeSession: Session | null = null;
-        const sessions = await listSessionsForUser(user.id);
-        const userAgent = req.headers["user-agent"];
-        if (sessions.length>0){
-            sessions.forEach((session) => {
-                if (session.userAgent === userAgent){
-                    activeSession = session
-                }
-            });
-        }
-
-        // //create session
-        if (!activeSession) {
-            const sessionId = crypto.randomBytes(16).toString('hex');
-            const ip = req.ip;
-             activeSession = await createNewSession({
-                id: sessionId,
-                userId: user.id,
-                userAgent: userAgent as string,
-                ipAddress: ip as string
-            })
-        }
-
-        const token = signJwt({sub: activeSession.id, name: user.name, admin: true, iss: user.id});
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('access_token', token);
+        res = await getSession(req, res, user)
         const {passwordHash: userPassword, ...userWithoutPassword} = user
         res.status(200).json({user: userWithoutPassword});
     } catch (err: any) {
@@ -131,6 +104,7 @@ router.post('/register', async (req: Request, res: Response) => {
             firstName: first_name ?? undefined,
             lastName: last_name ?? undefined,
             contactPhone: contact_phone ?? undefined,
+            isVerified: false,
             name: name,
             passwordHash: passwordHash,
             provider: 'application'
@@ -138,7 +112,6 @@ router.post('/register', async (req: Request, res: Response) => {
 
         //register user
         const user = await registerNewUser(partial);
-        console.log('user1', user);
         const session = await createNewSession({id: sessionId, userId: user.id, userAgent: userAgent, ipAddress: ip})
         const token = signJwt({sub: session.id, name: user.name, admin: true, iss: user.id});
         res.setHeader('Content-Type', 'application/json');
@@ -180,5 +153,36 @@ router.put('/users/:id/reset_password', async (req: Request, res: Response) => {
         res.status(400).json({error: err.message ?? 'Failed to initiate reset password'});
     }
 });
+
+async function getSession (req: Request, res: Response, user: User) {
+    //check if there is active sessions
+    let activeSession: Session | null = null;
+    const sessions = await listSessionsForUser(user.id);
+    const userAgent = req.headers["user-agent"];
+    if (sessions.length>0){
+        sessions.forEach((session) => {
+            if (session.userAgent === userAgent){
+                activeSession = session
+            }
+        });
+    }
+
+    // //create session
+    if (!activeSession) {
+        const sessionId = crypto.randomBytes(16).toString('hex');
+        const ip = req.ip;
+        activeSession = await createNewSession({
+            id: sessionId,
+            userId: user.id,
+            userAgent: userAgent as string,
+            ipAddress: ip as string
+        })
+    }
+
+    const token = signJwt({sub: activeSession.id, name: user.name, admin: true, iss: user.id});
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('access_token', token);
+    return res
+}
 
 export default router;
