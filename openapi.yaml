@@ -634,7 +634,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
-
   /send/sticker:
     post:
       operationId: sendSticker
@@ -687,7 +686,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
-
   /send/video:
     post:
       operationId: sendVideo
@@ -1051,6 +1049,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
+
   /message/{message_id}/revoke:
     post:
       operationId: revokeMessage

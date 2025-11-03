@@ -52,8 +52,8 @@ function generateOpenAPIFromApp(app: any): any {
     { name: 'newsletter', description: 'newsletter setting' }
   ];
 
-  // Change global security to basicAuth
-  baseDoc.security = [{ basicAuth: [] }];
+  // Change global security to bearerAuth
+  baseDoc.security = [{ bearerAuth: [] }];
 
   // Add /api prefix to all WhatsApp API paths and add deviceHash parameter
   const whatsappPaths: Record<string, any> = {};
@@ -81,8 +81,8 @@ function generateOpenAPIFromApp(app: any): any {
           }
         });
 
-        // Add basicAuth security to WhatsApp API routes
-        pathObj[method].security = [{ basicAuth: [] }];
+        // Add bearerAuth security to WhatsApp API routes
+        pathObj[method].security = [{ bearerAuth: [] }];
       }
     });
     
@@ -91,13 +91,13 @@ function generateOpenAPIFromApp(app: any): any {
 
   // Add Gateway Management routes
   const gatewayPaths: Record<string, any> = {
-    '/api/health': {
+    '/health': {
       get: {
         operationId: 'healthCheck',
         tags: ['Gateway'],
         summary: 'System health check',
         description: 'Checks the health status of the API and connected services',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         responses: {
           '200': {
             description: 'Healthy system',
@@ -123,7 +123,7 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/api/devices': {
+    '/devices': {
       get: {
         operationId: 'listDevices',
         tags: ['Device Management'],
@@ -147,7 +147,7 @@ function generateOpenAPIFromApp(app: any): any {
             schema: { type: 'integer', default: 0 }
           }
         ],
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         responses: {
           '200': {
             description: 'Device list',
@@ -184,7 +184,7 @@ function generateOpenAPIFromApp(app: any): any {
         operationId: 'createDevice',
         tags: ['Device Management'],
         summary: 'Register new device',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -231,7 +231,7 @@ function generateOpenAPIFromApp(app: any): any {
         tags: ['Device Management'],
         summary: 'Update device information',
         description: 'Updates a device\'s name, message webhooks, and status webhooks.',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -299,7 +299,7 @@ function generateOpenAPIFromApp(app: any): any {
         tags: ['Device Management'],
         summary: 'Remove a device',
         description: 'Removes a device and its associated Docker container.',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -356,13 +356,13 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/api/devices/info': {
+    '/devices/info': {
       get: {
         operationId: 'getDeviceInfo',
         tags: ['Device Management'],
         summary: 'Get information from a specific device',
         description: 'Returns details of a WhatsApp device, including status and QR Code (if available).',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -415,13 +415,13 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/api/devices/start': {
+    '/devices/start': {
       post: {
         operationId: 'startDevice',
         tags: ['Device Management'],
         summary: 'Launch a device',
         description: 'Starts the Docker container associated with a device.',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -468,13 +468,13 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/api/devices/stop': {
+    '/devices/stop': {
       post: {
         operationId: 'stopDevice',
         tags: ['Device Management'],
         summary: 'Stop a device',
         description: 'For the Docker container associated with a device.',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -521,13 +521,13 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/api/devices/restart': {
+    '/devices/restart': {
       post: {
         operationId: 'restartDevice',
         tags: ['Device Management'],
         summary: 'Restart a device',
         description: 'Restarts the Docker container associated with a device.',
-        security: [{ basicAuth: [] }],
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'deviceHash',
@@ -581,15 +581,15 @@ function generateOpenAPIFromApp(app: any): any {
 
   // 1. Gateway paths first
   const gatewayPathKeys = Object.keys(gatewayPaths).filter(p => 
-    p.startsWith('/api/auth') || p.startsWith('/api/health')
+    p.startsWith('/health')
   ).sort();
 
   // 2. Device Management paths
-  const devicePathKeys = Object.keys(gatewayPaths).filter(p => 
-    p.startsWith('/api/devices')
+  const devicePathKeys = Object.keys(gatewayPaths).filter(p =>
+    p.startsWith('/devices')
   ).sort();
 
-  // 3. WhatsApp API paths por categoria
+  // 3. WhatsApp API paths por category
   const appPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/app')).sort();
   const userPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/user')).sort();
   const sendPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/send')).sort();
@@ -602,7 +602,7 @@ function generateOpenAPIFromApp(app: any): any {
   const newsletterPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/newsletter')).sort();
 
  // Add paths in the desired order
-  [...gatewayPathKeys, ...devicePathKeys, ...appPaths, ...userPaths, 
+  [...gatewayPathKeys, ...devicePathKeys, ...appPaths, ...userPaths,
    ...sendPaths, ...messagePaths, ...chatsPaths, ...chatPaths, 
    ...groupPaths, ...newsletterPaths].forEach(pathKey => {
     if (gatewayPaths[pathKey]) {
@@ -618,9 +618,9 @@ function generateOpenAPIFromApp(app: any): any {
 
   // Update security schemes to include only basic auth
   baseDoc.components.securitySchemes = {
-    basicAuth: {
+    bearerAuth: {
       type: 'http',
-      scheme: 'basic'
+      scheme: 'bearer'
     }
   };
 
@@ -636,7 +636,7 @@ function createFallbackStructure(): any {
       description: "API for sending WhatsApp messages with support for multiple devices and status webhooks.\n\n## Status Webhooks\n\nThis system supports webhooks for device status notifications:\n\n### Configuration\n- `statusWebhook`: URL to receive status notifications\n- `statusWebhookSecret`: Secret key for HMAC-SHA256 signature\n\n### Supported Events\n- **login_success**: Device connected successfully\n- **connected**: Device ready to use\n- **disconnected**: Device disconnected\n\n- **auth_failed**: Authentication failed\n- **container_event**: Other container events\n\n### Webhook Format\n```json\n{\n \"device\": {\n \"deviceHash\": \"a1b2c3d4e5f67890\",\n \"status\": \"active\"\n },\n \"event\": {\n \"type\": \"connected\",\n \"code\": \"LIST_DEVICES\",\n \"message\": \"Device connected and ready\"\n },\n \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Signature Check\nIf `statusWebhookSecret` was set, the `X-Webhook-Signature` header will contain the HMAC-SHA256 signature of the payload."
     },
     servers: [
-      { url: "http://localhost:3000" }
+      { url: process.env.SERVER_URL }
     ],
     tags: [
       { name: "Gateway", description: "Gateway Authentication and Health" },
@@ -649,11 +649,11 @@ function createFallbackStructure(): any {
       { name: "group", description: "Group setting" },
       { name: "newsletter", description: "newsletter setting" }
     ],
-    security: [{ basicAuth: [] }],
+    security: [{ bearerAuth: [] }],
     paths: {},
     components: {
       securitySchemes: {
-        basicAuth: { type: "http", scheme: "basic" }
+          bearerAuth: { type: "http", scheme: "bearer" }
       },
       schemas: {
         LoginResponse: {

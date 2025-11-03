@@ -19,6 +19,7 @@ services:
       - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SERVER_URL=${SERVER_URL}
 #      - DB_URI=postgres://whatsapp:whatsapp@postgres:5432/whatsapp?sslmode=disable
 
     networks:
