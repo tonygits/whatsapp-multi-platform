@@ -30,6 +30,7 @@ import userRoutes from './routes/user';
 import sessionRoutes from './routes/session'
 import webhookRoutes from './routes/webhooks'
 import paystackRoutes from "./routes/paystack";
+import userDevicesRoute from "./routes/user_devices"
 
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
@@ -122,13 +123,14 @@ class APIGateway {
         this.app.use('/auth', authRoutes);
 
         //paystack
-        this.app.use('/paystack', paystackRoutes);
+        this.app.use('/paystack', authMiddleware, paystackRoutes);
+        this.app.use('/user_devices', authMiddleware, userDevicesRoute)
 
         // Protected routes
-        this.app.use('/devices', authMiddleware, deviceRoutes);
         this.app.use('/backup', authMiddleware, backupRoutes);
 
-        // Consolidated proxy routes with instance_id support
+        // Consolidated proxy routes with deviceHash support
+        this.app.use('/devices', requireAuth, deviceRoutes);
         this.app.use('/api', requireAuth, proxyRoutes);
 
         //user auth

@@ -21,7 +21,7 @@ tags:
   - name: newsletter
     description: newsletter setting
 security:
-  - basicAuth: []
+  - bearerAuth: []
 
 paths:
   /app/login:
@@ -2408,9 +2408,9 @@ paths:
 
 components:
   securitySchemes:
-    basicAuth:
+    bearerAuth:
       type: http
-      scheme: basic
+      scheme: bearer
   schemas:
     CreateGroupResponse:
       type: object

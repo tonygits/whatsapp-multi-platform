@@ -81,13 +81,13 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
     const token = auth[1];
     try {
         //verify that logged-in user owns the device
-        const deviceHash = req.get('deviceHash');
+        const deviceHash = req.query.deviceHash || req.body.deviceHash || req.params.deviceHash || req.get('deviceHash');
         const payload = await verifyApiToken(token, deviceHash as string);
         // attach user to req
         if (!payload) return res.status(401).json({error: 'user is unauthorized'});
         next();
     } catch (err: any) {
-        return res.status(401).json({error: err});
+        return res.status(401).json({error: `invalid credentials - ${err}`});
     }
 }
 
