@@ -4,6 +4,7 @@ import {deleteSession, getSessionById, listSessionsForUser} from "../services/se
 import {AuthenticatedRequest} from "../types/session";
 import {asyncHandler} from "../middleware/errorHandler";
 import {createApiToken, revokeKey} from "../utils/encryption";
+import deviceKeyRepository from "../repositories/DeviceKeyRepository";
 
 const router = express.Router();
 
@@ -56,6 +57,24 @@ router.delete('/:id/logout', async (req: Request, res: Response) => {
     } catch (err: any) {
         console.error('failed to logout user with error', err);
         res.status(400).json({error: err.message ?? 'failed to logout user'});
+    }
+});
+
+router.get('/users/:id/devices', async (req: Request, res: Response) => {
+    try {
+        const {id} = req.params as { id?: string };
+        const {hash} = req.query as { hash?: string };
+        if (!id) return res.status(400).json({error: 'user id is required'});
+        if (!hash) return res.status(400).json({error: 'device hash id is required'});
+        const deviceKey: any = await deviceKeyRepository.findByUserIdAndDeviceId(id, hash);
+        if (!deviceKey){
+            res.status(404).json({message: "device key not found"});
+        }
+        const {encryptedToken: deviceToken, ...deviceKeyWithoutToken} = deviceKey
+        res.status(200).json({deviceKey: deviceKeyWithoutToken});
+    } catch (err: any) {
+        console.error('failed to deactivate device key with error', err);
+        res.status(400).json({error: err.message ?? 'failed to deactivate device key'});
     }
 });
 

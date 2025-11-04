@@ -129,7 +129,7 @@ router.get('/initiate_reset_password', async (req: Request, res: Response) => {
         const {email} = req.query as { email?: string };
         if (!email) return res.status(400).json({error: 'email is required'});
         const user = await initiateResetPassword(email);
-        res.status(200).json({user});
+        res.status(200).json({user: user});
     } catch (err: any) {
         console.error('initiate_reset_password error', err);
         res.status(400).json({error: err.message ?? 'Failed to initiate reset password'});
@@ -150,7 +150,7 @@ router.put('/users/:id/reset_password', async (req: Request, res: Response) => {
         res.status(200).json({user});
     } catch (err: any) {
         console.error('initiate_reset_password error', err);
-        res.status(400).json({error: err.message ?? 'Failed to initiate reset password'});
+        res.status(400).json({error: err.message ?? 'Failed to reset password'});
     }
 });
 

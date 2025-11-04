@@ -124,18 +124,16 @@ class APIGateway {
 
         //paystack
         this.app.use('/paystack', authMiddleware, paystackRoutes);
-        this.app.use('/user_devices', authMiddleware, userDevicesRoute)
+        this.app.use('/user_devices', authMiddleware, userDevicesRoute);
 
         // Protected routes
         this.app.use('/backup', authMiddleware, backupRoutes);
+        this.app.use('/users', authMiddleware, userRoutes);
+        this.app.use('/sessions', authMiddleware, sessionRoutes);
 
         // Consolidated proxy routes with deviceHash support
         this.app.use('/devices', requireAuth, deviceRoutes);
         this.app.use('/api', requireAuth, proxyRoutes);
-
-        //user auth
-        this.app.use('/users', authMiddleware, userRoutes);
-        this.app.use('/sessions', authMiddleware, sessionRoutes)
 
         // Root endpoint
         this.app.get('/', (req, res) => {

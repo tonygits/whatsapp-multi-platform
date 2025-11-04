@@ -58,13 +58,11 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
                     // This allows a fallback to the previous behavior
                     logger.info(`Keeping the original qr_link: ${responseData.results.qr_link}`);
                 }
-
             } catch (qrError) {
                 logger.error(`Error processing QR code for ${deviceHash}:`, qrError);
                 // Continue with original response if QR processing fails
             }
         }
-
         res.status(proxyResponse.status).json(responseData);
 
     } catch (error) {

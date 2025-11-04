@@ -23,11 +23,7 @@ class AuthManager {
 
     async generateUserSession(id: string, userId: string): Promise<Session | null> {
         try {
-            if (!id) {
-                return null;
-            }
-
-            const session = await getSessionById(id)
+            const session = await getSessionById(id);
             if (!session || session.deactivatedAt) {
                 logger.info(`session for user ${userId} is inactive`);
                 return null
@@ -71,7 +67,6 @@ const authMiddleware = async (req: Request & { user?: any }, res: Response, next
 
         const {sub, iss} = verifyJwt(parts[1])
         const session = await authManager.generateUserSession(sub, iss as string);
-
         if (!session) {
             return res.status(401).json({
                 success: false,

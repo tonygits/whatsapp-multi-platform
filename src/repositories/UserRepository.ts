@@ -1,6 +1,6 @@
 import database from '../database/database';
 import logger from '../utils/logger';
-import {use} from "passport";
+import {User} from "../types/user";
 
 class UserRepository {
     /**

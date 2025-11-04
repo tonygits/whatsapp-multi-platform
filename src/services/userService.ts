@@ -2,6 +2,7 @@ import userRepository from "../repositories/UserRepository";
 import logger from "../utils/logger";
 import {hashPassword} from '../utils/password';
 import {SetUserPasswordForm, User} from "../types/user";
+import {generateRandomString} from "../utils/random"
 
 export async function registerNewUser(partial: Partial<User>): Promise<User> {
     try {
@@ -196,25 +197,25 @@ export async function initiateEmailVerification(email: string): Promise<User | n
 
         const code = generateRandomString(6)
         const now = new Date().toISOString();
-        const updatedUser: User = await userRepository.update(user.id, { verificationCode: code, verificationCodeExpires: now });
+        const updatedUser = await userRepository.update(user.id, { verificationCode: code, verificationCodeExpires: now });
 
         return {
             id: updatedUser.id,
             email: updatedUser.email,
             name: updatedUser.name,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            contactPhone: updatedUser.contactPhone,
+            firstName: updatedUser.first_name,
+            lastName: updatedUser.last_name,
+            contactPhone: updatedUser.contact_phone,
             picture: updatedUser.picture,
             locale: updatedUser.locale,
-            isVerified: updatedUser.isVerified,
-            verificationCode: updatedUser.verificationCode,
-            verificationCodeExpires: updatedUser.verificationCodeExpires,
-            resetToken: updatedUser.resetToken,
-            resetTokenExpires: updatedUser.resetTokenExpires,
+            isVerified: updatedUser.is_verified,
+            verificationCode: updatedUser.verification_code,
+            verificationCodeExpires: updatedUser.verification_code_expires,
+            resetToken: updatedUser.reset_token,
+            resetTokenExpires: updatedUser.reset_token_expires,
             provider: updatedUser.provider,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt
+            createdAt: updatedUser.created_at,
+            updatedAt: updatedUser.updated_at
         }
     } catch (error) {
         logger.error(`Error searching for user ${email}:`, error);
@@ -234,25 +235,25 @@ export async function verifyUserEmail(id: string, code: string): Promise<User | 
             throw new Error('Invalid verification code');
         }
 
-        const updatedUser: User = await userRepository.update(user.id, { isVerified: true });
+        const updatedUser = await userRepository.update(user.id, { isVerified: true });
 
         return {
             id: updatedUser.id,
             email: updatedUser.email,
             name: updatedUser.name,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            contactPhone: updatedUser.contactPhone,
+            firstName: updatedUser.first_name,
+            lastName: updatedUser.last_name,
+            contactPhone: updatedUser.contact_phone,
             picture: updatedUser.picture,
             locale: updatedUser.locale,
-            isVerified: updatedUser.isVerified,
-            verificationCode: updatedUser.verificationCode,
-            verificationCodeExpires: updatedUser.verificationCodeExpires,
-            resetToken: updatedUser.resetToken,
-            resetTokenExpires: updatedUser.resetTokenExpires,
+            isVerified: updatedUser.is_verified,
+            verificationCode: updatedUser.verification_code,
+            verificationCodeExpires: updatedUser.verification_code_expires,
+            resetToken: updatedUser.reset_token,
+            resetTokenExpires: updatedUser.reset_token_expires,
             provider: updatedUser.provider,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt
+            createdAt: updatedUser.created_at,
+            updatedAt: updatedUser.updated_at
         }
     } catch (error) {
         logger.error(`Error searching for user ${id}:`, error);
@@ -270,25 +271,25 @@ export async function initiateResetPassword(email: string): Promise<User | null>
 
         const code = generateRandomString(6)
         const now = new Date().toISOString();
-        const updatedUser: User = await userRepository.update(user.id, { verificationCode: code, verificationCodeExpires: now });
+        const updatedUser = await userRepository.update(user.id, { resetToken: code, resetTokenExpires: now });
 
         return {
             id: updatedUser.id,
             email: updatedUser.email,
             name: updatedUser.name,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            contactPhone: updatedUser.contactPhone,
+            firstName: updatedUser.first_name,
+            lastName: updatedUser.last_name,
+            contactPhone: updatedUser.contact_phone,
             picture: updatedUser.picture,
             locale: updatedUser.locale,
-            isVerified: updatedUser.isVerified,
-            verificationCode: updatedUser.verificationCode,
-            verificationCodeExpires: updatedUser.verificationCodeExpires,
-            resetToken: updatedUser.resetToken,
-            resetTokenExpires: updatedUser.resetTokenExpires,
+            isVerified: updatedUser.is_verified,
+            verificationCode: updatedUser.verification_code,
+            verificationCodeExpires: updatedUser.verification_code_expires,
+            resetToken: updatedUser.reset_token,
+            resetTokenExpires: updatedUser.reset_token_expires,
             provider: updatedUser.provider,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt
+            createdAt: updatedUser.created_at,
+            updatedAt: updatedUser.updated_at
         }
     } catch (error) {
         logger.error(`Error searching for user ${email}:`, error);
@@ -298,7 +299,7 @@ export async function initiateResetPassword(email: string): Promise<User | null>
 
 export async function setNewPassword(id: string, resetPassword: SetUserPasswordForm): Promise<User | null> {
     try {
-        const user: User = await userRepository.findById(id);
+        const user = await userRepository.findById(id);
 
         if (!user) {
             return null;
@@ -308,31 +309,31 @@ export async function setNewPassword(id: string, resetPassword: SetUserPasswordF
             throw new Error('Passwords do not match');
         }
 
-        if (user.resetToken !== resetPassword.reset_token) {
+        if (user.reset_token !== resetPassword.reset_token) {
             throw new Error('Invalid reset token');
         }
 
         //hash password
         const passwordHash = await hashPassword(resetPassword.password);
-        const updatedUser: User = await userRepository.update(user.id, { passwordHash: passwordHash });
+        const updatedUser = await userRepository.update(user.id, { passwordHash: passwordHash });
 
         return {
             id: updatedUser.id,
             email: updatedUser.email,
             name: updatedUser.name,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            contactPhone: updatedUser.contactPhone,
+            firstName: updatedUser.first_name,
+            lastName: updatedUser.last_name,
+            contactPhone: updatedUser.contact_phone,
             picture: updatedUser.picture,
             locale: updatedUser.locale,
-            isVerified: updatedUser.isVerified,
-            verificationCode: updatedUser.verificationCode,
-            verificationCodeExpires: updatedUser.verificationCodeExpires,
-            resetToken: updatedUser.resetToken,
-            resetTokenExpires: updatedUser.resetTokenExpires,
+            isVerified: updatedUser.is_verified,
+            verificationCode: updatedUser.verification_code,
+            verificationCodeExpires: updatedUser.verification_code_expires,
+            resetToken: updatedUser.reset_token,
+            resetTokenExpires: updatedUser.reset_token_expires,
             provider: updatedUser.provider,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt
+            createdAt: updatedUser.created_at,
+            updatedAt: updatedUser.updated_at
         }
     } catch (error) {
         logger.error(`Error searching for user ${id}:`, error);
