@@ -65,6 +65,7 @@ router.post("/paystack", express.raw({type: "application/json"}), async (req: Re
             try {
                 const verifyInfo = await verifyPaystackTransaction(reference);
                 // verifyData.status should be 'success' for a completed successful payment
+                console.log(verifyInfo);
 
                 // IMPORTANT: make any DB updates idempotent (check by reference first)
                 // Send 200 to Paystack to acknowledge receipt
