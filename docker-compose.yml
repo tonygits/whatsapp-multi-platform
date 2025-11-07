@@ -20,6 +20,12 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - SERVER_URL=${SERVER_URL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}        # optional if unauthenticated SMTP
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_SECURE=${SMTP_SECURE}        # "true" for TLS (port 465)
+      - SMTP_FROM=${SMTP_FROM}
 #      - DB_URI=postgres://whatsapp:whatsapp@postgres:5432/whatsapp?sslmode=disable
 
     networks:

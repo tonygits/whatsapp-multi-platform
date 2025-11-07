@@ -3,6 +3,8 @@ import logger from "../utils/logger";
 import {hashPassword} from '../utils/password';
 import {SetUserPasswordForm, User} from "../types/user";
 import {generateRandomString} from "../utils/random"
+import {escapeHtml} from "../utils/paths";
+import {sendMail} from "../providers/email";
 
 export async function registerNewUser(partial: Partial<User>): Promise<User> {
     try {
@@ -91,7 +93,7 @@ export async function getUserById(id: string): Promise<User | null> {
     }
 }
 
-export async function listUsers():Promise<User[]> {
+export async function listUsers(): Promise<User[]> {
     try {
         const users = await userRepository.findAll();
         if (Array.isArray(users)) {
@@ -196,8 +198,76 @@ export async function initiateEmailVerification(email: string): Promise<User | n
         }
 
         const code = generateRandomString(6)
-        const now = new Date().toISOString();
-        const updatedUser = await userRepository.update(user.id, { verificationCode: code, verificationCodeExpires: now });
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 10);
+        const updatedUser = await userRepository.update(user.id, {
+            verificationCode: code,
+            verificationCodeExpires: now.toISOString(),
+        });
+
+        const title = 'Verify your Wapflow email';
+        const verifyEmailUrl = `https://wapflow.app/auth/verify-email?code=${code}`
+        const html = `
+            <p>Hi ${escapeHtml(user.first_name)},</p>
+              <p>
+                Welcome to <strong>Wapflow</strong>! To finish setting up your account, please verify your email address.
+              </p>
+              ${
+              code ? `
+                  <div style="text-align:center;margin:28px 0;">
+                    <div style="
+                      display:inline-block;
+                      font-family:monospace;
+                      font-size:20px;
+                      letter-spacing:3px;
+                      background:#f3f4f6;
+                      color:#111;
+                      padding:12px 18px;
+                      border-radius:8px;
+                    ">
+                      ${escapeHtml(code)}
+                    </div>
+                  </div>
+                  `
+                 : ''
+                }
+              ${verifyEmailUrl ? `
+                  <p style="text-align:center;margin-bottom:24px;">
+                    <a href="${escapeHtml(verifyEmailUrl)}"
+                      style="
+                        display:inline-block;
+                        background:#2563eb;
+                        color:#fff;
+                        padding:12px 20px;
+                        border-radius:8px;
+                        text-decoration:none;
+                        font-weight:600;
+                      "
+                    >
+                      Verify My Email
+                    </a>
+                  </p>
+                  `
+                    : ''
+                 }
+              <p>
+                ${verifyEmailUrl
+                        ? `If the button above doesn’t work, you can also copy and paste this link into your browser:<br/>
+                    <a href="${escapeHtml(verifyEmailUrl)}" style="color:#2563eb;">${escapeHtml(verifyEmailUrl)}</a>`
+                        : ''
+                    }
+              </p>
+              <p>
+                If you didn’t create an account on Wapflow, please ignore this message — no action is needed.
+              </p>
+            
+              <p style="font-size:13px;color:#666;margin-top:24px;">
+                Need help? Visit our
+                <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
+              </p>
+            `;
+        const info = await sendMail({ to: user.email, title, html });
+        console.log(info);
 
         return {
             id: updatedUser.id,
@@ -231,11 +301,17 @@ export async function verifyUserEmail(id: string, code: string): Promise<User | 
             return null;
         }
 
+        const expiry = new Date(user.verification_code_expires);
+        const now = new Date();
+        if (now.getTime() > expiry.getTime()) {
+            throw new Error('Verification code has expired. Please generate a new verification code');
+        }
+
         if (user.verification_code !== code) {
             throw new Error('Invalid verification code');
         }
 
-        const updatedUser = await userRepository.update(user.id, { isVerified: true });
+        const updatedUser = await userRepository.update(user.id, {isVerified: true, verificationCode: null, verificationCodeExpires: null});
 
         return {
             id: updatedUser.id,
@@ -270,9 +346,59 @@ export async function initiateResetPassword(email: string): Promise<User | null>
         }
 
         const code = generateRandomString(6)
-        const now = new Date().toISOString();
-        const updatedUser = await userRepository.update(user.id, { resetToken: code, resetTokenExpires: now });
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 10);
+        const updatedUser = await userRepository.update(user.id, {resetToken: code, resetTokenExpires: now.toISOString()});
 
+        const title = 'Reset your Wapflow password';
+        const resetPasswordUrl = `https://wapflow.app/auth/reset-password?resetCode=${code}`
+        const html = `<p>Hi ${escapeHtml(user.first_name)},</p>
+              <p>
+                We received a request to reset your password for your Wapflow account.
+                Use the code below to reset it — this code will expire in 30 minutes.
+              </p>
+            
+              <div style="text-align:center;margin:28px 0;">
+                <div style="
+                  display:inline-block;
+                  font-family:monospace;
+                  font-size:20px;
+                  letter-spacing:3px;
+                  background:#f3f4f6;
+                  color:#111;
+                  padding:12px 18px;
+                  border-radius:8px;
+                ">
+                  ${escapeHtml(code)}
+                </div>
+              </div>
+            
+              <p style="text-align:center;margin-bottom:24px;">
+                <a href="${escapeHtml(resetPasswordUrl)}"
+                  style="
+                    display:inline-block;
+                    background:#2563eb;
+                    color:#fff;
+                    padding:12px 20px;
+                    border-radius:8px;
+                    text-decoration:none;
+                    font-weight:600;
+                  "
+                >
+                  Reset Password
+                </a>
+              </p>
+            
+              <p>If you didn’t request this password reset, please ignore this email — your password will remain unchanged.</p>
+            
+              <p style="font-size:13px;color:#666;margin-top:24px;">
+                Need help? Visit our
+                <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
+              </p>
+            `;
+
+        const info = await sendMail({ to: user.email, title, html });
+        console.log(info);
         return {
             id: updatedUser.id,
             email: updatedUser.email,
@@ -309,13 +435,19 @@ export async function setNewPassword(id: string, resetPassword: SetUserPasswordF
             throw new Error('Passwords do not match');
         }
 
+        const expiry = new Date(user.reset_token_expires);
+        const now = new Date();
+        if (now.getTime() > expiry.getTime()) {
+            throw new Error('Reset code has expired. Please generate a new reset code');
+        }
+
         if (user.reset_token !== resetPassword.reset_token) {
             throw new Error('Invalid reset token');
         }
 
         //hash password
         const passwordHash = await hashPassword(resetPassword.password);
-        const updatedUser = await userRepository.update(user.id, { passwordHash: passwordHash });
+        const updatedUser = await userRepository.update(user.id, {passwordHash: passwordHash, resetToken: null, resetTokenExpires: null});
 
         return {
             id: updatedUser.id,

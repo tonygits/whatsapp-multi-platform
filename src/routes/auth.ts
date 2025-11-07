@@ -8,8 +8,17 @@ import {hashPassword, verifyPassword} from "../utils/password";
 import {createNewSession, listSessionsForUser} from "../services/sessionService";
 import {User} from "../types/user";
 import {Session} from "../types/session";
+import {sendMail} from "../providers/email";
 
 const router = express.Router();
+
+type BodyPayload = {
+    to?: string | string[];
+    title?: string;
+    body?: string;
+    html?: string;
+    // optional: from/cc/bcc/replyTo can be passed from svc if needed
+};
 
 // POST /auth/google - client sends idToken received from Google Identity Services
 router.post('/google', async (req: Request, res: Response) => {
@@ -184,5 +193,29 @@ async function getSession (req: Request, res: Response, user: User) {
     res.setHeader('access_token', token);
     return res
 }
+
+router.post('/send-email', async (req: Request<{}, {}, BodyPayload>, res: Response) => {
+    try {
+        const { to, title, body, html } = req.body ?? {};
+
+        // If you always send to a default recipient (e.g., notifications), set it via env
+        const recipient = to || process.env.DEFAULT_EMAIL_TO;
+        if (!recipient) {
+            return res.status(400).json({ ok: false, error: '`to` is required (or set DEFAULT_EMAIL_TO env)' });
+        }
+
+        if (!title || (!body && !html)) {
+            return res.status(400).json({ ok: false, error: 'Missing title or body/html' });
+        }
+
+        const info = await sendMail({ to: recipient, title, body, html });
+
+        return res.json({ ok: true, messageId: info.messageId, accepted: info.accepted, info });
+    } catch (err: any) {
+        // eslint-disable-next-line no-console
+        console.error('send-email error', err);
+        return res.status(500).json({ ok: false, error: err?.message ?? 'Failed to send' });
+    }
+});
 
 export default router;

@@ -147,3 +147,42 @@ CREATE TABLE IF NOT EXISTS device_payments (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_device_payments_device_hash_payment_id ON device_payments(device_hash, payment_id);
+
+CREATE TABLE IF NOT EXISTS plans (
+    id VARCHAR(150) PRIMARY KEY,
+    name period VARCHAR(150) NOT NULL,
+    code VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    amount NUMERIC(11,2) NOT NULL,
+    interval VARCHAR(50) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS plans_code_uniq_idx ON plans(code);
+
+CREATE TABLE IF NOT EXISTS customers (
+    id VARCHAR(150) PRIMARY KEY,
+    authorization_code VARCHAR(150),
+    first_name VARCHAR(150),
+    last_name VARCHAR(150),
+    customer_id  VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    phone VARCHAR(150),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS customers_customer_id_uniq_idx ON customers(customer_id);
+CREATE UNIQUE INDEX IF NOT EXISTS customers_email_uniq_idx ON customers(email);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id VARCHAR(150) PRIMARY KEY,
+    code VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    customer_id VARCHAR(150) NOT NULL,
+    plan_code VARCHAR(150) NOT NULL,
+    status  VARCHAR(150) NOT NULL,
+    next_billing_date DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_code_uniq_idx ON subscriptions(code);

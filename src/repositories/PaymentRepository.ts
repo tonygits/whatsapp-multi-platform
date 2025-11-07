@@ -196,9 +196,10 @@ class PaymentRepository {
             await database.transaction(async (db) => {
                 // db is the wrapper instance
                 const allowedFields = [
-                    'status', 'access_code', 'call_back_url', 'description', 'email',
-                    'paystack_response', 'merchant_request_id', 'checkout_request_id',
-                    'phone_number', 'transaction_date', 'mpesa_stk_push_response'
+                    'status', 'access_code', 'call_back_url', 'description',
+                    'email', 'paystack_response', 'merchant_request_id',
+                    'checkout_request_id', 'phone_number', 'transaction_date',
+                    'mpesa_stk_push_response','transaction_reference'
                 ];
 
                 // Convert camelCase to snake_case for database
@@ -210,6 +211,7 @@ class PaymentRepository {
                     'email': 'email',
                     'paystackResponse': 'paystack_response',
                     'transactionDate': 'transaction_date',
+                    'transactionReference': 'transaction_reference',
                     'mpesaStkPushResponse': 'mpesa_stk_push_response',
                 };
 
@@ -353,3 +355,5 @@ class PaymentRepository {
         }
     }
 }
+
+export default new PaymentRepository();

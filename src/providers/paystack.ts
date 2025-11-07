@@ -1,17 +1,22 @@
 import axios from "axios";
 import logger from "../utils/logger";
+import paymentRepository from "../repositories/PaymentRepository";
+import customerRepository from "../repositories/customerRepository";
+import subscriptionRepository from "../repositories/SubscriptionRepository";
+import planRepository from "../repositories/planRepository";
+
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
-export async function createPlan(name: string, amountKobo: number, interval: "monthly" | "yearly") {
+export async function createPlan(name: string, amount: number, interval: "monthly" | "yearly") {
     // amountKobo: amount in smallest currency unit (kobo for NGN) - Paystack expects integer
-    const res = await axios.post(`${PAYSTACK_BASE_URL}/plan`, {
-        name,
-        amount: amountKobo,
-        interval, // "monthly" or "yearly"
-    }, {
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` }
-    });
+    const res = await axios.post(`${PAYSTACK_BASE_URL}/plan`,
+        {
+            name: name,
+            amount: amount,
+            interval: interval, // "monthly" or "yearly"
+        }, {headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`}}
+    );
     return res.data; // contains plan.code, plan.id etc
 }
 
@@ -54,6 +59,7 @@ export async function markLocalSubscriptionDisabled(code: string) {
     // update DB subscription status
     return;
 }
+
 // -----------------------------
 
 // Helper: generic call to Paystack (axios instance)
@@ -81,7 +87,7 @@ export async function fetchPaystackPlan(planCode: string) {
 
 // Create a new subscription for a customer (POST /subscription)
 export async function changePaystackSubscription(customerIdentifier: string, planCode: string, authorization?: string, startDate?: string) {
-    const payload: any = { customer: customerIdentifier, plan: planCode };
+    const payload: any = {customer: customerIdentifier, plan: planCode};
     if (authorization) payload.authorization = authorization;
     if (startDate) payload.start_date = startDate;
     const resp = await paystack.post("/subscription", payload);
@@ -90,7 +96,7 @@ export async function changePaystackSubscription(customerIdentifier: string, pla
 
 // Disable a subscription (POST /subscription/disable)
 export async function disablePaystackSubscription(subscriptionCode: string, token?: string) {
-    const payload: any = { code: subscriptionCode };
+    const payload: any = {code: subscriptionCode};
     if (token) payload.token = token;
     const resp = await paystack.post("/subscription/disable", payload);
     return resp.data;
@@ -106,7 +112,7 @@ export async function chargeAuthorization(amount: number, authorization_code: st
     };
     if (reference) payload.reference = reference;
     const resp = await paystack.post("/transaction/charge_authorization", payload, {
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
     });
     return resp.data;
 }
@@ -123,16 +129,11 @@ type LocalCustomer = {
 
 export async function verifyPaystackTransaction(reference: string) {
     try {
-        // Idempotency check: did we already process this reference?
-        const existing = await findPaymentByReference(reference);
-        if (existing) {
-            logger.info(`Reference already processed ${reference}`);
-        }
 
         // 1) Verify the transaction with Paystack
         const verifyResp = await verifyTransaction(reference);
         if (!verifyResp || !verifyResp.data) {
-             throw new Error( "Invalid response from Paystack verify" );
+            throw new Error("Invalid response from Paystack verify");
         }
 
         const tx = verifyResp.data; // Paystack transaction object
@@ -140,7 +141,7 @@ export async function verifyPaystackTransaction(reference: string) {
         if (tx.status !== "success") {
             // you may still want to save as failed/pending in DB
             logger.error(`transaction response ${tx}`)
-            throw new Error( `Transaction failed with status: ${tx.status}`);
+            throw new Error(`Transaction failed with status: ${tx.status}`);
         }
 
         // 2) Extract authorization code and customer email
@@ -156,13 +157,14 @@ export async function verifyPaystackTransaction(reference: string) {
 
         // 3) Create or find Paystack customer
         let paystackCustomer = await getPaystackCustomerByEmail(customerEmail);
-
         if (!paystackCustomer) {
             // create with authorization_code if available to attach reusable card
             paystackCustomer = await createPaystackCustomer(customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
         } else {
             // If customer exists, but we have an authorization code, you might attach it via updating customer or keeping local mapping.
+            paystackCustomer = await updatePaystackCustomer(paystackCustomer.code, customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
             // Paystack customer object may already include authorizations; we still keep going.
+
         }
 
         // 4) Save / upsert local customer record
@@ -180,7 +182,7 @@ export async function verifyPaystackTransaction(reference: string) {
             // no plan code found — you can either return success (no subscription) or error
             // Here we return an informative response telling caller to provide plan_code
             // But we still mark payment processed in DB to avoid double-processing
-            await markPaymentProcessed(reference, { tx, note: "no plan_code found" });
+            await markPaymentProcessed(reference, {tx, note: "no plan_code found", rxnResponse: JSON.stringify(tx)});
             return {
                 message: "Payment verified but no plan_code found to create subscription. Provide plan_code in metadata or query param.",
                 reference,
@@ -199,8 +201,7 @@ export async function verifyPaystackTransaction(reference: string) {
             subscription,
             localCustomer,
         });
-
-        await markPaymentProcessed(reference, { tx, subscription });
+        await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
 
         // 8) Respond with success and subscription details
         return {
@@ -234,33 +235,137 @@ export async function updateLocalSubscriptionStatus(subCode: string, status: str
     return;
 }
 
-export async function findPaymentByReference(reference: string) {
-    // return null or an object representing an already processed payment
-    // e.g. return await db.payment.findUnique({ where: { reference }});
-    return null;
-}
 
 export async function markPaymentProcessed(reference: string, payload: any) {
     // persist that this reference has been processed
-    // e.g. await db.payment.create({ data: { reference, payload: JSON.stringify(payload), status: 'success' }});
+    const now = new Date();
+    const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
+    if (dbTxn) {
+        const updatedPayment = await paymentRepository.update(dbTxn.id, {
+            status: 'paid',
+        });
+        if (updatedPayment) {
+            return;
+        }
+    } else {
+        //create new transaction
+        const paymentData = {
+            id: crypto.randomUUID(),
+            transactionReference: reference.trim(),
+            amount: payload.amount,
+            currency: payload.currency,
+            description: payload.description,
+            email: payload.customer.email,
+            paymentMode: payload.channel,
+            phoneNumber: payload.customer.phone,
+            resourceId: "whatsapp-api",
+            resourceName: "whatsapp-api",
+            resourceType: "api",
+            transactionId: reference.trim(),
+            status: payload.status,
+            userId: payload.metadata.user_id,
+            paymentPeriod: payload.metadata.payment_period,
+            periodType: payload.metadata.period_type,
+            isRecurring: true,
+            transactionDate: now.toISOString(),
+            paystackResponse: payload.rxnResponse,
+        }
+        await paymentRepository.create(paymentData);
+    }
     return;
 }
 
 export async function upsertLocalCustomer(customer: Partial<LocalCustomer>): Promise<LocalCustomer> {
-    // Create or update local customer and return local customer record.
-    // e.g. return await db.customer.upsert(...)
-    return {
-        id: "local-cust-id",
-        email: customer.email || "unknown",
-        paystackCustomerId: customer.paystackCustomerId,
-        authorizationCode: customer.authorizationCode,
-    };
+
+    try {
+        //check if customer exists
+        let dbCustomer = await customerRepository.findByEmail(customer.email as string);
+        if (!dbCustomer) {
+            const customerData = {
+                id: crypto.randomUUID(),
+                authorizationCode: customer.authorizationCode,
+                email: customer.email,
+                customerId: customer.paystackCustomerId,
+            }
+            dbCustomer = await customerRepository.create(customerData);
+        }
+
+        return {
+            id: dbCustomer.id,
+            email: customer.email || "unknown",
+            paystackCustomerId: customer.paystackCustomerId,
+            authorizationCode: customer.authorizationCode,
+        };
+    } catch (err: any) {
+        throw new Error(`failed to create new  customer with err: ${err?.message}`)
+    }
 }
 
 export async function saveSubscriptionRecord(subscriptionPayload: any) {
     // Save subscription record in your DB (subscription code, customer id, plan, status, start/next billing date)
-    return;
+    try {
+        const plan = await planRepository.findByCode(subscriptionPayload.subscription.plan_code);
+        const today = new Date();
+        let nextMonth = new Date(today);
+        let nextYear = new Date(today);
+        if (plan) {
+            if (plan.interval === 'monthly') {
+                nextMonth.setMonth(today.getMonth() + 1);
+            }
+
+            if (plan.interval === 'yearly') {
+                nextYear.setFullYear(today.getFullYear() + 1);
+            }
+        }
+        let dbSubscription = await subscriptionRepository.findByCode(subscriptionPayload.subscription.code);
+        if (dbSubscription) {
+            //update subscription with next billing date
+            if (plan) {
+                if (plan.interval === 'monthly') {
+                    //create next month billing date
+                    const updatedPlan = await subscriptionRepository.update(dbSubscription.code, {
+                        status: 'active',
+                        nextBillingDate: nextMonth.toISOString()
+                    });
+                    console.log(updatedPlan);
+                }
+
+                if (plan.interval === 'yearly') {
+                    //create the next year billing date
+                    const updatedPlan = await subscriptionRepository.update(dbSubscription.code, {
+                        status: 'active',
+                        nextBillingDate: nextYear.toISOString()
+                    });
+                    console.log(updatedPlan);
+                }
+            }
+
+        } else {
+            //create new sub
+            const newSubscription = {
+                id: crypto.randomUUID(),
+                code: subscriptionPayload.subscription.code,
+                customerId: subscriptionPayload.localCustomer.customer_id,
+                email: subscriptionPayload.localCustomer.email,
+                planCode: subscriptionPayload.subscription.plan_code,
+                status: 'active',
+                nextBillingDate: "",
+            }
+
+            if (plan && plan.interval === 'monthly') {
+                newSubscription.nextBillingDate = nextMonth.toISOString();
+            }
+
+            if (plan && plan.interval === 'yearly') {
+                newSubscription.nextBillingDate = nextYear.toISOString();
+            }
+            await subscriptionRepository.create(newSubscription);
+        }
+    } catch (e) {
+        throw new Error(`failed to update or create subscription with err: ${e}`)
+    }
 }
+
 // -----------------------------
 
 // Helper: Verify transaction with Paystack
@@ -278,7 +383,7 @@ export async function verifyTransaction(reference: string) {
 export async function getPaystackCustomerByEmail(email: string) {
     const url = `${PAYSTACK_BASE_URL}/customer?email=${encodeURIComponent(email)}`;
     const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+        headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
     const customers = res.data?.data;
     if (Array.isArray(customers) && customers.length > 0) return customers[0];
@@ -287,13 +392,25 @@ export async function getPaystackCustomerByEmail(email: string) {
 
 // Helper: Create Paystack customer with an authorization_code (reusable card)
 export async function createPaystackCustomer(email: string, authorization_code?: string, first_name?: string, last_name?: string) {
-    const payload: any = { email };
+    const payload: any = {email};
     if (authorization_code) payload.authorization_code = authorization_code;
     if (first_name) payload.first_name = first_name;
     if (last_name) payload.last_name = last_name;
 
     const res = await axios.post(`${PAYSTACK_BASE_URL}/customer`, payload, {
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+        headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
+    });
+    return res.data?.data;
+}
+
+export async function updatePaystackCustomer(code: string, email: string, authorization_code?: string, first_name?: string, last_name?: string) {
+    const payload: any = {email};
+    if (authorization_code) payload.authorization_code = authorization_code;
+    if (first_name) payload.first_name = first_name;
+    if (last_name) payload.last_name = last_name;
+
+    const res = await axios.post(`${PAYSTACK_BASE_URL}/customer/${code}`, payload, {
+        headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
     return res.data?.data;
 }
@@ -308,7 +425,7 @@ export async function createPaystackSubscription(customerEmailOrId: string, plan
     if (authorization) payload.authorization = authorization;
 
     const res = await axios.post(`${PAYSTACK_BASE_URL}/subscription`, payload, {
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+        headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
     return res.data?.data;
 }

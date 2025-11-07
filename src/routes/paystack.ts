@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import {
     callPaystack,
     changePaystackSubscription,
-    chargeAuthorization,
+    chargeAuthorization, createPlan,
     disablePaystackSubscription,
     fetchPaystackPlan,
     fetchPaystackSubscription,
@@ -12,6 +12,8 @@ import {
     saveLocalSubscription,
     updateLocalSubscriptionStatus
 } from "../providers/paystack";
+import crypto from "crypto";
+import planRepository from "../repositories/planRepository";
 
 const router = express.Router();
 
@@ -30,10 +32,10 @@ if (!PAYSTACK_SECRET_KEY) throw new Error("Missing PAYSTACK_SECRET_KEY in env");
  */
 router.post("/initialize", async (req: Request, res: Response) => {
     try {
-        const { email, amount, currency, metadata, callback_url } = req.body;
+        const {email, amount, currency, metadata, callback_url} = req.body;
 
         if (!email || !amount) {
-            return res.status(400).json({ error: "email and amount are required" });
+            return res.status(400).json({error: "email and amount are required"});
         }
 
         // Build payload for Paystack
@@ -57,25 +59,26 @@ router.post("/initialize", async (req: Request, res: Response) => {
         return res.status(200).json(response.data);
     } catch (err: any) {
         console.error("Error initializing Paystack transaction:", err?.response?.data || err.message);
-        return res.status(500).json({ error: "Failed to initialize payment", details: err?.response?.data ?? err.message });
+        return res.status(500).json({
+            error: "Failed to initialize payment",
+            details: err?.response?.data ?? err.message
+        });
     }
 });
-
-
 /**
  * POST /paystack/subscription/disable
  * Body: { subscription_code: string, token?: string }
  */
 router.post("/subscription/disable", async (req: Request, res: Response) => {
-    const { subscription_code, token } = req.body;
+    const {subscription_code, token} = req.body;
 
     if (!subscription_code) {
-        return res.status(400).json({ error: "Missing subscription_code" });
+        return res.status(400).json({error: "Missing subscription_code"});
     }
 
     try {
         // If you store auth token per customer, you can fetch it from DB instead of body
-        const payload = { code: subscription_code, token };
+        const payload = {code: subscription_code, token};
         const data = await callPaystack("/subscription/disable", payload);
 
         await updateLocalSubscriptionStatus(subscription_code, "disabled");
@@ -92,20 +95,19 @@ router.post("/subscription/disable", async (req: Request, res: Response) => {
         });
     }
 });
-
 /**
  * POST /paystack/subscription/enable
  * Body: { subscription_code: string, token?: string }
  */
 router.post("/subscription/enable", async (req: Request, res: Response) => {
-    const { subscription_code, token } = req.body;
+    const {subscription_code, token} = req.body;
 
     if (!subscription_code) {
-        return res.status(400).json({ error: "Missing subscription_code" });
+        return res.status(400).json({error: "Missing subscription_code"});
     }
 
     try {
-        const payload = { code: subscription_code, token };
+        const payload = {code: subscription_code, token};
         const data = await callPaystack("/subscription/enable", payload);
 
         await updateLocalSubscriptionStatus(subscription_code, "active");
@@ -122,7 +124,6 @@ router.post("/subscription/enable", async (req: Request, res: Response) => {
         });
     }
 });
-
 /**
  * POST /paystack/subscription/change
  * Body:
@@ -141,20 +142,20 @@ router.post("/subscription/enable", async (req: Request, res: Response) => {
  *  - Persist local DB changes (placeholders)
  */
 router.post("/subscription/change", async (req: Request, res: Response) => {
-    const { old_subscription_code, new_plan_code, charge_prorate } = req.body as {
+    const {old_subscription_code, new_plan_code, charge_prorate} = req.body as {
         old_subscription_code?: string;
         new_plan_code?: string;
         charge_prorate?: boolean;
     };
 
     if (!old_subscription_code || !new_plan_code) {
-        return res.status(400).json({ error: "old_subscription_code and new_plan_code are required" });
+        return res.status(400).json({error: "old_subscription_code and new_plan_code are required"});
     }
 
     try {
         // 1. Fetch old subscription details from Paystack
         const oldSub = await fetchPaystackSubscription(old_subscription_code);
-        if (!oldSub) return res.status(404).json({ error: "Old subscription not found on Paystack" });
+        if (!oldSub) return res.status(404).json({error: "Old subscription not found on Paystack"});
 
         // oldSub sample fields: { subscription_code, customer, plan, email, next_payment_date, start_date, authorization, ... }
         const customerIdentifier = oldSub.customer || oldSub.customer_email || oldSub.customer?.email;
@@ -162,7 +163,7 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
         const oldPlanCode = oldSub.plan?.plan_code || oldSub.plan?.id || oldSub.plan || undefined;
 
         if (!customerIdentifier) {
-            return res.status(500).json({ error: "Could not determine customer identifier from old subscription" });
+            return res.status(500).json({error: "Could not determine customer identifier from old subscription"});
         }
 
         // 2. Fetch plan details for old and new (to compute amounts)
@@ -172,7 +173,7 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
         ]);
 
         if (!newPlan) {
-            return res.status(404).json({ error: "New plan not found on Paystack" });
+            return res.status(404).json({error: "New plan not found on Paystack"});
         }
 
         // amounts in smallest unit (kobo) as integers
@@ -217,7 +218,7 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
         let chargeResult: any = null;
         if (proratedCharge > 0) {
             if (!authCode && !oldSub.authorization?.authorization_code) {
-                return res.status(400).json({ error: "No reusable authorization_code available to charge prorated amount" });
+                return res.status(400).json({error: "No reusable authorization_code available to charge prorated amount"});
             }
 
             const authorizationToUse = authCode ?? oldSub.authorization?.authorization_code;
@@ -232,7 +233,7 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
                 // Log error and decide whether to fail or continue.
                 // For safety we return an error so that the developer can decide to retry or inform user
                 console.error("Prorated charge failed:", e?.response?.data ?? e.message);
-                return res.status(500).json({ error: "Prorated charge failed", details: e?.response?.data ?? e.message });
+                return res.status(500).json({error: "Prorated charge failed", details: e?.response?.data ?? e.message});
             }
         }
 
@@ -266,7 +267,7 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
         // 8. Respond
         return res.status(200).json({
             message: "Subscription changed successfully",
-            old_subscription: { code: old_subscription_code },
+            old_subscription: {code: old_subscription_code},
             new_subscription: newSubscription,
             prorated: {
                 charged: proratedCharge > 0,
@@ -276,9 +277,39 @@ router.post("/subscription/change", async (req: Request, res: Response) => {
         });
     } catch (err: any) {
         console.error("Error changing subscription:", err?.response?.data ?? err.message);
-        return res.status(500).json({ error: "failed_to_change_subscription", details: err?.response?.data ?? err.message });
+        return res.status(500).json({
+            error: "failed_to_change_subscription",
+            details: err?.response?.data ?? err.message
+        });
     }
 });
 
+router.post("/plan", async (req: Request, res: Response) => {
+    try {
+        const {name, amount, interval} = req.body as {
+            name: string,
+            amount: number,
+            interval: "monthly" | "yearly"
+        };
+        const planId = crypto.randomUUID();
+        if (!name) return res.status(400).json({error: 'name is required'});
+        if (!amount) return res.status(400).json({error: 'amount is required'});
+        if (!interval) return res.status(400).json({error: 'interval is required'});
+        const planRes = await createPlan(name, amount, interval);
+        //create plan on db
+        const planData = {
+            id: planId,
+            code: planRes.code,
+            name: name,
+            amount: amount,
+            interval: interval,
+        }
+        const plan = await planRepository.create(planData);
+        res.status(200).json({plan});
+    } catch (err: any) {
+        console.error('failed to create plan with error', err);
+        res.status(400).json({error: err.message ?? 'failed to create plan'});
+    }
+});
 
 export default router;
