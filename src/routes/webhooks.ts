@@ -1,7 +1,5 @@
 import express, {Request, Response} from 'express';
-import axios from "axios";
 import crypto from "crypto";
-import devicePaymentRepository from "../repositories/DevicePaymentRepository";
 import paymentRepository from "../repositories/PaymentRepository";
 import {verifyPaystackTransaction} from "../providers/paystack";
 
