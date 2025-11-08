@@ -363,7 +363,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
             const newSubscription = {
                 id: crypto.randomUUID(),
                 code: subscriptionPayload.subscription.subscription_code,
-                customerId: subscriptionPayload.paystackCustomer.customer_code,
+                customerId: subscriptionPayload.paystackCustomer.id,
                 email: subscriptionPayload.localCustomer.email,
                 planCode: subscriptionPayload.planCode,
                 status: 'active',
