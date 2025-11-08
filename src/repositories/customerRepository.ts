@@ -26,7 +26,7 @@ class CustomerRepository {
 
             const result = await database.run(
                 `INSERT INTO customers (id, authorization_code, customer_id, first_name, email, last_name, phone)
-                 VALUES (?, ?, ?, ?, ?)`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id,
                     authorizationCode,
