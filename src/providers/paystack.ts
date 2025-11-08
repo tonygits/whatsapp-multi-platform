@@ -281,7 +281,7 @@ export async function markPaymentProcessed(reference: string, payload: any) {
             transactionId: reference.trim(),
             status: payload.tx.status,
             userId: payload.tx.metadata.user_id,
-            paymentPeriod: "1",
+            paymentPeriod: payload.tx.metadata.payment_period,
             periodType: payload.tx.metadata.period_type,
             isRecurring: true,
             transactionDate: now.toISOString(),

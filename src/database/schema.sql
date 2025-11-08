@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS payments (
     paystack_response TEXT,
     mpesa_stk_push_response TEXT,
     is_recurring BOOLEAN NOT NULL DEFAULT true,
-    paymen_period VARCHAR(150) NOT NULL,
+    payment_period VARCHAR(150) NOT NULL,
     period_type VARCHAR(150) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
