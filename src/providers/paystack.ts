@@ -204,7 +204,7 @@ export async function verifyPaystackTransaction(reference: string) {
             subscription = await getPaystackSubscription(dbSubscription.code);
         }
         if (!dbSubscription) {
-            // For safety we pass the authorization_code if available in payload so Paystack can use stored card
+            // For safety, we pass the authorization_code if available in payload so Paystack can use stored card
             subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
         }
         // 7) Persist subscription & mark payment processed
@@ -256,6 +256,11 @@ export async function updateLocalSubscriptionStatus(subCode: string, status: str
 export async function markPaymentProcessed(reference: string, payload: any) {
     // persist that this reference has been processed
     const now = new Date();
+    let periodType:string|undefined
+    const plan = await planRepository.findByCode(payload.tx.metadata.plan_code);
+    if (plan) {
+        periodType = plan.interval
+    }
     const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
     if (dbTxn) {
         const updatedPayment = await paymentRepository.update(dbTxn.id, {
@@ -282,7 +287,7 @@ export async function markPaymentProcessed(reference: string, payload: any) {
             status: payload.tx.status,
             userId: payload.tx.metadata.user_id,
             paymentPeriod: payload.tx.metadata.payment_period,
-            periodType: payload.tx.metadata.period_type,
+            periodType: periodType ?? 'monthly',
             isRecurring: true,
             transactionDate: now.toISOString(),
             paystackResponse: payload.rxnResponse,
