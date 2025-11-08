@@ -104,7 +104,7 @@ class CustomerRepository {
     async findByEmail(email: string): Promise<Customer | null> {
         try {
             const customer = await database.get(
-                'SELECT * FROM customers WHERE code = ?',
+                'SELECT * FROM customers WHERE email = ?',
                 [email]
             );
 
