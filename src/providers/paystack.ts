@@ -166,6 +166,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomer = await updatePaystackCustomer(paystackCustomer.code, customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
             // Paystack customer object may already include authorizations; we still keep going.
         }
+        console.log("done creating customer on paystack");
 
         // 4) Save / upsert local customer record
         const localCustomer = await upsertLocalCustomer({
@@ -173,7 +174,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomerId: paystackCustomer?.id?.toString?.() ?? paystackCustomer?.customer_code ?? undefined,
             authorizationCode: authCode ?? undefined,
         });
-        console.log("done creating customer");
+        console.log("done creating customer on db");
 
         // 5) Determine plan code to subscribe the user to
         // Preferred: client included metadata.plan_code during initialize (tx.metadata.plan_code)
