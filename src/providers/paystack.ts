@@ -203,7 +203,6 @@ export async function verifyPaystackTransaction(reference: string) {
         if (dbSubscription){
             subscription = await getPaystackSubscription(dbSubscription.code);
         }
-        console.log(subscription);
         if (!dbSubscription) {
             // For safety we pass the authorization_code if available in payload so Paystack can use stored card
             subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
@@ -260,7 +259,7 @@ export async function markPaymentProcessed(reference: string, payload: any) {
     const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
     if (dbTxn) {
         const updatedPayment = await paymentRepository.update(dbTxn.id, {
-            status: 'paid',
+            status: payload.status,
         });
         if (updatedPayment) {
             return;
@@ -270,20 +269,20 @@ export async function markPaymentProcessed(reference: string, payload: any) {
         const paymentData = {
             id: crypto.randomUUID(),
             transactionReference: reference.trim(),
-            amount: payload.amount,
-            currency: payload.currency,
-            description: payload.description,
-            email: payload.customer.email,
-            paymentMode: payload.channel,
-            phoneNumber: payload.customer.phone,
+            amount: payload.tx.amount,
+            currency: payload.tx.currency,
+            description: payload.tx.description,
+            email: payload.tx.customer.email,
+            paymentMode: payload.tx.channel,
+            phoneNumber: payload.tx.customer.phone,
             resourceId: "whatsapp-api",
             resourceName: "whatsapp-api",
             resourceType: "api",
             transactionId: reference.trim(),
-            status: payload.status,
-            userId: payload.metadata.user_id,
-            paymentPeriod: payload.metadata.payment_period,
-            periodType: payload.metadata.period_type,
+            status: payload.tx.status,
+            userId: payload.tx.metadata.user_id,
+            paymentPeriod: payload.tx.metadata.payment_period,
+            periodType: payload.tx.metadata.period_type,
             isRecurring: true,
             transactionDate: now.toISOString(),
             paystackResponse: payload.rxnResponse,
