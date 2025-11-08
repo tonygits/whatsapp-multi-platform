@@ -135,6 +135,7 @@ export async function verifyPaystackTransaction(reference: string) {
         if (!verifyResp || !verifyResp.data) {
             throw new Error("Invalid response from Paystack verify");
         }
+        console.log("done verifying");
 
         const tx = verifyResp.data; // Paystack transaction object
         // tx.status should be "success"
@@ -164,7 +165,6 @@ export async function verifyPaystackTransaction(reference: string) {
             // If customer exists, but we have an authorization code, you might attach it via updating customer or keeping local mapping.
             paystackCustomer = await updatePaystackCustomer(paystackCustomer.code, customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
             // Paystack customer object may already include authorizations; we still keep going.
-
         }
 
         // 4) Save / upsert local customer record
@@ -173,6 +173,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomerId: paystackCustomer?.id?.toString?.() ?? paystackCustomer?.customer_code ?? undefined,
             authorizationCode: authCode ?? undefined,
         });
+        console.log("done creating customer");
 
         // 5) Determine plan code to subscribe the user to
         // Preferred: client included metadata.plan_code during initialize (tx.metadata.plan_code)
@@ -201,8 +202,10 @@ export async function verifyPaystackTransaction(reference: string) {
             subscription,
             localCustomer,
         });
-        await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
+        console.log("done subscribing customer");
 
+        await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
+        console.log("done creating txn");
         // 8) Respond with success and subscription details
         return {
             message: "Payment verified and subscription created",
