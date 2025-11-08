@@ -197,6 +197,7 @@ export async function verifyPaystackTransaction(reference: string) {
         // 6) Create Paystack subscription (use customer email or code)
         //check if a subscription exists
         let subscription:any;
+        console.log("subscription params", paystackCustomer.id, planCode, authCode);
        const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
         if (dbSubscription){
             console.log(dbSubscription.code);
@@ -205,7 +206,7 @@ export async function verifyPaystackTransaction(reference: string) {
 
         if (!dbSubscription) {
             // For safety we pass the authorization_code if available in payload so Paystack can use stored card
-            subscription = await createPaystackSubscription(paystackCustomer.email || paystackCustomer.id || customerEmail, planCode, authCode);
+            subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
             // 7) Persist subscription & mark payment processed
             await saveSubscriptionRecord({
                 reference,
