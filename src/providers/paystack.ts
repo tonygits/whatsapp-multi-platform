@@ -144,6 +144,7 @@ export async function verifyPaystackTransaction(reference: string) {
             logger.error(`transaction response ${tx}`)
             throw new Error(`Transaction failed with status: ${tx.status}`);
         }
+        console.log("txn is success");
 
         // 2) Extract authorization code and customer email
         const authorization = tx.authorization;
@@ -155,6 +156,7 @@ export async function verifyPaystackTransaction(reference: string) {
             // weird edge-case: no email in transaction — handle gracefully
             throw new Error("No customer email found in transaction. Cannot create subscription.");
         }
+        console.log("customer is present");
 
         // 3) Create or find Paystack customer
         let paystackCustomer = await getPaystackCustomerByEmail(customerEmail);
