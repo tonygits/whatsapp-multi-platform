@@ -144,12 +144,17 @@ class PaymentRepository {
      * @returns {Promise<Object|null>} - Payment or null
      * @param txnReference
      */
-    async findByTransactionReference(txnReference: string): Promise<Payment> {
+    async findByTransactionReference(txnReference: string): Promise<Payment | null>  {
         try {
             const payment = await database.get(
                 'SELECT * FROM payments WHERE transaction_reference = ?',
                 [txnReference]
             );
+
+            if (!payment) {
+                return null
+            }
+
             return {
                 id: payment.id,
                 accessCode: payment.access_code,
