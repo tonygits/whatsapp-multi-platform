@@ -8,7 +8,7 @@ import planRepository from "../repositories/planRepository";
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
-export async function createPlan(name: string, amount: number, interval: "monthly" | "yearly") {
+export async function createPlan(name: string, amount: number, interval: "monthly" | "annually") {
     // amountKobo: amount in smallest currency unit (kobo for NGN) - Paystack expects integer
     const res = await axios.post(`${PAYSTACK_BASE_URL}/plan`,
         {

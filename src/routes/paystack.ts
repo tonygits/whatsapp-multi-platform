@@ -289,23 +289,27 @@ router.post("/plan", async (req: Request, res: Response) => {
         const {name, amount, interval} = req.body as {
             name: string,
             amount: number,
-            interval: "monthly" | "yearly"
+            interval: "monthly" | "annually"
         };
         const planId = crypto.randomUUID();
         if (!name) return res.status(400).json({error: 'name is required'});
         if (!amount) return res.status(400).json({error: 'amount is required'});
         if (!interval) return res.status(400).json({error: 'interval is required'});
         const planRes = await createPlan(name, amount, interval);
-        //create plan on db
-        const planData = {
-            id: planId,
-            code: planRes.code,
-            name: name,
-            amount: amount,
-            interval: interval,
+        console.log(planRes.data);
+        if (planRes){
+            //create plan on db
+            const planData = {
+                id: planId,
+                code: planRes.data.plan_code,
+                description: `${name} ${interval}`,
+                name: name,
+                amount: amount,
+                interval: interval,
+            }
+            const plan = await planRepository.create(planData);
+            res.status(200).json({plan});
         }
-        const plan = await planRepository.create(planData);
-        res.status(200).json({plan});
     } catch (err: any) {
         console.error('failed to create plan with error', err);
         res.status(400).json({error: err.message ?? 'failed to create plan'});
