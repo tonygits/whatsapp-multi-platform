@@ -214,6 +214,7 @@ export async function verifyPaystackTransaction(reference: string) {
             transaction: tx,
             subscription,
             localCustomer,
+            planCode,
         });
         console.log("done subscribing customer");
 
@@ -320,7 +321,7 @@ export async function upsertLocalCustomer(customer: Partial<LocalCustomer>): Pro
 export async function saveSubscriptionRecord(subscriptionPayload: any) {
     // Save subscription record in your DB (subscription code, customer id, plan, status, start/next billing date)
     try {
-        const plan = await planRepository.findByCode(subscriptionPayload.subscription.plan_code);
+        const plan = await planRepository.findByCode(subscriptionPayload.planCode);
         const today = new Date();
         let nextMonth = new Date(today);
         let nextYear = new Date(today);
@@ -333,7 +334,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
                 nextYear.setFullYear(today.getFullYear() + 1);
             }
         }
-        let dbSubscription = await subscriptionRepository.findByCode(subscriptionPayload.subscription.code);
+        let dbSubscription = await subscriptionRepository.findByCode(subscriptionPayload.subscription.subscription_code);
         if (dbSubscription) {
             //update subscription with next billing date
             if (plan) {
