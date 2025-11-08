@@ -447,7 +447,7 @@ export async function createPaystackSubscription(customerEmailOrId: string, plan
 }
 
 export async function getPaystackSubscription(subscriptionCode: string) {
-    const res = await axios.post(`${PAYSTACK_BASE_URL}/subscription/${subscriptionCode}`, {
+    const res = await axios.get(`${PAYSTACK_BASE_URL}/subscription/${subscriptionCode}`, {
         headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
     return res.data?.data;
