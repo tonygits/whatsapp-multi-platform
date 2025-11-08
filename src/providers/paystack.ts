@@ -201,21 +201,20 @@ export async function verifyPaystackTransaction(reference: string) {
         console.log("subscription params", paystackCustomer.id, planCode, authCode);
        const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
         if (dbSubscription){
-            console.log(dbSubscription.code);
-           const currSub = await getPaystackSubscription(dbSubscription.code);
+            subscription = await getPaystackSubscription(dbSubscription.code);
         }
 
         if (!dbSubscription) {
             // For safety we pass the authorization_code if available in payload so Paystack can use stored card
             subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
-            // 7) Persist subscription & mark payment processed
-            await saveSubscriptionRecord({
-                reference,
-                transaction: tx,
-                subscription,
-                localCustomer,
-            });
         }
+        // 7) Persist subscription & mark payment processed
+        await saveSubscriptionRecord({
+            reference,
+            transaction: tx,
+            subscription,
+            localCustomer,
+        });
         console.log("done subscribing customer");
 
         await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
