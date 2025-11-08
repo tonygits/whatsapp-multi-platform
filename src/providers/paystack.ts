@@ -195,16 +195,24 @@ export async function verifyPaystackTransaction(reference: string) {
         }
 
         // 6) Create Paystack subscription (use customer email or code)
-        // For safety we pass the authorization_code if available in payload so Paystack can use stored card
-        const subscription = await createPaystackSubscription(paystackCustomer.email || paystackCustomer.id || customerEmail, planCode, authCode);
+        //check if a subscription exists
+        let subscription:any;
+       const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
+        if (dbSubscription){
+           const currSub = await getPaystackSubscription(dbSubscription.code);
+        }
 
-        // 7) Persist subscription & mark payment processed
-        await saveSubscriptionRecord({
-            reference,
-            transaction: tx,
-            subscription,
-            localCustomer,
-        });
+        if (!dbSubscription) {
+            // For safety we pass the authorization_code if available in payload so Paystack can use stored card
+            subscription = await createPaystackSubscription(paystackCustomer.email || paystackCustomer.id || customerEmail, planCode, authCode);
+            // 7) Persist subscription & mark payment processed
+            await saveSubscriptionRecord({
+                reference,
+                transaction: tx,
+                subscription,
+                localCustomer,
+            });
+        }
         console.log("done subscribing customer");
 
         await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
@@ -433,6 +441,13 @@ export async function createPaystackSubscription(customerEmailOrId: string, plan
     if (authorization) payload.authorization = authorization;
 
     const res = await axios.post(`${PAYSTACK_BASE_URL}/subscription`, payload, {
+        headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
+    });
+    return res.data?.data;
+}
+
+export async function getPaystackSubscription(subscriptionCode: string) {
+    const res = await axios.post(`${PAYSTACK_BASE_URL}/subscription/${subscriptionCode}`, {
         headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
     return res.data?.data;

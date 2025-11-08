@@ -99,6 +99,40 @@ class SubscriptionRepository {
     }
 
     /**
+     * Find subscription by code
+     * @returns {Promise<Object|null>} - Subscription or null
+     * @param customerId
+     * @param planCode
+     */
+    async findByCustomerIdAndPlanCode(customerId: string, planCode: string): Promise<Subscription | null> {
+        try {
+            const subscription = await database.get(
+                'SELECT * FROM subscriptions WHERE customer_id = ? AND plan_code = ?',
+                [customerId, planCode]
+            );
+
+            if (!subscription) {
+                return null
+            }
+
+            return {
+                id: subscription.id,
+                code: subscription.code,
+                customerId: subscription.customer_id,
+                email: subscription.email,
+                planCode: subscription.plan_code,
+                status: subscription.status,
+                nextBillingDate: subscription.next_billing_date,
+                createdAt: subscription.created_at,
+                updatedAt: subscription.updated_at,
+            };
+        } catch (error) {
+            logger.error('Error fetching customer by customer id and plan code:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Update device
      * @param code
      * @param {Object} updateData - Data to update

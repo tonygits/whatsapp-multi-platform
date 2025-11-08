@@ -186,3 +186,4 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_code_uniq_idx ON subscriptions(code);
+CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_customer_plan_uniq_idx ON subscriptions(customer_id, plan_code);
