@@ -204,10 +204,10 @@ export async function verifyPaystackTransaction(reference: string) {
             subscription = await getPaystackSubscription(dbSubscription.code);
         }
 
-        if (!dbSubscription) {
-            // For safety we pass the authorization_code if available in payload so Paystack can use stored card
-            subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
-        }
+        // if (!dbSubscription) {
+        //     // For safety we pass the authorization_code if available in payload so Paystack can use stored card
+        //     subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
+        // }
         // 7) Persist subscription & mark payment processed
         await saveSubscriptionRecord({
             reference,
