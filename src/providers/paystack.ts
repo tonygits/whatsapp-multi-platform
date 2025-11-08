@@ -165,7 +165,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomer = await createPaystackCustomer(customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
         } else {
             // If customer exists, but we have an authorization code, you might attach it via updating customer or keeping local mapping.
-            paystackCustomer = await updatePaystackCustomer(paystackCustomer.customer_code, tx.customer?.first_name, tx.customer?.last_name);
+            // paystackCustomer = await updatePaystackCustomer(paystackCustomer.customer_code, tx.customer?.first_name, tx.customer?.last_name);
             // Paystack customer object may already include authorizations; we still keep going.
         }
         console.log("done creating customer on paystack");
