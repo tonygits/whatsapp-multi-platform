@@ -165,7 +165,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomer = await createPaystackCustomer(customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
         } else {
             // If customer exists, but we have an authorization code, you might attach it via updating customer or keeping local mapping.
-            paystackCustomer = await updatePaystackCustomer(paystackCustomer.customer_code, customerEmail, authCode, tx.customer?.first_name, tx.customer?.last_name);
+            paystackCustomer = await updatePaystackCustomer(paystackCustomer.customer_code, tx.customer?.first_name, tx.customer?.last_name);
             // Paystack customer object may already include authorizations; we still keep going.
         }
         console.log("done creating customer on paystack");
@@ -186,6 +186,7 @@ export async function verifyPaystackTransaction(reference: string) {
             // no plan code found — you can either return success (no subscription) or error
             // Here we return an informative response telling caller to provide plan_code
             // But we still mark payment processed in DB to avoid double-processing
+            console.log("no plan_code found");
             await markPaymentProcessed(reference, {tx, note: "no plan_code found", rxnResponse: JSON.stringify(tx)});
             return {
                 message: "Payment verified but no plan_code found to create subscription. Provide plan_code in metadata or query param.",
@@ -419,9 +420,8 @@ export async function createPaystackCustomer(email: string, authorization_code?:
     return res.data?.data;
 }
 
-export async function updatePaystackCustomer(code: string, email: string, authorization_code?: string, first_name?: string, last_name?: string) {
-    const payload: any = {email};
-    if (authorization_code) payload.authorization_code = authorization_code;
+export async function updatePaystackCustomer(code: string, first_name?: string, last_name?: string) {
+    const payload: any = {};
     if (first_name) payload.first_name = first_name;
     if (last_name) payload.last_name = last_name;
 
