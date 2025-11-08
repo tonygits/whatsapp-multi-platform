@@ -418,6 +418,8 @@ export async function updatePaystackCustomer(code: string, email: string, author
     const res = await axios.post(`${PAYSTACK_BASE_URL}/customer/${code}`, payload, {
         headers: {Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`},
     });
+
+    console.log(res.data);
     return res.data?.data;
 }
 
