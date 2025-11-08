@@ -215,6 +215,7 @@ export async function verifyPaystackTransaction(reference: string) {
             transaction: tx,
             subscription,
             localCustomer,
+            paystackCustomer,
             planCode,
         });
         console.log("done subscribing customer");
@@ -363,7 +364,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
             const newSubscription = {
                 id: crypto.randomUUID(),
                 code: subscriptionPayload.subscription.subscription_code,
-                customerId: subscriptionPayload.localCustomer.customer_code,
+                customerId: subscriptionPayload.paystackCustomer.customer_code,
                 email: subscriptionPayload.localCustomer.email,
                 planCode: subscriptionPayload.subscription.plan_code,
                 status: 'active',
