@@ -366,7 +366,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
                 code: subscriptionPayload.subscription.subscription_code,
                 customerId: subscriptionPayload.paystackCustomer.customer_code,
                 email: subscriptionPayload.localCustomer.email,
-                planCode: subscriptionPayload.subscription.plan_code,
+                planCode: subscriptionPayload.planCode,
                 status: 'active',
                 nextBillingDate: "",
             }
