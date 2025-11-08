@@ -199,6 +199,7 @@ export async function verifyPaystackTransaction(reference: string) {
         let subscription:any;
        const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
         if (dbSubscription){
+            console.log(dbSubscription.code);
            const currSub = await getPaystackSubscription(dbSubscription.code);
         }
 
@@ -358,7 +359,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
             //create new sub
             const newSubscription = {
                 id: crypto.randomUUID(),
-                code: subscriptionPayload.subscription.code,
+                code: subscriptionPayload.subscription.subscription_code,
                 customerId: subscriptionPayload.localCustomer.customer_id,
                 email: subscriptionPayload.localCustomer.email,
                 planCode: subscriptionPayload.subscription.plan_code,
