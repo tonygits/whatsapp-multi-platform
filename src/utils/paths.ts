@@ -28,7 +28,11 @@ export const SESSIONS_DIR = process.env.SESSIONS_DIR || path.join(DATA_DIR, 'ses
 export const VOLUMES_DIR = path.join(DATA_DIR, 'volumes');
 export { BASE_DIR, DATA_DIR };
 
-export function escapeHtml(str: string = ''): string {
+// utils/escapeHtml.ts
+export function escapeHtml(value: unknown = ''): string {
+    // coerce to string and avoid calling replace on non-strings
+    const str = value === null || value === undefined ? '' : String(value);
+
     return str
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
