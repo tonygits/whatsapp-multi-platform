@@ -167,6 +167,8 @@ CREATE TABLE IF NOT EXISTS customers (
     last_name VARCHAR(150),
     customer_id  VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL,
+    device_hash VARCHAR(150) NOT NULL,
+    user_id VARCHAR(150) NOT NULL,
     phone VARCHAR(150),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
