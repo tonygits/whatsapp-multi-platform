@@ -18,6 +18,8 @@ class CustomerRepository {
                 email,
                 lastName,
                 phone,
+                userId,
+                deviceHash,
             } = customerData;
 
             if (!customerId) {
@@ -25,8 +27,9 @@ class CustomerRepository {
             }
 
             const result = await database.run(
-                `INSERT INTO customers (id, authorization_code, customer_id,
-                      first_name, email, last_name, phone) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO customers (id, authorization_code, customer_id, first_name, email,
+                                        last_name, phone, user_id, device_hash)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id,
                     authorizationCode,
@@ -35,6 +38,8 @@ class CustomerRepository {
                     email,
                     lastName || null,
                     phone || null,
+                    userId,
+                    deviceHash,
                 ]
             );
 
@@ -54,6 +59,8 @@ class CustomerRepository {
                 email: customer.email,
                 lastName: customer.last_name,
                 phone: customer.plan,
+                userId: customer.user_id,
+                deviceHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };
@@ -87,6 +94,8 @@ class CustomerRepository {
                 email: customer.email,
                 lastName: customer.last_name,
                 phone: customer.plan,
+                userId: customer.user_id,
+                deviceHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };
@@ -120,6 +129,8 @@ class CustomerRepository {
                 email: customer.email,
                 lastName: customer.last_name,
                 phone: customer.plan,
+                userId: customer.user_id,
+                deviceHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };

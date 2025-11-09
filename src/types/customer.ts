@@ -6,6 +6,8 @@ export type Customer = {
     lastName?: string,
     email: string,
     phone?: string,
+    userId: string,
+    deviceHash: string,
     createdAt: string,
     updatedAt: string,
 }
