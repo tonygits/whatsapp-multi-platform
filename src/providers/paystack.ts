@@ -4,6 +4,9 @@ import paymentRepository from "../repositories/PaymentRepository";
 import customerRepository from "../repositories/customerRepository";
 import subscriptionRepository from "../repositories/SubscriptionRepository";
 import planRepository from "../repositories/planRepository";
+import {escapeHtml} from "../utils/paths";
+import userRepository from "../repositories/UserRepository";
+import {sendMail} from "./email";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
@@ -201,10 +204,10 @@ export async function verifyPaystackTransaction(reference: string) {
 
         // 6) Create Paystack subscription (use customer email or code)
         //check if a subscription exists
-        let subscription:any;
+        let subscription: any;
         console.log("subscription params", paystackCustomer.id, planCode, authCode);
-       const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
-        if (dbSubscription){
+        const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
+        if (dbSubscription) {
             subscription = await getPaystackSubscription(dbSubscription.code);
         }
         if (!dbSubscription) {
@@ -224,6 +227,89 @@ export async function verifyPaystackTransaction(reference: string) {
 
         await markPaymentProcessed(reference, {tx, subscription, rxnResponse: JSON.stringify(tx)});
         console.log("done creating txn");
+        //send email notification for successful payment
+        let firstName = "client";
+        const user = await userRepository.findById(tx.metadata?.user_id);
+        if (user) {
+            firstName = user.first_name;
+        }
+        let title = 'Payment Successful';
+        let html = `
+              <p>Hi ${escapeHtml(firstName)},</p>
+            
+              <p>
+                Great news — your payment was successful! 🎉<br/>
+                Thank you for your making the payment on <strong>Wapflow</strong>.
+              </p>
+            
+              <div style="margin:24px 0;padding:16px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;">
+                <p style="margin:0;font-size:14px;line-height:1.6;color:#111;">
+                  <strong>Amount Paid:</strong> ${escapeHtml(tx.amount)}<br/>
+                  <strong>Transaction ID:</strong> ${escapeHtml(reference)}<br/>
+                  <strong>Date:</strong> ${escapeHtml(tx.createdAt)}
+                </p>
+              </div>
+            
+              <p>
+                You can view your payment details and invoices anytime in your
+                <a href="https://wapflow.app/dashboard/payments" style="color:#2563eb;text-decoration:none;">Payments Dashboard</a>.
+              </p>
+            
+              <p>
+                If you have any questions about your payment, feel free to reply to this email or visit our
+                <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
+              </p>
+            
+              <p style="font-size:13px;color:#666;margin-top:24px;">
+                Thanks for trusting Wapflow — we’re excited to help you automate your WhatsApp workflows even faster!
+              </p>
+            `;
+
+        let info = await sendMail({to: user.email, title, html});
+        console.log(info);
+
+        let planName = 'go';
+        let billingCycle = 'monthly';
+        const plan = await planRepository.findByCode(tx.metadata?.plan_code);
+        if (plan) {
+            planName = plan.name;
+            billingCycle = plan.interval;
+        }
+        title = 'Subscription Activated';
+        html = `
+              <p>Hi ${escapeHtml(firstName)},</p>
+            
+              <p>
+                Your subscription to the <strong>${escapeHtml(planName)}</strong> plan was successful! 🎉<br/>
+                You now have full access to all premium features of <strong>Wapflow</strong>.
+              </p>
+            
+              <div style="margin:24px 0;padding:16px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;">
+                <p style="margin:0;font-size:14px;line-height:1.6;color:#111;">
+                  <strong>Plan:</strong> ${escapeHtml(planName)}<br/>
+                  <strong>Billing Cycle:</strong> ${escapeHtml(billingCycle)}<br/>
+                  <strong>Next Renewal:</strong> ${escapeHtml(subscription.next_payment_date)}<br/>
+                  <strong>Amount:</strong> ${escapeHtml(tx.amount)}
+                </p>
+              </div>
+            
+              <p>
+                You can manage your subscription or change your plan anytime from your
+                <a href="https://wapflow.app/dashboard/subscription" style="color:#2563eb;text-decoration:none;">Subscription Dashboard</a>.
+              </p>
+            
+              <p>
+                Need help? Visit our
+                <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>
+                or reply to this email.
+              </p>
+            
+              <p style="font-size:13px;color:#666;margin-top:24px;">
+                Thanks for subscribing to Wapflow — let’s automate your WhatsApp with AI and workflows 🚀
+              </p>
+            `;
+        info = await sendMail({to: user.email, title, html});
+        console.log(info);
         // 8) Respond with success and subscription details
         return {
             message: "Payment verified and subscription created",
@@ -260,7 +346,7 @@ export async function updateLocalSubscriptionStatus(subCode: string, status: str
 export async function markPaymentProcessed(reference: string, payload: any) {
     // persist that this reference has been processed
     const now = new Date();
-    let periodType:string|undefined
+    let periodType: string | undefined
     const plan = await planRepository.findByCode(payload.tx.metadata.plan_code);
     if (plan) {
         periodType = plan.interval
