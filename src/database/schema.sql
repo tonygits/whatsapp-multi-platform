@@ -189,3 +189,10 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_code_uniq_idx ON subscriptions(code);
 CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_customer_plan_uniq_idx ON subscriptions(customer_id, plan_code);
+
+CREATE TABLE IF NOT EXISTS webhooks (
+    id VARCHAR(150) PRIMARY KEY,
+    payload TEXT NOT NULL,
+    status VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

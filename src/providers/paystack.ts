@@ -135,6 +135,10 @@ type LocalCustomer = {
 export async function verifyPaystackTransaction(reference: string) {
     try {
 
+        // Idempotency: check your DB if you've already processed this reference
+        const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
+        if (dbTxn && dbTxn.status === 'paid') throw new Error("transaction already processed");
+
         // 1) Verify the transaction with Paystack
         const verifyResp = await verifyTransaction(reference);
         if (!verifyResp || !verifyResp.data) {
@@ -331,6 +335,17 @@ export async function findLocalSubscriptionById(id: string) {
 
 export async function updateLocalSubscriptionStatus(subCode: string, status: string) {
     // e.g. await db.subscription.update({ where: { code: subCode }, data: { status }});
+    // Update subscription status in your DB
+    console.log("requesting to update subscription")
+    let dbSubscription = await subscriptionRepository.findByCode(subCode);
+    if (dbSubscription) {
+        //update subscription with next billing date
+        //create next month billing date
+        await subscriptionRepository.update(dbSubscription.code, {
+            status: status,
+        });
+    }
+
     return;
 }
 
@@ -346,7 +361,7 @@ export async function markPaymentProcessed(reference: string, payload: any) {
     const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
     if (dbTxn) {
         const updatedPayment = await paymentRepository.update(dbTxn.id, {
-            status: payload.tx.status,
+            status: payload.status,
         });
         if (updatedPayment) {
             return;
