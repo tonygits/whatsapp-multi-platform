@@ -2,7 +2,7 @@
 # Simplified: detect OS/arch, download and extract directly in api-gateway/whatsapp
 set -e
 
-VER="${WHATSAPP_VERSION:-7.8.0}"
+VER="${WHATSAPP_VERSION:-7.8.2}"
 OUT_DIR="dist"
 
 uname_s=$(uname -s)
