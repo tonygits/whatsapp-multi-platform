@@ -196,3 +196,15 @@ CREATE TABLE IF NOT EXISTS webhooks (
     status VARCHAR(150) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS api_requests (
+    id VARCHAR(150) PRIMARY KEY,
+    user_id VARCHAR(150) NOT NULL,
+    device_hash VARCHAR(150) NOT NULL,
+    ip_address VARCHAR(150) NOT NULL,
+    user_agent VARCHAR(150) NOT NULL,
+    endpoint VARCHAR(150) NOT NULL,
+    method VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS api_requests_user_device_idx ON api_requests(user_id, device_hash);

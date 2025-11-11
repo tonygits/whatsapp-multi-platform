@@ -49,9 +49,9 @@ class APIGateway {
         this.port = process.env.API_PORT || 3000;
         console.log('✅ Express and server created');
 
-        console.log('📡 Configuring webhooks')
+        console.log('📡 Configuring webhooks');
         this.setupWebhooks();
-        console.log('✅ Configured webhooks')
+        console.log('✅ Configured webhooks');
 
         console.log('⚙️ Configuring middleware...');
         this.setupMiddleware();
