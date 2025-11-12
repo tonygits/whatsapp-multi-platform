@@ -22,6 +22,8 @@ class UserRepository {
                 isVerified,
                 passwordHash,
                 provider,
+                verificationCode,
+                verificationCodeExpires,
             } = userData;
 
             if (!email) {
@@ -30,8 +32,8 @@ class UserRepository {
 
             const result = await database.run(
                 `INSERT INTO users (id, email, name, first_name, last_name, contact_phone, picture,
-                                      locale, password_hash, provider, is_verified)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                      locale, password_hash, provider, is_verified, verification_code, verification_code_expires)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id,
                     email,
@@ -43,7 +45,9 @@ class UserRepository {
                     locale || null,
                     passwordHash || null,
                     provider || 'application',
-                    isVerified
+                    isVerified,
+                    verificationCode || null,
+                    verificationCodeExpires || null,
                 ]
             );
 

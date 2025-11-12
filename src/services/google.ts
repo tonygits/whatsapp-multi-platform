@@ -1,6 +1,6 @@
 import {OAuth2Client, TokenPayload} from 'google-auth-library';
-import {getUserByEmail, registerNewUser} from './userService';
-import {User} from "../types/user"; // only if you need to call Google endpoints (not required in many cases)
+import {User} from "../types/user";
+import userService from "./userService"; // only if you need to call Google endpoints (not required in many cases)
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -19,7 +19,7 @@ export async function verifyIdTokenAndUpsertUser(idToken: string): Promise<User>
     if (!payload || !payload.sub) throw new Error('Invalid id token payload');
 
     //check if user exists
-    const dbUser = await getUserByEmail(payload.email as string);
+    const dbUser = await userService.getUserByEmail(payload.email as string);
     if (dbUser) {
         return dbUser;
     }
@@ -36,7 +36,7 @@ export async function verifyIdTokenAndUpsertUser(idToken: string): Promise<User>
         provider: 'google'
     };
 
-    return registerNewUser(user);
+    return userService.registerNewUser(user);
 }
 
 // server-side exchange of auth code (optional)

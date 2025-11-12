@@ -5,6 +5,7 @@ import {asyncHandler, CustomError} from './errorHandler';
 import logger from '../utils/logger';
 import {SESSIONS_DIR} from '../utils/paths';
 import {verifyApiToken} from "../utils/encryption";
+import apiRequestRepository from "../repositories/ApiRequestRepository";
 
 /**
  * Handle login request and intercept QR code generation
@@ -79,10 +80,21 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
     const token = auth[1];
     try {
         //verify that logged-in user owns the device
-        const deviceHash = req.query.deviceHash || req.body.deviceHash || req.params.deviceHash || req.get('deviceHash');
-        const payload = await verifyApiToken(token, deviceHash as string);
+        const payload = await verifyApiToken(token);
         // attach user to req
         if (!payload) return res.status(401).json({error: 'user is unauthorized'});
+
+        //should be done Asynchronously
+        const userAgent = req.headers["user-agent"];
+        const ip = req.ip;
+        await apiRequestRepository.create({requestId: crypto.randomUUID(),
+            deviceHash: payload.deviceHash, userAgent: userAgent, ipAddress: ip,
+            userId: payload.userId, method: req.method, endpoint: req.path});
+        req.user = {
+            deviceHash: payload.deviceHash,
+            userId: payload.userId,
+            role: "admin",
+        };
         next();
     } catch (err: any) {
         return res.status(401).json({error: `invalid credentials - ${err}`});

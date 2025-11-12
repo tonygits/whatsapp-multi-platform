@@ -45,7 +45,7 @@ export async function createApiToken(userId: string, deviceHash: string) {
     // payload can include random nonce, userId and creation timestamp
     const nonce = crypto.randomBytes(16).toString("hex");
     const createdAt = Date.now();
-    const payload = JSON.stringify({ userId, nonce, createdAt });
+    const payload = JSON.stringify({userId, deviceHash, nonce, createdAt});
     const token = encryptPayload(payload);
     const keyId: string = crypto.randomUUID();
 
@@ -56,13 +56,13 @@ export async function createApiToken(userId: string, deviceHash: string) {
 
     // store token server-side for revocation / lookup (optional)
     const newKey = {
-        deviceKeyId: crypto.randomBytes(16).toString('hex'),
+        deviceKeyId: crypto.randomUUID(),
         deviceHash: deviceHash,
         userId: userId,
         apiKeyId: keyId,
         encryptedToken: nonce,
     };
-    const newDeviceKey = await deviceKeyRepository.create(newKey);
+    await deviceKeyRepository.create(newKey);
 
     // RETURN only keyId and token (token is encrypted ciphertext, not raw secret)
     // Client will present "ApiKey <keyId>:<token>"
@@ -70,16 +70,13 @@ export async function createApiToken(userId: string, deviceHash: string) {
 }
 
 // verifyApiToken: accepts "keyId:token" or "token" (but recommended keyId:token)
-export async function verifyApiToken(raw: string, deviceHash: string) {
+export async function verifyApiToken(raw: string) {
     // allow "keyId:token" format
     const [maybeKeyId, maybeToken] = raw.includes(":") ? raw.split(":") : [null, raw];
     const keyId = maybeKeyId;
     const token = maybeToken;
     let record = await deviceKeyRepository.findByApiKey(keyId as string);
     if (!record) return null; // unknown or revoked
-    if (record.deviceHash !== deviceHash){
-        throw new Error(`device hash mismatch for api key and device ${deviceHash} making request`)
-    }
     // if keyId provided, quick lookup (and optional revocation check)
     if (keyId) {
         // decrypt to validate payload more strongly
@@ -88,8 +85,12 @@ export async function verifyApiToken(raw: string, deviceHash: string) {
             const obj = JSON.parse(plain);
             if (obj.nonce !== record.encryptedToken) return null;
             if (obj.userId !== record.userId) return null;
+            if (obj.deviceHash !== record.deviceHash) return null;
             // optional: check expiry or createdAt if you want short-lived tokens
-            return record.userId;
+            return {
+                userId: record.userId,
+                deviceHash: record.deviceHash,
+            };
         } catch (e) {
             return null;
         }

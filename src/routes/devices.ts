@@ -1,11 +1,10 @@
-import resolveInstance from '../middleware/resolveInstance';
-
 import express, {Request, Response} from 'express';
 import {asyncHandler, CustomError} from '../middleware/errorHandler';
 import deviceManager from '../services/deviceManager';
 import binaryManager from '../services/binaryManager';
 import DeviceRepository from '../repositories/DeviceRepository';
 import logger from '../utils/logger';
+import resolveInstance from "../middleware/resolveInstance";
 
 const router = express.Router();
 
@@ -128,8 +127,7 @@ router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Resp
 }));
 
 /**
- * POST /api/devices/start
- * Start device container by instance ID
+ * POST /api/devices/start *  device container by instance ID
  */
 router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
     console.log('Received request to start device');
@@ -146,8 +144,7 @@ router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Re
 }));
 
 /**
- * POST /api/devices/stop
- * Stop device container by instance ID
+ * POST /api/devices/stop *  device container by instance ID
  */
 router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
     console.log('Received request to stop device');

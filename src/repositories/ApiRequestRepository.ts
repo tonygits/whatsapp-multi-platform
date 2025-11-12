@@ -60,5 +60,53 @@ class ApiRequestRepository {
         }
     }
 
+    /**
+     * Get all apiRequests
+     * @param {Object} filters - Optional filters
+     * @returns {Promise<Array>} - Array of apiRequests
+     */
+    async filterAll(filters: any = {}): Promise<any[]> {
+        try {
+            let sql = 'SELECT * FROM api_requests';
+            const params = [];
+            const conditions = [];
+
+            if (filters.user_agent) {
+                conditions.push('user_agent = ?');
+                params.push(filters.user_agent);
+            }
+
+            if (filters.endpoint) {
+                conditions.push('endpoint = ?');
+                params.push(filters.endpoint);
+            }
+
+            if (filters.device_hash) {
+                conditions.push('device_hash = ?');
+                params.push(filters.device_hash);
+            }
+
+            if (filters.method) {
+                conditions.push('method = ?');
+                params.push(filters.method);
+            }
+
+            if (filters.user_id) {
+                conditions.push('user_id = ?');
+                params.push(filters.user_id);
+            }
+
+            if (conditions.length > 0) {
+                sql += ' WHERE ' + conditions.join(' AND ');
+            }
+
+            sql += ' ORDER BY created_at DESC';
+
+            return await database.all(sql, params);
+        } catch (error) {
+            logger.error('Error listing api_requests:', error);
+            throw error;
+        }
+    }
 }
 export default new ApiRequestRepository();

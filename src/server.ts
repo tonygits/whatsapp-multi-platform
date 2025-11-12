@@ -35,6 +35,7 @@ import userDevicesRoute from "./routes/user_devices"
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
 import {requireAuth} from "./middleware/loginHandler";
+import {sendToQueue} from "./rabbitmq/producer";
 
 class APIGateway {
     app: Application;
@@ -52,6 +53,8 @@ class APIGateway {
         console.log('📡 Configuring webhooks');
         this.setupWebhooks();
         console.log('✅ Configured webhooks');
+
+         this.testRabbitMQ();
 
         console.log('⚙️ Configuring middleware...');
         this.setupMiddleware();
@@ -158,6 +161,10 @@ class APIGateway {
                 // }
             });
         });
+    }
+
+    async testRabbitMQ() {
+        await sendToQueue({type: 'otherTask', id: "673832", payload: {title: 'test', message: 'new test rabbitmq'}});
     }
 
 
