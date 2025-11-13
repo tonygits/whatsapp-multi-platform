@@ -1,6 +1,8 @@
 import nodemailer, {SendMailOptions, Transporter} from 'nodemailer';
+import dotenv from 'dotenv';
 import {SendMailInput} from "../types/sendMailInput";
 
+dotenv.config();
 /** Lazy transporter */
 let transporter: Transporter | null = null;
 
@@ -10,10 +12,10 @@ function parseEnvBool(v?: string, fallback = false) {
 }
 
 function createTransporterFromEnv(): Transporter {
-    const host = process.env.SMTP_HOST || 'localhost';
+    const host = process.env.SMTP_HOST as string;
     const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
-    const user = process.env.SMTP_USER || '';
-    const pass = process.env.SMTP_PASS || '';
+    const user = process.env.SMTP_USER as string;
+    const pass = process.env.SMTP_PASS as string;
     const secure = parseEnvBool(process.env.SMTP_SECURE, port === 465);
 
     const config: any = {
@@ -98,7 +100,7 @@ export async function sendMail(input: SendMailInput) {
     const finalText = body ?? (html ? stripHtml(html) : undefined);
 
     const mailOptions: SendMailOptions = {
-        from: from || process.env.SMTP_FROM || `resend@${process.env.SMTP_DOMAIN || 'wapflow.app'}`,
+        from: from || process.env.SMTP_FROM_INFO || `resend@${process.env.SMTP_DOMAIN || 'wapflow.app'}`,
         to,
         subject: title,
         text: finalText,

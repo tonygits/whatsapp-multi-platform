@@ -6,7 +6,8 @@ import subscriptionRepository from "../repositories/SubscriptionRepository";
 import planRepository from "../repositories/planRepository";
 import {escapeHtml} from "../utils/paths";
 import userRepository from "../repositories/UserRepository";
-import {sendMail} from "./email";
+import {sendToQueue} from "../rabbitmq/producer";
+import crypto from "crypto";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
@@ -266,8 +267,8 @@ export async function verifyPaystackTransaction(reference: string) {
           </p>
         `;
 
-        let info = await sendMail({to: user.email, title, html});
-        console.log(info);
+        await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
 
         let planName = 'go';
         let billingCycle = 'monthly';
@@ -304,8 +305,10 @@ export async function verifyPaystackTransaction(reference: string) {
             Thanks for subscribing to Wapflow — let’s automate your WhatsApp with AI and workflows 🚀
           </p>
         `;
-        info = await sendMail({to: user.email, title, html});
-        console.log(info);
+
+        await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
+
         // 8) Respond with success and subscription details
         return {
             message: "Payment verified and subscription created",

@@ -7,8 +7,8 @@ import {hashPassword, verifyPassword} from "../utils/password";
 import {createNewSession, listSessionsForUser} from "../services/sessionService";
 import {User} from "../types/user";
 import {Session} from "../types/session";
-import {sendMail} from "../providers/email";
 import userService from "../services/userService";
+import {sendToQueue} from "../rabbitmq/producer";
 
 const router = express.Router();
 
@@ -96,9 +96,6 @@ router.post('/register', async (req: Request, res: Response) => {
         if (!password) return res.status(400).json({error: 'password is required'});
         if (!confirm_password) return res.status(400).json({error: 'confirm password is required'});
 
-        const userAgent = req.headers["user-agent"];
-        const ip = req.ip;
-        const sessionId = crypto.randomUUID();
         if (password !== confirm_password) {
             return res.status(400).json({error: 'passwords do not match'});
         }
@@ -208,9 +205,10 @@ router.post('/send-email', async (req: Request<{}, {}, BodyPayload>, res: Respon
             return res.status(400).json({ ok: false, error: 'Missing title or body/html' });
         }
 
-        const info = await sendMail({ to: recipient, title, body, html });
+        await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            payload: {from: process.env.SMTP_FROM_INFO, to: recipient, title, body, html}});
 
-        return res.json({ ok: true, messageId: info.messageId, accepted: info.accepted, info });
+        return res.json({ ok: true });
     } catch (err: any) {
         // eslint-disable-next-line no-console
         console.error('send-email error', err);

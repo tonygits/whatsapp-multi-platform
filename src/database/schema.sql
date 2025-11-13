@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS api_requests (
     user_id VARCHAR(150) NOT NULL,
     device_hash VARCHAR(150) NOT NULL,
     ip_address VARCHAR(150) NOT NULL,
-    user_agent VARCHAR(150) NOT NULL,
+    user_agent TEXT NOT NULL,
     endpoint VARCHAR(150) NOT NULL,
     method VARCHAR(150) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

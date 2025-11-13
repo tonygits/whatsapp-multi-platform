@@ -10,7 +10,6 @@ let closed = false;
 
 const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const QUEUE_NAME = process.env.QUEUE_NAME || 'tasks_queue';
-const PREFETCH = Number(process.env.PREFETCH || '5');
 const RECONNECT_DELAY_MS = 5000;
 
 // buffer messages if channel isn't ready

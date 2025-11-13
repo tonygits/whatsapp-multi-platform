@@ -164,9 +164,8 @@ class APIGateway {
     }
 
     async testRabbitMQ() {
-        await sendToQueue({type: 'otherTask', id: "673832", payload: {title: 'test', message: 'new test rabbitmq'}});
+        await sendToQueue({type: 'other', id: "673832", payload: {title: 'test', message: 'new test rabbitmq'}});
     }
-
 
     setupWebSocket() {
         // Create WebSocket server

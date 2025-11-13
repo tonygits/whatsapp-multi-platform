@@ -25,17 +25,11 @@ services:
       - SMTP_USER=${SMTP_USER}        # optional if unauthenticated SMTP
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_SECURE=${SMTP_SECURE}        # "true" for TLS (port 465)
-      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_FROM_INFO=${SMTP_FROM_INFO}
       - RABBITMQ_URL=${RABBITMQ_URL}
       - START_RABBITMQ_CONSUMER=true
       - START_RABBITMQ_PRODUCER=true
 #      - DB_URI=postgres://whatsapp:whatsapp@postgres:5432/whatsapp?sslmode=disable
-    command: >
-      sh -c "
-        node dist/rabbitmq/consumer.js &
-        node dist/rabbitmq/producer.js &
-        npm start
-      "
     networks:
       - hapaniwapi-net
     restart: unless-stopped
@@ -65,8 +59,8 @@ services:
     networks:
       - hapaniwapi-net
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -81,8 +75,18 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@wapflow_rabbitmq:5672
-      - QUEUE_NAME=tasks_queue
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}        # optional if unauthenticated SMTP
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_SECURE=${SMTP_SECURE}        # "true" for TLS (port 465)
+      - SMTP_FROM_INFO=${SMTP_FROM_INFO}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - QUEUE_NAME=${QUEUE_NAME}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./logs:/app/logs
 
   producer:
     build: .
@@ -97,8 +101,12 @@ services:
       consumer:
         condition: service_started
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@wapflow_rabbitmq:5672
-      - QUEUE_NAME=tasks_queue
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - QUEUE_NAME=${QUEUE_NAME}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./logs:/app/logs
 
   postgres:
     image: postgres:14-alpine

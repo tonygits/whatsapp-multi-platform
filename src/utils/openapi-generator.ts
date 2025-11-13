@@ -70,16 +70,16 @@ function generateOpenAPIFromApp(app: any): any {
         }
         
         // Add deviceHash header parameter
-        pathObj[method].parameters.unshift({
-          name: 'deviceHash',
-          in: 'header',
-          required: true,
-          description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
-          schema: {
-            type: 'string',
-            example: 'a1b2c3d4e5f67890'
-          }
-        });
+        // pathObj[method].parameters.unshift({
+        //   name: 'deviceHash',
+        //   in: 'header',
+        //   required: true,
+        //   description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+        //   schema: {
+        //     type: 'string',
+        //     example: 'a1b2c3d4e5f67890'
+        //   }
+        // });
 
         // Add bearerAuth security to WhatsApp API routes
         pathObj[method].security = [{ bearerAuth: [] }];
@@ -149,9 +149,9 @@ function generateOpenAPIFromApp(app: any): any {
               schema: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string', example: 'New Device Name' },
+                  name: { type: 'string', example: 'Updated Device Name' },
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
-                  webhookSecret: { type: 'string', nullable: true, example: 'new-secret-messages' },
+                  webhookSecret: { type: 'string', nullable: true, example: 'updated-secret-messages' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
                   statusWebhookSecret: { type: 'string', nullable: true, example: 'novo-secret-status' }
                 }

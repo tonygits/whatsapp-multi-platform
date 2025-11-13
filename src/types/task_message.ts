@@ -1,4 +1,4 @@
-export type MessageType = 'processOrder' | 'otherTask';
+export type MessageType = 'apiRequest' | 'email' | 'other';
 
 export interface TaskMessage {
     type: MessageType;

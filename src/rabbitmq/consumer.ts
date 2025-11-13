@@ -1,11 +1,14 @@
 import amqplib, { Connection, Channel, ConsumeMessage } from 'amqplib';
 import {TaskMessage} from "../types/task_message";
-import {doOtherTask, processOrder} from "./operations";
+import {createApiRequests, doOtherTask, sendUserEmail} from "./operations";
+import dotenv from "dotenv";
 
 const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const QUEUE_NAME = process.env.QUEUE_NAME || 'tasks_queue';
 const PREFETCH = Number(process.env.PREFETCH || '5');
 const RECONNECT_DELAY_MS = 5000;
+
+dotenv.config();
 
 let conn: any;
 let ch: any;
@@ -24,10 +27,13 @@ async function handleMessage(msg: ConsumeMessage | null) {
     try {
         let result;
         switch (payload.type) {
-            case 'processOrder':
-                result = await processOrder(payload.id, payload.payload);
+            case 'apiRequest':
+                result = await createApiRequests(payload.id, payload.payload);
                 break;
-            case 'otherTask':
+            case 'email':
+                result = await sendUserEmail(payload.id, payload.payload);
+                break;
+            case 'other':
                 result = await doOtherTask(payload.payload);
                 break;
             default:

@@ -384,18 +384,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "query",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -432,18 +420,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -459,16 +435,6 @@
         ],
         "summary": "Login with pairing code",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "phone",
             "in": "query",
@@ -537,18 +503,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -585,18 +539,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -612,16 +554,6 @@
         ],
         "summary": "User Avatar",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "phone",
             "in": "query",
@@ -742,18 +674,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -770,16 +690,7 @@
         "summary": "Get Business Profile Information",
         "description": "Retrieve detailed business profile information for a WhatsApp business account",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
+
           {
             "name": "phone",
             "in": "query",
@@ -839,16 +750,6 @@
         "summary": "Check if user is on WhatsApp",
         "parameters": [
           {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
-          {
             "name": "phone",
             "in": "query",
             "schema": {
@@ -905,16 +806,6 @@
         ],
         "summary": "User Info",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "phone",
             "in": "query",
@@ -993,18 +884,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1041,18 +920,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1089,18 +956,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1137,18 +992,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1215,18 +1058,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1309,18 +1140,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1398,18 +1217,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1492,18 +1299,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1586,18 +1381,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1695,18 +1478,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "The deviceHash of the instance (e.g. a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1789,18 +1560,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1883,18 +1642,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -1977,18 +1724,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -2085,18 +1820,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -2172,18 +1895,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -2281,18 +1992,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -2308,16 +2007,6 @@
         ],
         "summary": "Delete Message",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "message_id",
@@ -2391,16 +2080,6 @@
         ],
         "summary": "Send reaction to message",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "message_id",
@@ -2480,16 +2159,6 @@
         "summary": "Mark as read message",
         "parameters": [
           {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
-          {
             "in": "path",
             "name": "message_id",
             "schema": {
@@ -2566,16 +2235,6 @@
         "summary": "Revoke Message",
         "parameters": [
           {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
-          {
             "in": "path",
             "name": "message_id",
             "schema": {
@@ -2648,16 +2307,6 @@
         ],
         "summary": "Star message",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "message_id",
@@ -2735,16 +2384,6 @@
         "summary": "Unstar message",
         "parameters": [
           {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
-          {
             "in": "path",
             "name": "message_id",
             "schema": {
@@ -2820,16 +2459,6 @@
         ],
         "summary": "Edit message by message ID before 15 minutes",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "message_id",
@@ -2913,16 +2542,6 @@
         "summary": "Get list of chats",
         "description": "Retrieve a list of chat conversations with their basic information",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "limit",
             "in": "query",
@@ -3018,16 +2637,6 @@
         "summary": "Label or unlabel a chat",
         "description": "Apply or remove a label from a chat conversation",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "chat_jid",
@@ -3138,16 +2747,6 @@
         "summary": "Get messages from a specific chat",
         "description": "Retrieve messages from a specific chat conversation with filtering options",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "chat_jid",
@@ -3289,16 +2888,6 @@
         "summary": "Pin or unpin a chat",
         "description": "Pin or unpin a chat conversation to the top of the chat list",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "in": "path",
             "name": "chat_jid",
@@ -3458,18 +3047,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -3542,18 +3119,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -3569,16 +3134,6 @@
         ],
         "summary": "Group Info",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "group_id",
             "in": "query",
@@ -3637,16 +3192,6 @@
         "summary": "Get group information from invitation link",
         "description": "Retrieve group information without joining the group using its invitation link",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "link",
             "in": "query",
@@ -3751,18 +3296,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -3824,18 +3357,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -3908,18 +3429,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -3992,18 +3501,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4019,16 +3516,6 @@
         ],
         "summary": "Get list of participant requests to join group",
         "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          },
           {
             "name": "group_id",
             "in": "query",
@@ -4148,18 +3635,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4236,18 +3711,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4303,18 +3766,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4370,18 +3821,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4437,18 +3876,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4504,18 +3931,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4586,18 +4001,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4669,18 +4072,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
@@ -4742,18 +4133,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "deviceHash",
-            "in": "header",
-            "required": true,
-            "description": "O deviceHash da instância (ex: a1b2c3d4e5f67890)",
-            "schema": {
-              "type": "string",
-              "example": "a1b2c3d4e5f67890"
-            }
-          }
-        ],
         "security": [
           {
             "bearerAuth": []
