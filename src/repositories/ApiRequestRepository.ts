@@ -1,4 +1,4 @@
-import {ApiRequest} from "../types/api_request";
+import {ApiRequest, ApiRequestCount} from "../types/api_request";
 import database from "../database/database";
 import logger from "../utils/logger";
 
@@ -39,7 +39,9 @@ class ApiRequestRepository {
             );
 
             const apiRequest = await database.get(
-                `SELECT * FROM api_requests WHERE id = ?`,
+                `SELECT *
+                 FROM api_requests
+                 WHERE id = ?`,
                 [requestId]
             );
             logger.info(`api request created: ${requestId}`, {apiRequestId: requestId, deviceHash: deviceHash});
@@ -56,6 +58,36 @@ class ApiRequestRepository {
             };
         } catch (error) {
             logger.error('Error creating api request:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Find device by phone number
+     * @returns {Promise<Object|null>} - DeviceKey or null
+     * @param filterData
+     */
+    async filterCount(filterData: any): Promise<ApiRequestCount | null> {
+        const date = new Date();
+        const formattedDate = date.toISOString().split('T')[0];
+        console.log(formattedDate);
+        try {
+            const apiRequestCount = await database.get(
+                'SELECT user_id, device_hash, COUNT(id) as count FROM api_requests WHERE device_hash = ? AND created_at >= ? AND created_at <= ?  ',
+                [filterData.device_hash, filterData.start_date, filterData.end_date]
+            );
+
+            if (!apiRequestCount) {
+                return null
+            }
+
+            return {
+                userId: apiRequestCount.user_id,
+                deviceHash: apiRequestCount.device_hash,
+                count: apiRequestCount.count,
+            };
+        } catch (error) {
+            logger.error('Error fetching api request count by date range:', error);
             throw error;
         }
     }
@@ -109,4 +141,5 @@ class ApiRequestRepository {
         }
     }
 }
+
 export default new ApiRequestRepository();

@@ -8,3 +8,9 @@ export type ApiRequest = {
     method: string,
     createdAt: string,
 }
+
+export type ApiRequestCount = {
+    userId: string,
+    deviceHash: string,
+    count: number,
+}
