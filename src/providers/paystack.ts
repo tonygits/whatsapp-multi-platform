@@ -364,7 +364,7 @@ export async function markPaymentProcessed(reference: string, payload: any) {
     const dbTxn = await paymentRepository.findByTransactionReference(reference.trim());
     if (dbTxn) {
         const updatedPayment = await paymentRepository.update(dbTxn.id, {
-            status: payload.status,
+            status: payload.tx.status,
         });
         if (updatedPayment) {
             return;

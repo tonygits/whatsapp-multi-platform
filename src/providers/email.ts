@@ -100,7 +100,7 @@ export async function sendMail(input: SendMailInput) {
     const finalText = body ?? (html ? stripHtml(html) : undefined);
 
     const mailOptions: SendMailOptions = {
-        from: from || process.env.SMTP_FROM_INFO || `resend@${process.env.SMTP_DOMAIN || 'wapflow.app'}`,
+        from: from || process.env.SMTP_FROM_INFO || `info@${process.env.SMTP_DOMAIN || 'wapflow.app'}`,
         to,
         subject: title,
         text: finalText,
