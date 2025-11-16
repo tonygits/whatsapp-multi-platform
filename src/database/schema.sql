@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS api_requests (
     ip_address VARCHAR(150) NOT NULL,
     user_agent TEXT NOT NULL,
     endpoint VARCHAR(150) NOT NULL,
-    method VARCHAR(150) NOT NULL,
+    request_method VARCHAR(150) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS api_requests_user_device_idx ON api_requests(user_id, device_hash);

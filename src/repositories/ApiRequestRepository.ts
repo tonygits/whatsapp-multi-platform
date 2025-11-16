@@ -17,7 +17,7 @@ class ApiRequestRepository {
                 userAgent,
                 userId,
                 endpoint,
-                method,
+                requestMethod,
             } = apiRequestData;
 
             if (!numberHash) {
@@ -25,7 +25,7 @@ class ApiRequestRepository {
             }
 
             const result = await database.run(
-                `INSERT INTO api_requests (id, device_hash, ip_address, user_agent, user_id, endpoint, method)
+                `INSERT INTO api_requests (id, device_hash, ip_address, user_agent, user_id, endpoint, request_method)
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                     requestId,
@@ -34,7 +34,7 @@ class ApiRequestRepository {
                     userAgent,
                     userId,
                     endpoint,
-                    method,
+                    requestMethod,
                 ]
             );
 
