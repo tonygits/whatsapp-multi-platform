@@ -137,6 +137,40 @@ class SubscriptionRepository {
     }
 
     /**
+     * Find subscription by code
+     * @returns {Promise<Object|null>} - Subscription or null
+     * @param numberHash
+     */
+    async findByNumberHash(numberHash: string): Promise<Subscription | null> {
+        try {
+            const subscription = await database.get(
+                'SELECT * FROM subscriptions WHERE device_hash = ? ',
+                [numberHash]
+            );
+
+            if (!subscription) {
+                return null
+            }
+
+            return {
+                id: subscription.id,
+                code: subscription.code,
+                customerId: subscription.customer_id,
+                email: subscription.email,
+                planCode: subscription.plan_code,
+                numberHash: subscription.device_hash,
+                status: subscription.status,
+                nextBillingDate: subscription.next_billing_date,
+                createdAt: subscription.created_at,
+                updatedAt: subscription.updated_at,
+            };
+        } catch (error) {
+            logger.error('Error fetching customer by customer id and plan code:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Update device
      * @param code
      * @param {Object} updateData - Data to update

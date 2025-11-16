@@ -18,6 +18,9 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 import {Request, Response, NextFunction} from 'express';
 import {AuthenticatedRequest} from "../types/session";
 import DeviceUtils from "../utils/deviceUtils";
+import SubscriptionRepository from "../repositories/SubscriptionRepository";
+import apiRequestRepository from "../repositories/ApiRequestRepository";
+import {getMonthRange} from "../utils/date";
 
 const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: Response, next?: NextFunction) => {
     // 1. Extract instanceId from header
@@ -67,15 +70,20 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
     }
 
     //check is device is subscribed
-    // const isSubscribed = await DeviceRepository.isDeviceSubscribed(device.id);
-    // if (!isSubscribed) {
-    //     throw new CustomError(
-    //         `Phone ${instanceId} is not subscribed.`,
-    //         403,
-    //         'WHATSAPP_NUMBER_NOT_SUBSCRIBED'
-    //     );
-    // }
-
+    const subscription = await SubscriptionRepository.findByNumberHash(instanceId);
+    if (!subscription || (subscription && subscription.status !== 'active')) {
+        //check number of api requests for the month
+        const {firstDay, lastDay} = getMonthRange()
+        const apiRequestCount = await apiRequestRepository.filterCount({device_hash: instanceId, start_date: firstDay, end_date: lastDay});
+        const FREE_API_REQUEST_LIMIT = parseInt(process.env.FREE_API_REQUEST_LIMIT || '100');
+        if (apiRequestCount && apiRequestCount.count > FREE_API_REQUEST_LIMIT) {
+            throw new CustomError(
+                `Phone ${instanceId} subscription required. Free limit of ${FREE_API_REQUEST_LIMIT} API requests exceeded.`,
+                402,
+                'INSTANCE_SUBSCRIPTION_REQUIRED'
+            );
+        }
+    }
 
     // 3. Ensure device is active (combines ensureActive logic)
     if (device.status !== 'active' && device.status !== 'connected') {

@@ -1,4 +1,4 @@
-function getYearlyRange(): { firstDay: string; lastDay: string } {
+export function getYearlyRange(): { firstDay: string; lastDay: string } {
     const now = new Date();
 
     // First day of current year → Jan 1
@@ -13,7 +13,7 @@ function getYearlyRange(): { firstDay: string; lastDay: string } {
     return ({firstDay, lastDay});
 }
 
-function getMonthRange(): { firstDay: string; lastDay: string } {
+export function getMonthRange(): { firstDay: string; lastDay: string } {
     const now = new Date();
 
     const firstDay = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -22,7 +22,7 @@ function getMonthRange(): { firstDay: string; lastDay: string } {
     return ({firstDay, lastDay});
 }
 
-function getWeeklyRange(): { firstDay: string; lastDay: string } {
+export function getWeeklyRange(): { firstDay: string; lastDay: string } {
     const now = new Date();
 
     // JS weeks start on Sunday (0), so convert to Monday-based
