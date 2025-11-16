@@ -92,4 +92,4 @@ ENV VOLUMES_DIR=/app/data/volumes
 ENV APP_BASE_DIR=/app
 
 # Start command (TypeScript build)
-CMD ["node", "dist/server.js"]
+CMD ["/bin/sh", "-c", "chown -R node:node /app/data || true; exec node dist/server.js"]
