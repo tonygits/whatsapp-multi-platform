@@ -5,7 +5,7 @@ export type ApiRequest = {
     ipAddress: string,
     numberHash: string,
     endpoint: string,
-    method: string,
+    requestMethod: string,
     createdAt: string,
 }
 

@@ -53,7 +53,7 @@ class ApiRequestRepository {
                 userAgent: apiRequest.user_agent,
                 userId: apiRequest.user_id,
                 endpoint: apiRequest.endpoint,
-                method: apiRequest.method,
+                requestMethod: apiRequest.request_method,
                 createdAt: apiRequest.created_at,
             };
         } catch (error) {
@@ -115,7 +115,7 @@ class ApiRequestRepository {
                 params.push(filters.device_hash);
             }
 
-            if (filters.method) {
+            if (filters.request_method) {
                 conditions.push('method = ?');
                 params.push(filters.method);
             }
