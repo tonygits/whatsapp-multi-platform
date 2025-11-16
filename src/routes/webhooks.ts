@@ -33,7 +33,7 @@ async function findProcessedWebhook(id: string) {
 
 async function markWebhookProcessed(id: string, payload: any) {
     // Persist that this webhook (id) was processed so retries are ignored
-    return await webhookRepository.create({ data: { webhookId: id, payload: JSON.stringify(payload), status: 'processed'}});
+    return await webhookRepository.create({ webhookId: id, payload: JSON.stringify(payload), status: 'processed'});
 }
 
 async function markInvoiceFailed(subscriptionCode: string, invoiceData: any) {
