@@ -17,7 +17,7 @@ class WebhookRepository {
             } = webhookData;
 
             if (!webhookId) {
-                throw new Error('webhook is mandatory');
+                throw new Error('webhook id is mandatory');
             }
 
             const result = await database.run(

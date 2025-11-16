@@ -168,6 +168,7 @@ router.post("/paystack", express.raw({type: "application/json"}), async (req: Re
         }
 
         // 5) Mark webhook processed (idempotency entry) and respond 200 to acknowledge
+        console.log('webHookId', webHookId);
         await markWebhookProcessed(webHookId, payload);
 
         return res.status(200).send("ok");
