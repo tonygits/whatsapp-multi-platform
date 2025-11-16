@@ -210,4 +210,5 @@ CREATE TABLE IF NOT EXISTS api_requests (
 CREATE INDEX IF NOT EXISTS api_requests_user_device_idx ON api_requests(user_id, device_hash);
 
 -- Add device_hash column to subscriptions table
-ALTER TABLE subscriptions ADD COLUMN device_hash VARCHAR(150) NOT NULL DEFAULT '';
+ALTER TABLE subscriptions
+    ADD COLUMN IF NOT EXISTS  device_hash VARCHAR(150) NOT NULL DEFAULT '';
