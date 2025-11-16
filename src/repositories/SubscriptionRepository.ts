@@ -17,6 +17,7 @@ class SubscriptionRepository {
                 customerId,
                 email,
                 planCode,
+                numberHash,
                 status,
                 nextBillingDate
             } = subscriptionData;
@@ -27,14 +28,14 @@ class SubscriptionRepository {
 
             const result = await database.run(
                 `INSERT INTO subscriptions (id, code, customer_id, email, plan_code,
-                                            status, next_billing_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                 device_hash, status, next_billing_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id,
                     code,
                     customerId,
                     email,
                     planCode,
+                    numberHash,
                     status,
                     nextBillingDate || null,
                 ]
@@ -54,6 +55,7 @@ class SubscriptionRepository {
                 customerId: subscription.customer_id,
                 email: subscription.email,
                 planCode: subscription.plan_code,
+                numberHash: subscription.device_hash,
                 status: subscription.status,
                 nextBillingDate: subscription.next_billing_date,
                 createdAt: subscription.created_at,
@@ -87,6 +89,7 @@ class SubscriptionRepository {
                 customerId: subscription.customer_id,
                 email: subscription.email,
                 planCode: subscription.plan_code,
+                numberHash: subscription.device_hash,
                 status: subscription.status,
                 nextBillingDate: subscription.next_billing_date,
                 createdAt: subscription.created_at,
@@ -121,6 +124,7 @@ class SubscriptionRepository {
                 customerId: subscription.customer_id,
                 email: subscription.email,
                 planCode: subscription.plan_code,
+                numberHash: subscription.device_hash,
                 status: subscription.status,
                 nextBillingDate: subscription.next_billing_date,
                 createdAt: subscription.created_at,
@@ -189,6 +193,7 @@ class SubscriptionRepository {
                 customerId: updatedSubscription.customer_id,
                 email: updatedSubscription.email,
                 planCode: updatedSubscription.plan_code,
+                numberHash: updatedSubscription.device_hash,
                 status: updatedSubscription.status,
                 nextBillingDate: updatedSubscription.next_billing_date,
                 createdAt: updatedSubscription.created_at,

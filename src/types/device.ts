@@ -1,7 +1,7 @@
 export type Device = {
     id: number,
     userId: string,
-    deviceHash: string,
+    numberHash: string,
     deviceDate?: DeviceState,
     containerId?: string,
     containerPort?: string,
@@ -18,7 +18,7 @@ export type Device = {
 export type DeviceState = {
     id: string,
     deviceId: number,
-    deviceHash: string,
+    numberHash: string,
     userId: string,
     status: string,
     lastPaymentDate?: string,
@@ -33,7 +33,7 @@ export type DeviceState = {
 export type DevicePayment = {
     id: string,
     deviceId: number,
-    deviceHash: string,
+    numberHash: string,
     paymentId: string,
     createdAt: string,
     updatedAt: string,

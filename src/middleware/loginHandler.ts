@@ -6,7 +6,6 @@ import logger from '../utils/logger';
 import {SESSIONS_DIR} from '../utils/paths';
 import crypto from "crypto";
 import {verifyApiToken} from "../utils/encryption";
-import apiRequestRepository from "../repositories/ApiRequestRepository";
 import {sendToQueue} from "../rabbitmq/producer";
 
 /**
@@ -20,18 +19,18 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
         throw new CustomError('Device or proxy response not found', 500, 'INVALID_MIDDLEWARE_STATE');
     }
 
-    const deviceHash = device.deviceHash;
+    const numberHash = device.numberHash;
     let responseData = proxyResponse.data;
 
     try {
         // Check if response contains QR code information in results
         if (responseData && responseData.results && responseData.results.qr_link && responseData.results.qr_link.includes('/statics/')) {
-            logger.info(`QR code detected in response to ${deviceHash}`);
+            logger.info(`QR code detected in response to ${numberHash}`);
 
             try {
                 // Extract QR file name from the link
                 const qrFileName = responseData.results.qr_link.split('/').pop();
-                const sessionPath = path.join(SESSIONS_DIR, deviceHash);
+                const sessionPath = path.join(SESSIONS_DIR, numberHash);
                 const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
 
                 // Log path for debug
@@ -62,14 +61,14 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
                     logger.info(`Keeping the original qr_link: ${responseData.results.qr_link}`);
                 }
             } catch (qrError) {
-                logger.error(`Error processing QR code for ${deviceHash}:`, qrError);
+                logger.error(`Error processing QR code for ${numberHash}:`, qrError);
                 // Continue with original response if QR processing fails
             }
         }
         res.status(proxyResponse.status).json(responseData);
 
     } catch (error) {
-        logger.error(`Error processing login response for ${deviceHash}:`, error);
+        logger.error(`Error processing login response for ${numberHash}:`, error);
         // Fallback to original response
         res.status(proxyResponse.status).json(proxyResponse.data);
     }
@@ -90,10 +89,10 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
         const userAgent = req.headers["user-agent"];
         const ip = req.ip;
         await sendToQueue({type: 'apiRequest', id: crypto.randomBytes(6).toString("hex"), payload: {requestId: crypto.randomUUID(),
-                deviceHash: payload.deviceHash, userAgent: userAgent, ipAddress: ip,
+                numberHash: payload.numberHash, userAgent: userAgent, ipAddress: ip,
                 userId: payload.userId, method: req.method, endpoint: req.path}});
         req.user = {
-            deviceHash: payload.deviceHash,
+            numberHash: payload.numberHash,
             userId: payload.userId,
             role: "admin",
         };

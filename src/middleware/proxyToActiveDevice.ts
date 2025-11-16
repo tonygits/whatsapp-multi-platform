@@ -9,9 +9,9 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 
 /**
  * Simplified middleware that combines:
- * - resolveInstance (find device by deviceHash)
- * - ensureActive (validate device is active/connected)
- * - proxyToContainer (proxy request to device container)
+ * - resolveInstance (find phone by numberHash)
+ * - ensureActive (validate phone is active/connected)
+ * - proxyToContainer (proxy request to phone container)
  *
  * All in one step for better performance and simplicity
  */
@@ -21,18 +21,18 @@ import DeviceUtils from "../utils/deviceUtils";
 
 const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: Response, next?: NextFunction) => {
     // 1. Extract instanceId from header
-    const instanceId = req.user?.deviceHash as string
+    const instanceId = req.user?.numberHash as string
     if (!instanceId) {
-        throw new CustomError('Header deviceHash is required', 400, 'MISSING_INSTANCE_ID');
+        throw new CustomError('Header number hash is required', 400, 'MISSING_INSTANCE_ID');
     }
 
     const isValid = DeviceUtils.validateDeviceHash(instanceId);
     if (!isValid){
-        throw new Error("invalid device hash");
+        throw new Error("invalid number hash");
     }
     console.log('instance', instanceId);
 
-    // 2. Resolve device (combines resolveInstance logic)
+    // 2. Resolve phone (combines resolveInstance logic)
     let device = await deviceManager.getDevice(instanceId);
     if (!device) {
         const dbDevice = await DeviceRepository.findByDeviceHash(instanceId);
@@ -40,7 +40,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
             device = {
                 id: dbDevice.id,
                 userId: dbDevice.user_id,
-                deviceHash: dbDevice.device_hash,
+                numberHash: dbDevice.device_hash,
                 phoneNumber: dbDevice.phone_number,
                 status: dbDevice.status,
                 containerInfo: {
@@ -60,18 +60,29 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
 
     if (!device) {
         throw new CustomError(
-            `Device with device hash ${instanceId} not found`,
+            `Phone with number hash ${instanceId} not found`,
             404,
-            'DEVICE_NOT_FOUND'
+            'WHATSAPP_NUMBER_INSTANCE_NOT_FOUND'
         );
     }
+
+    //check is device is subscribed
+    // const isSubscribed = await DeviceRepository.isDeviceSubscribed(device.id);
+    // if (!isSubscribed) {
+    //     throw new CustomError(
+    //         `Phone ${instanceId} is not subscribed.`,
+    //         403,
+    //         'WHATSAPP_NUMBER_NOT_SUBSCRIBED'
+    //     );
+    // }
+
 
     // 3. Ensure device is active (combines ensureActive logic)
     if (device.status !== 'active' && device.status !== 'connected') {
         throw new CustomError(
-            `Device ${instanceId} is not active. Status: ${device.status}`,
+            `Phone ${instanceId} is not active. Status: ${device.status}`,
             400,
-            'DEVICE_NOT_ACTIVE'
+            'INSTANCE_NOT_ACTIVE'
         );
     }
 
@@ -96,7 +107,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
         'Authorization': `Basic ${Buffer.from(`${DEFAULT_ADMIN_USER}:${DEFAULT_ADMIN_PASS}`).toString('base64')}`
     };
 
-    // Attach device to request for next middleware
+    // Attach phone to request for next middleware
     (req as any).device = device;
 
     try {
@@ -127,7 +138,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
         const err = error as any;
         if (err.response) {
             // Container responded with error
-            logger.warn(`Container error for device ${instanceId}: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
+            logger.warn(`Container error for phone ${instanceId}: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
 
             // Store error response in request or send directly
             (req as any).proxyResponse = {
@@ -149,7 +160,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
             );
         } else {
             // Other network/proxy errors
-            logger.error(`Proxy error for device ${instanceId}:`, err.message);
+            logger.error(`Proxy error for phone ${instanceId}:`, err.message);
             throw new CustomError(
                 'Internal error in the request proxy',
                 500,

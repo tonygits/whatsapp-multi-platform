@@ -328,7 +328,7 @@ class UpdateManager {
         const health = await this.analyzeProcessHealth(process);
         
   (results as any).processes.push({
-          deviceHash: process.deviceHash,
+          numberHash: process.numberHash,
           healthScore: health.score,
           uptime: health.uptime,
           restartRecommended: health.restartRecommended,
@@ -338,7 +338,7 @@ class UpdateManager {
         if (health.restartRecommended) {
           (results as any).recommendations.push({
             type: 'restart',
-            process: process.deviceHash,
+            process: process.numberHash,
             reason: health.restartReason
           });
         }
@@ -346,7 +346,7 @@ class UpdateManager {
         if (health.updateRecommended) {
           (results as any).recommendations.push({
             type: 'update',
-            process: process.deviceHash,
+            process: process.numberHash,
             reason: health.updateReason
           });
         }
@@ -396,7 +396,7 @@ class UpdateManager {
       // Additional health checks could be added here
 
     } catch (error) {
-      logger.error(`Error analyzing process ${process.deviceHash}:`, error);
+      logger.error(`Error analyzing process ${process.numberHash}:`, error);
       health.score = 0;
     }
 
@@ -516,16 +516,16 @@ class UpdateManager {
   /**
    * Auto-restart processes
    */
-  async autoRestartProcesses(deviceHashes: any) {
-    for (const deviceHash of deviceHashes) {
+  async autoRestartProcesses(numberHashes: any) {
+    for (const numberHash of numberHashes) {
       try {
-        logger.info(`Auto-restarting process: ${deviceHash}`);
-        await binaryManager.restartProcess(deviceHash);
+        logger.info(`Auto-restarting process: ${numberHash}`);
+        await binaryManager.restartProcess(numberHash);
         
         // Wait between restarts
         await new Promise(resolve => setTimeout(resolve, 5000));
       } catch (error) {
-        logger.error(`Error restarting process ${deviceHash}:`, error);
+        logger.error(`Error restarting process ${numberHash}:`, error);
       }
     }
   }

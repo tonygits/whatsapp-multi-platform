@@ -21,16 +21,16 @@ router.get('/users/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/device_keys', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+router.post('/phone_number_keys', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const {device_hash} = req.body as { device_hash: string };
-        if (!device_hash) return res.status(400).json({error: 'user id is required'});
+        const {number_hash} = req.body as { number_hash: string };
+        if (!number_hash) return res.status(400).json({error: 'number hash is required'});
         const userId = req.user?.userId as string
-        const clientToken = await createApiToken(userId, device_hash);
+        const clientToken = await createApiToken(userId, number_hash);
         res.status(201).json({access_token: clientToken, message: 'api key created. Store the key as you will not access it again.'});
     } catch (err: any) {
-        console.error('failed to create device key with error', err);
-        res.status(400).json({error: err.message ?? 'failed to create device key for device'});
+        console.error('failed to create phone number key with error', err);
+        res.status(400).json({error: err.message ?? 'failed to create device key for phone number'});
     }
 }));
 
@@ -60,32 +60,32 @@ router.delete('/:id/logout', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/users/:id/devices', async (req: Request, res: Response) => {
+router.get('/users/:id/phone_numbers', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id?: string };
         const {hash} = req.query as { hash?: string };
         if (!id) return res.status(400).json({error: 'user id is required'});
-        if (!hash) return res.status(400).json({error: 'device hash id is required'});
-        const deviceKey: any = await deviceKeyRepository.findByUserIdAndDeviceId(id, hash);
-        if (!deviceKey){
-            res.status(404).json({message: "device key not found"});
+        if (!hash) return res.status(400).json({error: 'phone number hash id is required'});
+        const phoneNumberKey: any = await deviceKeyRepository.findByUserIdAndDeviceId(id, hash);
+        if (!phoneNumberKey){
+            res.status(404).json({message: "phone number key not found"});
         }
-        const {encryptedToken: deviceToken, ...deviceKeyWithoutToken} = deviceKey
+        const {encryptedToken: deviceToken, ...deviceKeyWithoutToken} = phoneNumberKey
         res.status(200).json({deviceKey: deviceKeyWithoutToken});
     } catch (err: any) {
-        console.error('failed to deactivate device key with error', err);
-        res.status(400).json({error: err.message ?? 'failed to deactivate device key'});
+        console.error('failed to deactivate phone number key with error', err);
+        res.status(400).json({error: err.message ?? 'failed to deactivate phone number key'});
     }
 });
 
-router.delete('/device_keys/:id', async (req: Request, res: Response) => {
+router.delete('/phone_number_keys/:id', async (req: Request, res: Response) => {
     try {
         const {id} = req.params as { id?: string };
-        if (!id) return res.status(400).json({error: 'device key id is required'});
-        const deviceKey = await revokeKey(id);
-        res.status(200).json({deviceKey});
+        if (!id) return res.status(400).json({error: 'phone number key id is required'});
+        const phoneNumberKey = await revokeKey(id);
+        res.status(200).json({phoneNumberKey});
     } catch (err: any) {
-        console.error('failed to deactivate device key with error', err);
+        console.error('failed to deactivate phone number key with error', err);
         res.status(400).json({error: err.message ?? 'failed to deactivate device key'});
     }
 });

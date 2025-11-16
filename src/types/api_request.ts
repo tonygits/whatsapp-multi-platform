@@ -3,7 +3,7 @@ export type ApiRequest = {
     userId: string,
     userAgent: string,
     ipAddress: string,
-    deviceHash: string,
+    numberHash: string,
     endpoint: string,
     method: string,
     createdAt: string,
@@ -11,6 +11,6 @@ export type ApiRequest = {
 
 export type ApiRequestCount = {
     userId: string,
-    deviceHash: string,
+    numberHash: string,
     count: number,
 }

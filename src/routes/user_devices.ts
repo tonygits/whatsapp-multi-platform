@@ -41,7 +41,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 // Add container/process status and enrich output data
     const devicesWithStatus = await Promise.all(
         paginatedDevices.map(async (device: any) => {
-            const process = await binaryManager.getProcessStatus(device.deviceHash);
+            const process = await binaryManager.getProcessStatus(device.numberHash);
             const containerPort = device.port || device.containerInfo?.port || process?.port || null;
             const containerId = device.containerInfo?.containerId || null;
             const messagesWebhookUrl = device.webhookUrl || null;
@@ -51,7 +51,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 
             return {
                 id: device.id,
-                deviceHash: device.deviceHash,
+                numberHash: device.numberHash,
                 status: device.status,
                 phoneNumber: device.phoneNumber,
                 container: {
@@ -94,7 +94,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 /**
- * POST /api/devices
+ * POST /api/phones
  * Register a new device (generates deviceHash automatically)
  */
 router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -104,17 +104,17 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) =
 
     const userId = req.user?.userId
     // Generate unique device hash
-    const deviceHash = DeviceUtils.generateDeviceHash();
-    logger.info(`Starting registration for new device: ${deviceHash}`);
+    const numberHash = DeviceUtils.generateDeviceHash();
+    logger.info(`Starting registration for new phone number: ${numberHash}`);
 
 
     const device = await deviceManager.getDeviceByPhone(phoneNumber);
     if (device) {
         res.status(400).json({
             success: false,
-            message: `Device ${phoneNumber} already registered`,
+            message: `Phone ${phoneNumber} already registered`,
             data: {
-                deviceHash: device?.deviceHash ?? deviceHash,
+                deviceHash: device?.numberHash ?? numberHash,
                 phoneNumber: device?.phoneNumber ?? phoneNumber,
                 status: device?.status ?? 'unknown',
             }
@@ -123,7 +123,7 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) =
 
     try {
         // Create device in DB
-        await deviceManager.registerDevice(deviceHash, phoneNumber, {
+        await deviceManager.registerDevice(numberHash, phoneNumber, {
             userId,
             webhookUrl,
             webhookSecret,
@@ -131,31 +131,31 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) =
             statusWebhookSecret
         });
 
-        logger.info(`Device ${deviceHash} created in DB.`);
+        logger.info(`Phone ${numberHash} created in DB.`);
 
         // Start process if requested
         let process = null;
         if (autoStart) {
-            logger.info(`Starting process for ${deviceHash}...`);
+            logger.info(`Starting process for ${numberHash}...`);
             try {
-                process = await binaryManager.startProcess(deviceHash);
+                process = await binaryManager.startProcess(numberHash);
             } catch (processError) {
-                logger.warn(`Error starting process for ${deviceHash}, but device was created:`, (processError as any)?.message);
+                logger.warn(`Error starting process for ${numberHash}, but device was created:`, (processError as any)?.message);
             }
         }
 
         // Get final state
-        const finalDeviceState = await deviceManager.getDevice(deviceHash);
-        const finalProcessState = process || await binaryManager.getProcessStatus(deviceHash);
+        const finalDeviceState = await deviceManager.getDevice(numberHash);
+        const finalProcessState = process || await binaryManager.getProcessStatus(numberHash);
 
-        logger.info(`Registration for ${deviceHash} completed successfully.`);
+        logger.info(`Registration for ${numberHash} completed successfully.`);
 
         res.status(201).json({
             success: true,
             message: 'Device registered successfully.',
             data: {
                 userId: finalDeviceState?.userId ?? userId,
-                deviceHash: finalDeviceState?.deviceHash ?? deviceHash,
+                numberHash: finalDeviceState?.numberHash ?? numberHash,
                 phoneNumber: finalDeviceState?.phoneNumber ?? phoneNumber,
                 status: finalDeviceState?.status ?? 'unknown',
                 processInfo: finalProcessState
@@ -163,7 +163,7 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) =
         });
 
     } catch (error) {
-        logger.error(`Catastrophic error registering device ${deviceHash}:`, error);
+        logger.error(`Catastrophic error registering device ${numberHash}:`, error);
         throw new CustomError('An unexpected error occurred during registration.', 500, 'REGISTRATION_UNEXPECTED_ERROR');
     }
 }));

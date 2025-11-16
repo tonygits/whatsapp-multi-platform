@@ -27,14 +27,13 @@ router.put('/', resolveInstance, asyncHandler(async (req: Request, res: Response
     }
 
     const updatedDevice = await DeviceRepository.update(device.id, filteredUpdates);
-
-    logger.info(`Device ${device.deviceHash} updated`);
+    logger.info(`Phone number ${device.numberHash} updated`);
 
     res.json({
         success: true,
-        message: 'Device updated successfully',
+        message: 'Phone number updated successfully',
         data: {
-            deviceHash: updatedDevice.device_hash,
+            numberHash: updatedDevice.device_hash,
             status: updatedDevice.status
         }
     });
@@ -48,37 +47,36 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
     const device = (req as any).device;
     const {force = false} = req.query;
 
-    logger.info(`Removing device: ${device.deviceHash}`);
+    logger.info(`Removing phone number: ${device.numberHash}`);
 
     try {
         // Stop process first
         try {
-            await binaryManager.stopProcess(device.deviceHash);
+            await binaryManager.stopProcess(device.numberHash);
         } catch (error) {
             if (!force) throw error;
             logger.warn(`Error stopping process, but continuing due to force=true: ${(error as any)?.message}`);
         }
 
         // Remove from device manager
-        const removed = await deviceManager.removeDevice(device.deviceHash);
-
+        const removed = await deviceManager.removeDevice(device.numberHash);
         if (!removed) {
             throw new CustomError(
-                'Error removing device',
+                'Error removing phone number',
                 500,
                 'REMOVAL_ERROR'
             );
         }
 
-        logger.info(`Device ${device.deviceHash} successfully removed`);
+        logger.info(`Phone number ${device.numberHash} successfully removed`);
 
         res.json({
             success: true,
-            message: 'Device removed successfully'
+            message: 'Phone number removed successfully'
         });
 
     } catch (error) {
-        logger.error(`Error removing device ${device.deviceHash}:`, error);
+        logger.error(`Error removing phone number ${device.numberHash}:`, error);
         throw error;
     }
 }));
@@ -89,9 +87,9 @@ router.delete('/', resolveInstance, asyncHandler(async (req: Request, res: Respo
  * Get specific device information by instance ID
  */
 router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
-    console.log('Received request for device info');
+    console.log('Received request for phone number info');
     const device = (req as any).device;
-    const process = await binaryManager.getProcessStatus(device.deviceHash);
+    const process = await binaryManager.getProcessStatus(device.numberHash);
     const containerPort = device.containerInfo?.port || process?.port || null;
     const containerId = device.containerInfo?.containerId || null;
     const messagesWebhookUrl = device.webhookUrl || null;
@@ -101,7 +99,7 @@ router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Resp
         success: true,
         data: {
             id: device.id,
-            deviceHash: device.deviceHash,
+            numberHash: device.numberHash,
             status: device.status,
             phoneNumber: device.phoneNumber,
             container: {id: containerId, port: containerPort},
@@ -130,12 +128,12 @@ router.get('/info', resolveInstance, asyncHandler(async (req: Request, res: Resp
  * POST /api/devices/start *  device container by instance ID
  */
 router.post('/start', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
-    console.log('Received request to start device');
+    console.log('Received request to start phone number');
     const device = (req as any).device;
 
-    logger.info(`Starting container for ${device.deviceHash}`);
+    logger.info(`Starting container for ${device.numberHash}`);
 
-    await binaryManager.startProcess(device.deviceHash);
+    await binaryManager.startProcess(device.numberHash);
 
     res.json({
         success: true,
@@ -150,9 +148,9 @@ router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Res
     console.log('Received request to stop device');
     const device = (req as any).device;
 
-    logger.info(`Stopping container for ${device.deviceHash}`);
+    logger.info(`Stopping container for ${device.numberHash}`);
 
-    await binaryManager.stopProcess(device.deviceHash);
+    await binaryManager.stopProcess(device.numberHash);
 
     res.json({
         success: true,
@@ -165,13 +163,12 @@ router.post('/stop', resolveInstance, asyncHandler(async (req: Request, res: Res
  * Restart device container by instance ID
  */
 router.post('/restart', resolveInstance, asyncHandler(async (req: Request, res: Response) => {
-    console.log('Received request to restart device');
+    console.log('Received request to restart phone number');
     const device = (req as any).device;
 
-    logger.info(`Restarting container for ${device.deviceHash}`);
+    logger.info(`Restarting container for ${device.numberHash}`);
 
-    await binaryManager.restartProcess(device.deviceHash);
-
+    await binaryManager.restartProcess(device.numberHash);
     res.json({
         success: true,
         message: 'Process restarted successfully'

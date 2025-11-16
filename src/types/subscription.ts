@@ -4,6 +4,7 @@ export type Subscription = {
     email: string,
     customerId: string,
     planCode: string,
+    numberHash: string,
     status: string,
     nextBillingDate?: string,
     createdAt: string,

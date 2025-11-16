@@ -12,7 +12,7 @@ class ApiRequestRepository {
         try {
             const {
                 requestId,
-                deviceHash,
+                numberHash,
                 ipAddress,
                 userAgent,
                 userId,
@@ -20,7 +20,7 @@ class ApiRequestRepository {
                 method,
             } = apiRequestData;
 
-            if (!deviceHash) {
+            if (!numberHash) {
                 throw new Error('Device hash is mandatory');
             }
 
@@ -29,7 +29,7 @@ class ApiRequestRepository {
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                     requestId,
-                    deviceHash,
+                    numberHash,
                     ipAddress,
                     userAgent,
                     userId,
@@ -44,11 +44,11 @@ class ApiRequestRepository {
                  WHERE id = ?`,
                 [requestId]
             );
-            logger.info(`api request created: ${requestId}`, {apiRequestId: requestId, deviceHash: deviceHash});
+            logger.info(`api request created: ${requestId}`, {apiRequestId: requestId, numberHash: numberHash});
 
             return {
                 id: apiRequest.id,
-                deviceHash: apiRequest.device_hash,
+                numberHash: apiRequest.device_hash,
                 ipAddress: apiRequest.ip_address,
                 userAgent: apiRequest.user_agent,
                 userId: apiRequest.user_id,
@@ -68,9 +68,6 @@ class ApiRequestRepository {
      * @param filterData
      */
     async filterCount(filterData: any): Promise<ApiRequestCount | null> {
-        const date = new Date();
-        const formattedDate = date.toISOString().split('T')[0];
-        console.log(formattedDate);
         try {
             const apiRequestCount = await database.get(
                 'SELECT user_id, device_hash, COUNT(id) as count FROM api_requests WHERE device_hash = ? AND created_at >= ? AND created_at <= ?  ',
@@ -83,7 +80,7 @@ class ApiRequestRepository {
 
             return {
                 userId: apiRequestCount.user_id,
-                deviceHash: apiRequestCount.device_hash,
+                numberHash: apiRequestCount.device_hash,
                 count: apiRequestCount.count,
             };
         } catch (error) {

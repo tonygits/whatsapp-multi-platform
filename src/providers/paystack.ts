@@ -130,7 +130,7 @@ type LocalCustomer = {
     paystackCustomerId?: string; // paystack customer id
     authorizationCode?: string;
     userId?: string,
-    deviceHash?: string,
+    numberHash?: string,
 };
 
 export async function verifyPaystackTransaction(reference: string) {
@@ -186,7 +186,7 @@ export async function verifyPaystackTransaction(reference: string) {
             paystackCustomerId: paystackCustomer?.id?.toString?.() ?? paystackCustomer?.customer_code ?? undefined,
             authorizationCode: authCode ?? undefined,
             userId: tx.metadata?.user_id,
-            deviceHash: tx.metadata?.device_hash,
+            numberHash: tx.metadata?.number_hash,
         });
         console.log("done creating customer on db");
 
@@ -409,7 +409,7 @@ export async function upsertLocalCustomer(customer: Partial<LocalCustomer>): Pro
                 email: customer.email,
                 customerId: customer.paystackCustomerId,
                 userId: customer.userId,
-                deviceHash: customer.deviceHash,
+                numberHash: customer.numberHash,
             }
             dbCustomer = await customerRepository.create(customerData);
         }
@@ -420,7 +420,7 @@ export async function upsertLocalCustomer(customer: Partial<LocalCustomer>): Pro
             paystackCustomerId: customer.paystackCustomerId,
             authorizationCode: customer.authorizationCode,
             userId: customer.userId,
-            deviceHash: customer.deviceHash,
+            numberHash: customer.numberHash,
         };
     } catch (err: any) {
         throw new Error(`failed to create new  customer with err: ${err?.message}`)
@@ -474,6 +474,7 @@ export async function saveSubscriptionRecord(subscriptionPayload: any) {
                 customerId: subscriptionPayload.paystackCustomer.id,
                 email: subscriptionPayload.localCustomer.email,
                 planCode: subscriptionPayload.planCode,
+                numberHash: subscriptionPayload.transaction.metadata.number_hash,
                 status: 'active',
                 nextBillingDate: "",
             }

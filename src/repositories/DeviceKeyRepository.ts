@@ -12,7 +12,7 @@ class DeviceKeyRepository {
         try {
             const {
                 deviceKeyId,
-                deviceHash,
+                numberHash,
                 userId,
                 apiKeyId,
                 deactivatedAt,
@@ -28,7 +28,7 @@ class DeviceKeyRepository {
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     deviceKeyId,
-                    deviceHash,
+                    numberHash,
                     userId,
                     apiKeyId,
                     deactivatedAt || null,
@@ -44,7 +44,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceHash: deviceKey.device_hash,
+                numberHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -76,7 +76,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceHash: deviceKey.device_hash,
+                numberHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -110,7 +110,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceHash: deviceKey.device_hash,
+                numberHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,
@@ -146,7 +146,7 @@ class DeviceKeyRepository {
 
             return {
                 id: deviceKey.id,
-                deviceHash: deviceKey.device_hash,
+                numberHash: deviceKey.device_hash,
                 apiKeyId: deviceKey.api_key_id,
                 deactivatedAt: deviceKey.deactivated_at,
                 userId: deviceKey.user_id,

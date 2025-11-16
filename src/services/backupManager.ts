@@ -418,11 +418,11 @@ class BackupManager {
       for (const device of devices) {
         if (device.status === 'active' || device.status === 'running') {
           try {
-            await binaryManager.stopProcess(device.deviceHash);
-            stoppedDevices.push(device.deviceHash);
-            logger.info(`Process ${device.deviceHash} stopped for backup`);
+            await binaryManager.stopProcess(device.numberHash);
+            stoppedDevices.push(device.numberHash);
+            logger.info(`Process ${device.numberHash} stopped for backup`);
           } catch (error) {
-            logger.warn(`Error stopping process ${device.deviceHash}:`, error);
+            logger.warn(`Error stopping process ${device.numberHash}:`, error);
           }
         }
       }
@@ -443,14 +443,14 @@ class BackupManager {
   /**
    * Start instances after backup
    */
-  private async startInstances(deviceHashes: string[]): Promise<void> {
+  private async startInstances(numberHashes: string[]): Promise<void> {
     try {
-      if (deviceHashes.length === 0) {
+      if (numberHashes.length === 0) {
         logger.info('ℹ️ No process to restart after backup');
         return;
       }
 
-      logger.info(`🔄 Restarting ${deviceHashes.length} processes after backup...`);
+      logger.info(`🔄 Restarting ${numberHashes.length} processes after backup...`);
       
       // Reload existing processes and sessions after backup
       logger.info('🔄 Reloading existing processes after backup...');
@@ -460,22 +460,22 @@ class BackupManager {
       // Give some time for process loading to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      for (const deviceHash of deviceHashes) {
+      for (const numberHash of numberHashes) {
         try {
           // Check if process was already started by loadExistingProcesses
-          const processStatus = await binaryManager.getProcessStatus(deviceHash);
+          const processStatus = await binaryManager.getProcessStatus(numberHash);
           if (processStatus && processStatus.running) {
-            logger.info(`✅ Process ${deviceHash} is already running after reload`);
+            logger.info(`✅ Process ${numberHash} is already running after reload`);
           } else {
-            await binaryManager.startProcess(deviceHash);
-            logger.info(`✅ Process ${deviceHash} manually restarted`);
+            await binaryManager.startProcess(numberHash);
+            logger.info(`✅ Process ${numberHash} manually restarted`);
           }
         } catch (error) {
-          logger.error(`❌ Error restarting process ${deviceHash}:`, error);
+          logger.error(`❌ Error restarting process ${numberHash}:`, error);
         }
       }
 
-      logger.info(`🎉 Reboot completed for ${deviceHashes.length} processes`);
+      logger.info(`🎉 Reboot completed for ${numberHashes.length} processes`);
     } catch (error) {
       logger.error('Error restarting processes:', error);
     }

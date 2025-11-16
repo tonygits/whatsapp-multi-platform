@@ -14,11 +14,11 @@ class DevicePaymentRepository {
             const {
                 devicePaymentId,
                 deviceId,
-                deviceHash,
+                numberHash,
                 paymentId,
             } = deviceStateData;
 
-            if (!deviceHash || !paymentId) {
+            if (!numberHash || !paymentId) {
                 throw new Error('device hash and payment id are mandatory');
             }
 
@@ -28,21 +28,26 @@ class DevicePaymentRepository {
                 [
                     devicePaymentId,
                     deviceId,
-                    deviceHash,
+                    numberHash,
                     paymentId,
                 ]
             );
 
             const devicePayment = await database.get(
-                `SELECT * FROM device_payments WHERE id = ?`,
+                `SELECT *
+                 FROM device_payments
+                 WHERE id = ?`,
                 [devicePaymentId]
             );
-            logger.info(`device payment created: ${devicePaymentId}`, {devicePaymentId: devicePaymentId, deviceHash: deviceHash});
+            logger.info(`device payment created: ${devicePaymentId}`, {
+                devicePaymentId: devicePaymentId,
+                numberHash: numberHash
+            });
 
             return {
                 id: devicePayment.id,
                 deviceId: devicePayment.device_id,
-                deviceHash: devicePayment.device_hash,
+                numberHash: devicePayment.device_hash,
                 paymentId: devicePayment.paymentId,
                 createdAt: devicePayment.created_at,
                 updatedAt: devicePayment.updated_at,
@@ -68,7 +73,7 @@ class DevicePaymentRepository {
             return {
                 id: devicePayment.id,
                 deviceId: devicePayment.device_id,
-                deviceHash: devicePayment.device_hash,
+                numberHash: devicePayment.device_hash,
                 paymentId: devicePayment.paymentId,
                 createdAt: devicePayment.created_at,
                 updatedAt: devicePayment.updated_at,
@@ -86,14 +91,29 @@ class DevicePaymentRepository {
      */
     async listForDeviceHash(deviceHash: string): Promise<DevicePayment[]> {
         try {
-            return database.all(
+            const devicePayments = database.all(
                 'SELECT * FROM device_payments WHERE device_hash = ? ',
                 [deviceHash]
-            )
+            );
+
+            if (Array.isArray(devicePayments)) {
+                return devicePayments.map((devicePayment: any) => ({
+                    id: devicePayment.id,
+                    deviceId: devicePayment.device_id,
+                    numberHash: devicePayment.device_hash,
+                    paymentId: devicePayment.paymentId,
+                    createdAt: devicePayment.created_at,
+                    updatedAt: devicePayment.updated_at,
+                }))
+            } else {
+                logger.warn('listForDeviceHash() did not return an array of device payments');
+                return [];
+            }
         } catch (error) {
             logger.error('Error listing device payment by device hash:', error);
             throw error;
         }
     }
 }
+
 export default new DevicePaymentRepository();

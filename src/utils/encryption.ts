@@ -41,15 +41,15 @@ function decryptPayload(tokenB64: string) {
 
 // create API token (returns keyId and encrypted token)
 // NOTE: token is ciphertext (client never sees raw secret)
-export async function createApiToken(userId: string, deviceHash: string) {
+export async function createApiToken(userId: string, numberHash: string) {
     // payload can include random nonce, userId and creation timestamp
     const nonce = crypto.randomBytes(16).toString("hex");
     const createdAt = Date.now();
-    const payload = JSON.stringify({userId, deviceHash, nonce, createdAt});
+    const payload = JSON.stringify({userId, numberHash, nonce, createdAt});
     const token = encryptPayload(payload);
     const keyId: string = crypto.randomUUID();
 
-    const deviceKey = await deviceKeyRepository.findByUserIdAndDeviceId(userId, deviceHash);
+    const deviceKey = await deviceKeyRepository.findByUserIdAndDeviceId(userId, numberHash);
     if (deviceKey) {
         throw new Error('You already have a key. Please delete the current active key and then create a new one');
     }
@@ -57,7 +57,7 @@ export async function createApiToken(userId: string, deviceHash: string) {
     // store token server-side for revocation / lookup (optional)
     const newKey = {
         deviceKeyId: crypto.randomUUID(),
-        deviceHash: deviceHash,
+        numberHash: numberHash,
         userId: userId,
         apiKeyId: keyId,
         encryptedToken: nonce,
@@ -85,11 +85,11 @@ export async function verifyApiToken(raw: string) {
             const obj = JSON.parse(plain);
             if (obj.nonce !== record.encryptedToken) return null;
             if (obj.userId !== record.userId) return null;
-            if (obj.deviceHash !== record.deviceHash) return null;
+            if (obj.numberHash !== record.numberHash) return null;
             // optional: check expiry or createdAt if you want short-lived tokens
             return {
                 userId: record.userId,
-                deviceHash: record.deviceHash,
+                numberHash: record.numberHash,
             };
         } catch (e) {
             return null;

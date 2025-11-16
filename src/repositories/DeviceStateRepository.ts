@@ -6,7 +6,7 @@ import {randomUUID} from "crypto";
 class DeviceStateRepository {
 
     /**
-     * Create a new device by device hash
+     * Create a new device by number hash
      * @param {Object} deviceStateData - DeviceState data
      * @returns {Promise<Object>} - Created deviceState with ID
      */
@@ -15,7 +15,7 @@ class DeviceStateRepository {
             const deviceStateId = randomUUID().toString();
             const {
                 deviceId,
-                deviceHash,
+                numberHash,
                 userId,
                 status,
                 lastPaymentDate,
@@ -25,7 +25,7 @@ class DeviceStateRepository {
                 isRecurring,
             } = deviceStateData;
 
-            if (!deviceHash) {
+            if (!numberHash) {
                 throw new Error('Device hash is mandatory');
             }
 
@@ -36,7 +36,7 @@ class DeviceStateRepository {
                 [
                     deviceStateId,
                     deviceId,
-                    deviceHash,
+                    numberHash,
                     userId,
                     status,
                     lastPaymentDate || null,
@@ -51,12 +51,12 @@ class DeviceStateRepository {
                 `SELECT * FROM device_states WHERE id = ?`,
                 [deviceStateId]
             );
-            logger.info(`device state created: ${deviceStateId}`, {deviceStateId: deviceStateId, deviceHash: deviceHash});
+            logger.info(`device state created: ${deviceStateId}`, {deviceStateId: deviceStateId, numberHash: numberHash});
 
             return {
                 id: deviceState.id,
                 deviceId: deviceState.device_id,
-                deviceHash: deviceState.device_hash,
+                numberHash: deviceState.device_hash,
                 status: deviceState.status,
                 userId: deviceState.user_id,
                 lastPaymentDate: deviceState.last_payment_date,
@@ -87,7 +87,7 @@ class DeviceStateRepository {
             return {
                 id: deviceState.id,
                 deviceId: deviceState.device_id,
-                deviceHash: deviceState.device_hash,
+                numberHash: deviceState.device_hash,
                 status: deviceState.status,
                 userId: deviceState.user_id,
                 lastPaymentDate: deviceState.last_payment_date,
@@ -163,7 +163,7 @@ class DeviceStateRepository {
             return {
                 id: updatedDeviceState.id,
                 deviceId: updatedDeviceState.device_id,
-                deviceHash: updatedDeviceState.device_hash,
+                numberHash: updatedDeviceState.device_hash,
                 status: updatedDeviceState.status,
                 userId: updatedDeviceState.user_id,
                 lastPaymentDate: updatedDeviceState.last_payment_date,

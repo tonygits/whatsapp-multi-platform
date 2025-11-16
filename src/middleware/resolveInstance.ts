@@ -6,20 +6,20 @@ import DeviceUtils from "../utils/deviceUtils";
 
 // Middleware to resolve the device instance
 const resolveInstance = asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const deviceHash = req.user?.deviceHash as string
-    if (!deviceHash) {
-        throw new CustomError('Header deviceHash is required', 400, 'MISSING_INSTANCE_ID');
+    const numberHash = req.user?.numberHash as string
+    if (!numberHash) {
+        throw new CustomError('Header numberHash is required', 400, 'MISSING_INSTANCE_ID');
     }
 
-    const isValid = DeviceUtils.validateDeviceHash(deviceHash);
+    const isValid = DeviceUtils.validateDeviceHash(numberHash);
     if (!isValid){
-        throw new Error("invalid device hash");
+        throw new Error("invalid number hash");
     }
-    console.log('deviceHash', deviceHash);
+    console.log('numberHash', numberHash);
 // Search for the device by hash
-  const device = await deviceManager.getDevice(deviceHash);
+  const device = await deviceManager.getDevice(numberHash);
   if (!device) {
-    return res.status(404).json({ success: false, message: 'Device not found' });
+    return res.status(404).json({ success: false, message: 'Phone number not found' });
   }
   (req as any).device = device;
   next();

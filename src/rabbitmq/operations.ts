@@ -27,7 +27,7 @@ export async function createApiRequests(payloadId: string | undefined, payload: 
     console.log('✅ database initialized');
 
     await apiRequestRepository.create({requestId: payload.requestId,
-        deviceHash: payload.deviceHash, userAgent: payload.userAgent, ipAddress: payload.ipAddress,
+        numberHash: payload.numberHash, userAgent: payload.userAgent, ipAddress: payload.ipAddress,
         userId: payload.userId, method: payload.method, endpoint: payload.endpoint});
 
     return { ok: 'success' };

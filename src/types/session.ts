@@ -10,7 +10,7 @@ export type Session = {
 
 export interface AuthUser {
     userId: string;
-    deviceHash?: string;
+    numberHash?: string;
     sessionId?: string;
     role?: string;
     // add other claims you expect

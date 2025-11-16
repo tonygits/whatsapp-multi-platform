@@ -19,7 +19,7 @@ class CustomerRepository {
                 lastName,
                 phone,
                 userId,
-                deviceHash,
+                numberHash,
             } = customerData;
 
             if (!customerId) {
@@ -39,7 +39,7 @@ class CustomerRepository {
                     lastName || null,
                     phone || null,
                     userId,
-                    deviceHash,
+                    numberHash,
                 ]
             );
 
@@ -60,7 +60,7 @@ class CustomerRepository {
                 lastName: customer.last_name,
                 phone: customer.plan,
                 userId: customer.user_id,
-                deviceHash: customer.device_hash,
+                numberHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };
@@ -95,7 +95,7 @@ class CustomerRepository {
                 lastName: customer.last_name,
                 phone: customer.plan,
                 userId: customer.user_id,
-                deviceHash: customer.device_hash,
+                numberHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };
@@ -130,7 +130,7 @@ class CustomerRepository {
                 lastName: customer.last_name,
                 phone: customer.plan,
                 userId: customer.user_id,
-                deviceHash: customer.device_hash,
+                numberHash: customer.device_hash,
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
             };

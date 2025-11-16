@@ -10,18 +10,18 @@ class DeviceRepository {
     async create(deviceData: any): Promise<any> {
         try {
             const {
-                user_id,
-                device_hash,
-                container_port,
-                phone_number,
-                webhook_url,
-                webhook_secret,
-                status_webhook_url,
-                status_webhook_secret
+                userId,
+                numberHash,
+                containerPort,
+                phoneNumber,
+                webhookUrl,
+                webhookSecret,
+                statusWebhookUrl,
+                statusWebhookSecret
             } = deviceData;
 
-            if (!device_hash) {
-                throw new Error('Device hash is mandatory');
+            if (!numberHash) {
+                throw new Error('Number hash is mandatory');
             }
 
             const result = await database.run(
@@ -29,14 +29,14 @@ class DeviceRepository {
                                       webhook_secret, status_webhook_url, status_webhook_secret)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    user_id,
-                    device_hash,
-                    container_port || null,
-                    phone_number,
-                    webhook_url || null,
-                    webhook_secret || null,
-                    status_webhook_url || null,
-                    status_webhook_secret || null
+                    userId,
+                    numberHash,
+                    containerPort || null,
+                    phoneNumber,
+                    webhookUrl || null,
+                    webhookSecret || null,
+                    statusWebhookUrl || null,
+                    statusWebhookSecret || null
                 ]
             );
 
@@ -44,7 +44,7 @@ class DeviceRepository {
                 'SELECT * FROM devices WHERE id = ?',
                 [result.lastID]
             );
-            logger.info(`Hashed device created: ${device_hash}`, {deviceId: result.lastID, deviceHash: device_hash});
+            logger.info(`Hashed device created: ${numberHash}`, {deviceId: result.lastID, numberHash: numberHash});
 
             return device;
         } catch (error) {
@@ -246,7 +246,7 @@ class DeviceRepository {
 
         return {
             id: device.id,
-            deviceHash: device.device_hash,
+            numberHash: device.device_hash,
             phoneNumber: device.phone_number,
             status: device.status,
             containerId: device.container_id,

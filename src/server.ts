@@ -21,16 +21,17 @@ import database from './database/database';
 import {errorHandler} from './middleware/errorHandler';
 
 // Import routes
-import deviceRoutes from './routes/devices';
+import deviceRoutes from './routes/phones';
 import healthRoutes from './routes/health';
 import docsRoutes from './routes/docs';
 import backupRoutes from './routes/backup';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
-import sessionRoutes from './routes/session'
-import webhookRoutes from './routes/webhooks'
+import sessionRoutes from './routes/session';
+import webhookRoutes from './routes/webhooks';
 import paystackRoutes from "./routes/paystack";
-import userDevicesRoute from "./routes/user_devices"
+import userDevicesRoute from "./routes/user_devices";
+import apiRequestRoutes from './routes/metrics';
 
 // Import consolidated proxy route
 import proxyRoutes from './routes/proxy';
@@ -127,15 +128,16 @@ class APIGateway {
 
         //paystack
         this.app.use('/paystack', authMiddleware, paystackRoutes);
-        this.app.use('/user_devices', authMiddleware, userDevicesRoute);
+        this.app.use('/user_phones', authMiddleware, userDevicesRoute);
 
         // Protected routes
         this.app.use('/backup', authMiddleware, backupRoutes);
         this.app.use('/users', authMiddleware, userRoutes);
         this.app.use('/sessions', authMiddleware, sessionRoutes);
+        this.app.use('/metrics', authMiddleware, apiRequestRoutes);
 
         // Consolidated proxy routes with deviceHash support
-        this.app.use('/devices', requireAuth, deviceRoutes);
+        this.app.use('/phones', requireAuth, deviceRoutes);
         this.app.use('/api', requireAuth, proxyRoutes);
 
         // Root endpoint
