@@ -214,6 +214,10 @@ export async function verifyPaystackTransaction(reference: string) {
         const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
         if (dbSubscription) {
             subscription = await getPaystackSubscription(dbSubscription.code);
+            if (subscription.status !== 'active') {
+                //reactivate subscription
+                subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
+            }
         }
         if (!dbSubscription) {
             // For safety, we pass the authorization_code if available in payload so Paystack can use stored card
