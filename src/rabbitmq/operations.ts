@@ -28,7 +28,7 @@ export async function createApiRequests(payloadId: string | undefined, payload: 
 
     await apiRequestRepository.create({requestId: payload.requestId,
         numberHash: payload.numberHash, userAgent: payload.userAgent, ipAddress: payload.ipAddress,
-        userId: payload.userId, method: payload.method, endpoint: payload.endpoint});
+        userId: payload.userId, requestMethod: payload.requestMethod, endpoint: payload.endpoint});
 
     return { ok: 'success' };
 }

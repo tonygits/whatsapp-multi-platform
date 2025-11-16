@@ -90,7 +90,7 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
         const ip = req.ip;
         await sendToQueue({type: 'apiRequest', id: crypto.randomBytes(6).toString("hex"), payload: {requestId: crypto.randomUUID(),
                 numberHash: payload.numberHash, userAgent: userAgent, ipAddress: ip,
-                userId: payload.userId, method: req.method, endpoint: req.path}});
+                userId: payload.userId, requestMethod: req.method, endpoint: req.path}});
         req.user = {
             numberHash: payload.numberHash,
             userId: payload.userId,
