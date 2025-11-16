@@ -71,7 +71,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
 
     //check is device is subscribed
     const subscription = await SubscriptionRepository.findByNumberHash(instanceId);
-    if (!subscription || (subscription && subscription.status !== 'active')) {
+    if (!subscription || (subscription && subscription.nextBillingDate && new Date(subscription.nextBillingDate) < new Date())) {
         //check number of api requests for the month
         const {firstDay, lastDay} = getMonthRange()
         const apiRequestCount = await apiRequestRepository.filterCount({device_hash: instanceId, start_date: firstDay, end_date: lastDay});

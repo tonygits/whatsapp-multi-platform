@@ -214,7 +214,7 @@ export async function verifyPaystackTransaction(reference: string) {
         const dbSubscription = await subscriptionRepository.findByCustomerIdAndPlanCode(paystackCustomer.id, planCode);
         if (dbSubscription) {
             subscription = await getPaystackSubscription(dbSubscription.code);
-            if (subscription.status !== 'active') {
+            if (subscription.nextBillingDate && new Date(subscription.nextBillingDate) > new Date()) {
                 //reactivate subscription
                 subscription = await createPaystackSubscription(paystackCustomer.id, planCode, authCode);
             }

@@ -33,11 +33,22 @@ async function findProcessedWebhook(id: string) {
 
 async function markWebhookProcessed(id: string, payload: any) {
     // Persist that this webhook (id) was processed so retries are ignored
-    return await webhookRepository.create({ webhookId: id, payload: JSON.stringify(payload), status: 'processed'});
+    return await webhookRepository.create({webhookId: id, payload: JSON.stringify(payload), status: 'processed'});
 }
 
 async function markInvoiceFailed(subscriptionCode: string, invoiceData: any) {
     // Mark invoice failed (increase attempt count, set backoff schedule)
+    console.log("requesting to update subscription")
+    let dbSubscription = await subscriptionRepository.findByCode(subscriptionCode);
+    if (dbSubscription) {
+        //update subscription with next billing date
+        //create next month billing date
+        await subscriptionRepository.update(dbSubscription.code, {
+            status: 'failed',
+            nextBillingDate: invoiceData.next_payment_date
+        });
+    }
+
     return;
 }
 
@@ -48,7 +59,7 @@ async function updateSubscriptionStatus(subscriptionCode: string, status: string
     if (dbSubscription) {
         //update subscription with next billing date
         //create next month billing date
-       await subscriptionRepository.update(dbSubscription.code, {
+        await subscriptionRepository.update(dbSubscription.code, {
             status: status,
             nextBillingDate: details.next_payment_date
         });
