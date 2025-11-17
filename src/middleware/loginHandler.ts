@@ -4,9 +4,7 @@ import {NextFunction, Request, Response} from 'express';
 import {asyncHandler, CustomError} from './errorHandler';
 import logger from '../utils/logger';
 import {SESSIONS_DIR} from '../utils/paths';
-import crypto from "crypto";
 import {verifyApiToken} from "../utils/encryption";
-import {publishToQueue} from "../rabbitmq/producer";
 
 /**
  * Handle login request and intercept QR code generation
@@ -84,13 +82,6 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
         const payload = await verifyApiToken(token);
         // attach user to req
         if (!payload) return res.status(401).json({error: 'user is unauthorized'});
-
-        //should be done Asynchronously
-        const userAgent = req.headers["user-agent"];
-        const ip = req.ip;
-        await publishToQueue({type: 'apiRequest', id: crypto.randomBytes(6).toString("hex"), payload: {requestId: crypto.randomUUID(),
-                numberHash: payload.numberHash, userAgent: userAgent, ipAddress: ip,
-                userId: payload.userId, requestMethod: req.method, endpoint: req.path}});
         req.user = {
             numberHash: payload.numberHash,
             userId: payload.userId,

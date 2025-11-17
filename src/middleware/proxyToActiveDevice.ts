@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from "crypto";
 import {asyncHandler, CustomError} from './errorHandler';
 import deviceManager from '../services/deviceManager';
 import DeviceRepository from '../repositories/DeviceRepository';
@@ -21,6 +22,7 @@ import DeviceUtils from "../utils/deviceUtils";
 import SubscriptionRepository from "../repositories/SubscriptionRepository";
 import apiRequestRepository from "../repositories/ApiRequestRepository";
 import {getMonthRange} from "../utils/date";
+import {publishToQueue} from "../rabbitmq/producer";
 
 const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: Response, next?: NextFunction) => {
     // 1. Extract instanceId from header
@@ -85,6 +87,13 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
             );
         }
     }
+
+    //should be done Asynchronously
+    const userAgent = req.headers["user-agent"];
+    const ip = req.ip;
+    await publishToQueue({type: 'apiRequest', id: crypto.randomBytes(6).toString("hex"), payload: {requestId: crypto.randomUUID(),
+            numberHash: instanceId, userAgent: userAgent, ipAddress: ip,
+            userId: device.userId, requestMethod: req.method, endpoint: req.path}});
 
     // 3. Ensure device is active (combines ensureActive logic)
     if (device.status !== 'active' && device.status !== 'connected') {
