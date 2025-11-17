@@ -134,5 +134,5 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
-  ./data:
-  ./logs:
+  data:
+  logs:
