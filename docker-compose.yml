@@ -8,8 +8,8 @@ services:
       - "${API_PORT:-3000}:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - app_data:/app/data
+      - app_logs:/app/logs
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
@@ -85,8 +85,8 @@ services:
       - QUEUE_NAME=${QUEUE_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - consumer_data:/app/data
-      - consumer_logs:/app/logs
+      - app_data:/app/data
+      - app_logs:/app/logs
 
   producer:
     build: .
@@ -105,8 +105,8 @@ services:
       - QUEUE_NAME=${QUEUE_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - producer_data:/app/data
-      - producer_logs:/app/logs
+      - app_data:/app/data
+      - app_logs:/app/logs
 
   postgres:
     image: postgres:14-alpine
@@ -133,7 +133,6 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
-  producer_data:
-  consumer_data:
-  producer_logs:
-  consumer_logs:
+  app_data:
+  app_logs:
+
