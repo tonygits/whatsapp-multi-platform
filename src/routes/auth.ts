@@ -8,7 +8,7 @@ import {createNewSession, listSessionsForUser} from "../services/sessionService"
 import {User} from "../types/user";
 import {Session} from "../types/session";
 import userService from "../services/userService";
-import {sendToQueue} from "../rabbitmq/producer";
+import {publishToQueue} from "../rabbitmq/producer";
 
 const router = express.Router();
 
@@ -205,7 +205,7 @@ router.post('/send-email', async (req: Request<{}, {}, BodyPayload>, res: Respon
             return res.status(400).json({ ok: false, error: 'Missing title or body/html' });
         }
 
-        await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+        await publishToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
             payload: {from: process.env.SMTP_FROM_INFO, to: recipient, title, body, html}});
 
         return res.json({ ok: true });

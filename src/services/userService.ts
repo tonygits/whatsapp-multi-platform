@@ -4,8 +4,8 @@ import {hashPassword} from '../utils/password';
 import {SetUserPasswordForm, User} from "../types/user";
 import {generateRandomString} from "../utils/random"
 import {escapeHtml} from "../utils/paths";
-import {sendToQueue} from "../rabbitmq/producer";
 import crypto from "crypto";
+import {publishToQueue} from "../rabbitmq/producer";
 
 class UserService {
 
@@ -106,7 +106,7 @@ class UserService {
                 <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
               </p>
             `;
-            await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            await publishToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
                 payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
 
             return {
@@ -308,7 +308,7 @@ class UserService {
                 <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
               </p>
             `;
-                await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+                await publishToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
                     payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
                 verifyUser = true
             }
@@ -416,7 +416,7 @@ class UserService {
                 <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
               </p>
             `;
-            await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            await publishToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
                 payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
 
             return {
@@ -546,7 +546,7 @@ class UserService {
                 <a href="https://wapflow.app/help" style="color:#2563eb;text-decoration:none;">Help Center</a>.
               </p>
             `;
-            await sendToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
+            await publishToQueue({type: 'email', id: crypto.randomBytes(6).toString("hex"),
                 payload: {from: process.env.SMTP_FROM_INFO, to: user.email, title, html}});
             return {
                 id: updatedUser.id,
