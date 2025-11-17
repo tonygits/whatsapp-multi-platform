@@ -1,10 +1,8 @@
-import amqplib, {Connection, Channel, ConsumeMessage} from 'amqplib';
 import {TaskMessage} from "../types/task_message";
 import {getChannel} from "./connection";
 import {createApiRequests, doOtherTask, sendUserEmail} from "./operations";
 import dotenv from "dotenv";
 
-const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const QUEUE_NAME = process.env.QUEUE_NAME || 'tasks_queue';
 
 dotenv.config();

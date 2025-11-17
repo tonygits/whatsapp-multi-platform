@@ -5,9 +5,6 @@ let connection: any;
 let channel: any;
 
 const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
-const QUEUE_NAME = process.env.QUEUE_NAME || 'tasks_queue';
-const PREFETCH = Number(process.env.PREFETCH || '5');
-const RECONNECT_DELAY_MS = 5000;
 
 export async function initRabbit() {
     if (connection) return {connection, channel}; // already initialized
