@@ -1,9 +1,9 @@
 services:
   api-gateway:
-    user: root
     build:
       context: .
       dockerfile: Dockerfile
+    user: root
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:
@@ -71,6 +71,7 @@ services:
     networks:
       - hapaniwapi-net
     command: node dist/rabbitmq/consumer.js
+    user: root
     depends_on:
       rabbitmq:
         condition: service_healthy
