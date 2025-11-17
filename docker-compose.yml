@@ -70,7 +70,8 @@ services:
     restart: unless-stopped
     networks:
       - hapaniwapi-net
-    command: sh -c "chown -R 1000:1000 /app/data && chmod -R 755 /app/data && node dist/rabbitmq/consumer.js"
+    command: node dist/rabbitmq/consumer.js
+    entrypoint: ["/bin/sh", "-c", "chown -R 1000:1000 /app/data 2>/dev/null || true; exec node dist/rabbitmq/consumer.js"]
     depends_on:
       rabbitmq:
         condition: service_healthy
