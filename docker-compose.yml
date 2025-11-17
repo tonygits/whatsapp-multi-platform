@@ -71,7 +71,6 @@ services:
     networks:
       - hapaniwapi-net
     command: node dist/rabbitmq/consumer.js
-    entrypoint: ["/bin/sh", "-c", "chown -R 1000:1000 /app/data 2>/dev/null || true; exec node dist/rabbitmq/consumer.js"]
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -86,8 +85,8 @@ services:
       - QUEUE_NAME=${QUEUE_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - consumer_data:/app/data
+      - consumer_logs:/app/logs
 
   producer:
     build: .
@@ -106,8 +105,8 @@ services:
       - QUEUE_NAME=${QUEUE_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - producer_data:/app/data
+      - producer_logs:/app/logs
 
   postgres:
     image: postgres:14-alpine
@@ -134,5 +133,7 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
-  data:
-  logs:
+  producer_data:
+  consumer_data:
+  producer_logs:
+  consumer_logs:
