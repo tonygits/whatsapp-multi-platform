@@ -78,7 +78,7 @@ const proxyToActiveDevice = asyncHandler(async (req: AuthenticatedRequest, res: 
         const {firstDay, lastDay} = getMonthRange()
         const apiRequestCount = await apiRequestRepository.filterCount({device_hash: instanceId, start_date: firstDay, end_date: lastDay});
         console.log(apiRequestCount);
-        const FREE_API_REQUEST_LIMIT = parseInt(process.env.FREE_API_REQUEST_LIMIT || '10');
+        const FREE_API_REQUEST_LIMIT = parseInt(process.env.FREE_API_REQUEST_LIMIT || '100');
         if (apiRequestCount && apiRequestCount.count > FREE_API_REQUEST_LIMIT) {
             throw new CustomError(
                 `Phone ${instanceId} subscription required. Free limit of ${FREE_API_REQUEST_LIMIT} API requests exceeded.`,
