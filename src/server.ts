@@ -38,7 +38,14 @@ import proxyRoutes from './routes/proxy';
 import {requireAuth} from "./middleware/loginHandler";
 import {startConsumer} from "./rabbitmq/consumer";
 import {initRabbit} from "./rabbitmq/connection";
-import options from "./middleware/cors";
+
+const options: cors.CorsOptions = {
+    origin: ['*'],
+    methods: ['POST', 'OPTIONS', 'GET', 'PUT', 'DELETE'],
+    allowedHeaders: ['*'],
+    exposedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-TOKEN', 'X-Requested-With', 'X-CLIENT-IDENTIFIER', 'X-CLIENT-VERSION', 'access_token'],
+    credentials: true,
+};
 
 class APIGateway {
     app: Application;
