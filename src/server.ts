@@ -38,6 +38,7 @@ import proxyRoutes from './routes/proxy';
 import {requireAuth} from "./middleware/loginHandler";
 import {startConsumer} from "./rabbitmq/consumer";
 import {initRabbit} from "./rabbitmq/connection";
+import options from "./middleware/cors";
 
 class APIGateway {
     app: Application;
@@ -84,7 +85,7 @@ class APIGateway {
 
         // Security middleware
         this.app.use(helmet());
-        this.app.use(cors());
+        this.app.use(cors(options));
 
         // Rate limiting with better configuration for proxy environments
         const limiter = rateLimit({
