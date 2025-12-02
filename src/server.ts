@@ -40,7 +40,7 @@ import {startConsumer} from "./rabbitmq/consumer";
 import {initRabbit} from "./rabbitmq/connection";
 
 const options: cors.CorsOptions = {
-    origin: ['*'],
+    origin: ['*','http://localhost:3000'],
     methods: ['POST', 'OPTIONS', 'GET', 'PUT', 'DELETE'],
     allowedHeaders: ['*'],
     exposedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-TOKEN', 'X-Requested-With', 'X-CLIENT-IDENTIFIER', 'X-CLIENT-VERSION', 'access_token'],
