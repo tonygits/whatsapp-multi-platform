@@ -151,7 +151,7 @@ router.get('/openapi.yaml', asyncHandler(async (req: Request, res: Response) => 
     const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
     
     res.set('Content-Type', 'application/yaml');
-    return res.send(yamlContent).json();
+    return res.send(yamlContent);
   } catch (error: any) {
     res.status(404).json({
       error: 'OpenAPI file not found',
