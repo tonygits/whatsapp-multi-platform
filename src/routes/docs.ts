@@ -121,6 +121,26 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+
+/**
+ * GET /docs/openapi.json
+ * Serve OpenAPI file
+ */
+router.get('/openapi.json', asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const jsonPath = path.join(__dirname, '../../docs/openapi.json');
+        const jsonContent = await fs.promises.readFile(jsonPath, 'utf8');
+
+        res.set('Content-Type', 'application/json');
+        return res.send(jsonContent).json();
+    } catch (error: any) {
+        res.status(404).json({
+            error: 'OpenAPI file not found',
+            code: 'OPENAPI_NOT_FOUND'
+        });
+    }
+}));
+
 /**
  * GET /docs/openapi.yaml
  * Serve OpenAPI file
@@ -131,7 +151,7 @@ router.get('/openapi.yaml', asyncHandler(async (req: Request, res: Response) => 
     const yamlContent = await fs.promises.readFile(yamlPath, 'utf8');
     
     res.set('Content-Type', 'application/yaml');
-    res.send(yamlContent);
+    return res.send(yamlContent).json();
   } catch (error: any) {
     res.status(404).json({
       error: 'OpenAPI file not found',

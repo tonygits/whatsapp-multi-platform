@@ -7,6 +7,7 @@ import {escapeHtml} from "../utils/paths";
 import crypto from "crypto";
 import {publishToQueue} from "../rabbitmq/producer";
 
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
 class UserService {
 
     async registerNewUser(partial: Partial<User>): Promise<User> {
@@ -46,7 +47,7 @@ class UserService {
             logger.info(`User registered successfully: ${user.email}`, {userId: user.id});
 
             const title = 'Verify your Wapflow email';
-            const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
+            const verifyEmailUrl = `${clientUrl}/verify-email?code=${code}&userId=${user.id}`
             const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -248,7 +249,7 @@ class UserService {
                 });
 
                 const title = 'Verify your Wapflow email';
-                const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
+                const verifyEmailUrl = `${clientUrl}/verify-email?code=${code}&userId=${user.id}`
                 const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -356,7 +357,7 @@ class UserService {
             });
 
             const title = 'Verify your Wapflow email';
-            const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
+            const verifyEmailUrl = `${clientUrl}/verify-email?code=${code}&userId=${user.id}`
             const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -501,7 +502,7 @@ class UserService {
             const updatedUser = await userRepository.update(user.id, {resetToken: code, resetTokenExpires: now.toISOString()});
 
             const title = 'Reset your Wapflow password';
-            const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?resetCode=${code}`
+            const resetPasswordUrl = `${clientUrl}/forgot-password?resetCode=${code}`
             const html = `<p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
                 We received a request to reset your password for your Wapflow account.
