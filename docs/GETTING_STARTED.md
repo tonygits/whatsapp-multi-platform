@@ -59,7 +59,7 @@ Save the returned `token` for the next steps.
 ### Register Your First Device
 
 ```bash
-curl -X POST http://localhost:3000/api/devices \
+curl -X POST http://localhost:3000/api/phone_numbers \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -71,19 +71,19 @@ curl -X POST http://localhost:3000/api/devices \
 You'll receive a response like:
 ```json
 {
-  "deviceHash": "a1b2c3d4e5f67890",
+  "numberHash": "a1b2c3d4e5f67890",
   "status": "registered"
 }
 ```
 
-Save the `deviceHash` - this is your device identifier.
+Save the `numberHash` - this is your phone number identifier.
 
 ### Get QR Code
 
 ```bash
 curl -X GET http://localhost:3000/api/login \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "deviceHash: a1b2c3d4e5f67890"
+  -H "numberHash: a1b2c3d4e5f67890"
 ```
 
 You'll receive a base64 QR code. Scan it with WhatsApp on your phone.
@@ -95,7 +95,7 @@ Once connected, send a test message:
 ```bash
 curl -X POST http://localhost:3000/api/send/message \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "deviceHash: a1b2c3d4e5f67890" \
+  -H "numberHash: a1b2c3d4e5f67890" \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+5511999999999@s.whatsapp.net",
@@ -106,7 +106,7 @@ curl -X POST http://localhost:3000/api/send/message \
 ## Next Steps
 
 - 📚 Read the [API Documentation](API_DOCUMENTATION.md) for all available endpoints
-- 🔐 Learn about [Security](DEVICE_SECURITY.md) and device management  
+- 🔐 Learn about [Security](DEVICE_SECURITY.md) and phone number management  
 - 📡 Setup [Webhooks](WEBHOOK_STATUS.md) for real-time notifications
 - 🐳 Check [Production Deployment](DOCKER_DEPLOY.md) guide
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-WhatsApp Multi-Platform API Gateway to manage multiple WhatsApp devices.
+WhatsApp Multi-Platform API Gateway to manage Wapflow WhatsApp Phone Numbers.
 
 ## Authentication
 
@@ -23,26 +23,26 @@ Content-Type: application/json
 
 ## Devices
 
-### Register Device
+### Register Phone Number
 ```http
-POST /api/devices
+POST /api/phone_numbers
 {
   "webhookUrl": "https://meusite.com/webhook",
   "statusWebhookUrl": "https://meusite.com/status"
 }
 ```
-**Returns:** Auto-generated `deviceHash` for future operations
+**Returns:** Auto-generated `numberHash` for future operations
 
-### Device Operations (using deviceHash header)
+### Device Operations (using numberHash header)
 ```http
-GET    /api/devices/info              # Get device info
-POST   /api/devices/start             # Start container
-POST   /api/devices/stop              # Stop container
+GET    /api/phone_numbers/info              # Get Phone Number info
+POST   /api/phone_numbers/start             # Start container
+POST   /api/phone_numbers/stop              # Stop container
 GET    /api/login                     # Get QR code
-DELETE /api/devices                   # Remove device
+DELETE /api/phone_numbers                   # Remove phone number
 
 # All operations require:
-deviceHash: a1b2c3d4e5f67890
+numberHash: a1b2c3d4e5f67890
 ```
 
 ## Messages
@@ -50,7 +50,7 @@ deviceHash: a1b2c3d4e5f67890
 ### Send Message
 ```http
 POST /api/send/message
-deviceHash: a1b2c3d4e5f67890
+numberHash: a1b2c3d4e5f67890
 {
   "phone": "+5511888888888@s.whatsapp.net",
   "message": "Hello World"

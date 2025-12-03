@@ -42,7 +42,7 @@ function generateOpenAPIFromApp(app: any): any {
   // Reorder tags - Gateway and Device Management first
   baseDoc.tags = [
     { name: 'Gateway', description: 'Gateway Authentication and Health' },
-    { name: 'Device Management', description: 'Device and container management' },
+    { name: 'Phone number Management', description: 'Phone number and container management' },
     { name: 'app', description: 'Initial Connection to Whatsapp server' },
     { name: 'user', description: 'Getting information' },
     { name: 'send', description: 'Send Message (Text/Image/File/Video).' },
@@ -55,31 +55,19 @@ function generateOpenAPIFromApp(app: any): any {
   // Change global security to bearerAuth
   baseDoc.security = [{ bearerAuth: [] }];
 
-  // Add /api prefix to all WhatsApp API paths and add deviceHash parameter
+  // Add /api prefix to all WhatsApp API paths and add numberHash parameter
   const whatsappPaths: Record<string, any> = {};
   Object.keys(baseDoc.paths).forEach(originalPath => {
     const newPath = `/api${originalPath}`;
     const pathObj = { ...baseDoc.paths[originalPath] };
     
-    // Add deviceHash parameter to all WhatsApp API routes
+    // Add numberHash parameter to all WhatsApp API routes
     Object.keys(pathObj).forEach(method => {
       if (pathObj[method] && typeof pathObj[method] === 'object') {
         // Initialize parameters array if not exists
         if (!pathObj[method].parameters) {
           pathObj[method].parameters = [];
         }
-        
-        // Add deviceHash header parameter
-        // pathObj[method].parameters.unshift({
-        //   name: 'deviceHash',
-        //   in: 'header',
-        //   required: true,
-        //   description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
-        //   schema: {
-        //     type: 'string',
-        //     example: 'a1b2c3d4e5f67890'
-        //   }
-        // });
 
         // Add bearerAuth security to WhatsApp API routes
         pathObj[method].security = [{ bearerAuth: [] }];
@@ -123,19 +111,19 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/devices': {
+    '/phone_numbers': {
       put: {
-        operationId: 'updateDeviceInfo',
-        tags: ['Device Management'],
-        summary: 'Update device information',
-        description: 'Updates a device\'s name, message webhooks, and status webhooks.',
+        operationId: 'updatePhoneNumberInfo',
+        tags: ['Phone Number Management'],
+        summary: 'Update phone number information',
+        description: 'Updates a phone number\'s name, message webhooks, and status webhooks.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -149,7 +137,7 @@ function generateOpenAPIFromApp(app: any): any {
               schema: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string', example: 'Updated Device Name' },
+                  name: { type: 'string', example: 'Updated Name' },
                   webhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/messages' },
                   webhookSecret: { type: 'string', nullable: true, example: 'updated-secret-messages' },
                   statusWebhookUrl: { type: 'string', format: 'url', nullable: true, example: 'https://meusite.com/webhook/status' },
@@ -161,18 +149,18 @@ function generateOpenAPIFromApp(app: any): any {
         },
         responses: {
           '200': {
-            description: 'Device updated successfully',
+            description: 'Phone number updated successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Device updated successfully' },
+                    message: { type: 'string', example: 'Phone number updated successfully' },
                     data: {
                       type: 'object',
                       properties: {
-                        deviceHash: { type: 'string' },
+                        numberHash: { type: 'string' },
                         name: { type: 'string' },
                         status: { type: 'string' }
                       }
@@ -183,7 +171,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -193,17 +181,17 @@ function generateOpenAPIFromApp(app: any): any {
         }
       },
       delete: {
-        operationId: 'deleteDevice',
-        tags: ['Device Management'],
-        summary: 'Remove a device',
-        description: 'Removes a device and its associated Docker container.',
+        operationId: 'deletePhoneNumber',
+        tags: ['Phone number Management'],
+        summary: 'Remove a phone number',
+        description: 'Removes a phone number and its associated Docker container.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -222,21 +210,21 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Device removed successfully',
+            description: 'Phone number removed successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Device removed successfully' }
+                    message: { type: 'string', example: 'Phone number removed successfully' }
                   }
                 }
               }
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -244,7 +232,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Error removing device',
+            description: 'Error removing phone number',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -254,19 +242,19 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/devices/info': {
+    '/phone_numbers/info': {
       get: {
-        operationId: 'getDeviceInfo',
-        tags: ['Device Management'],
-        summary: 'Get information from a specific device',
-        description: 'Returns details of a WhatsApp device, including status and QR Code (if available).',
+        operationId: 'getPhoneNumberInfo',
+        tags: ['Phone number Management'],
+        summary: 'Get information from a specific phone number',
+        description: 'Returns details of a WhatsApp phone number, including status and QR Code (if available).',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -275,14 +263,14 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Device information',
+            description: 'Phone number information',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     id: { type: 'number', example: 1 },
-                    deviceHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
+                    numberHash: { type: 'string', example: 'a1b2c3d4e5f67890' },
                     name: { type: 'string', example: 'Main Service' },
                     status: { type: 'string', example: 'connected' },
                     phoneNumber: { type: 'string', example: '1234567890' },
@@ -303,7 +291,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -313,19 +301,19 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/devices/start': {
+    '/phone_numbers/start': {
       post: {
-        operationId: 'startDevice',
-        tags: ['Device Management'],
-        summary: 'Launch a device',
-        description: 'Starts the Docker container associated with a device.',
+        operationId: 'startPhoneNumber',
+        tags: ['Phone number Management'],
+        summary: 'Launch a phone number',
+        description: 'Starts the Docker container associated with a phone number.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -334,7 +322,7 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Device started successfully',
+            description: 'Phone number started successfully',
             content: {
               'application/json': {
                 schema: {
@@ -348,7 +336,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -356,7 +344,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Error starting device',
+            description: 'Error starting phone number',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -366,19 +354,19 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/devices/stop': {
+    '/phone_numbers/stop': {
       post: {
-        operationId: 'stopDevice',
-        tags: ['Device Management'],
-        summary: 'Stop a device',
-        description: 'For the Docker container associated with a device.',
+        operationId: 'stopPhoneNumber',
+        tags: ['Phone number Management'],
+        summary: 'Stop a phone number',
+        description: 'For the Docker container associated with a phone number.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -387,7 +375,7 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Device stopped successfully',
+            description: 'Phone number stopped successfully',
             content: {
               'application/json': {
                 schema: {
@@ -401,7 +389,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -409,7 +397,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Error stopping device',
+            description: 'Error stopping phone number',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -419,19 +407,19 @@ function generateOpenAPIFromApp(app: any): any {
         }
       }
     },
-    '/devices/restart': {
+    '/phone_numbers/restart': {
       post: {
-        operationId: 'restartDevice',
-        tags: ['Device Management'],
-        summary: 'Restart a device',
-        description: 'Restarts the Docker container associated with a device.',
+        operationId: 'restartPhoneNumber',
+        tags: ['Phone number Management'],
+        summary: 'Restart a phone number',
+        description: 'Restarts the Docker container associated with a phone number.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
-            name: 'deviceHash',
+            name: 'numberHash',
             in: 'query',
             required: true,
-            description: 'The deviceHash of the instance (e.g. a1b2c3d4e5f67890)',
+            description: 'The numberHash of the instance (e.g. a1b2c3d4e5f67890)',
             schema: {
               type: 'string',
               example: 'a1b2c3d4e5f67890'
@@ -440,7 +428,7 @@ function generateOpenAPIFromApp(app: any): any {
         ],
         responses: {
           '200': {
-            description: 'Device restarted successfully',
+            description: 'Phone number restarted successfully',
             content: {
               'application/json': {
                 schema: {
@@ -454,7 +442,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '404': {
-            description: 'Device not found',
+            description: 'Phone number not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorBadRequest' }
@@ -462,7 +450,7 @@ function generateOpenAPIFromApp(app: any): any {
             }
           },
           '500': {
-            description: 'Error restarting device',
+            description: 'Error restarting phone number',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorInternalServer' }
@@ -483,8 +471,8 @@ function generateOpenAPIFromApp(app: any): any {
   ).sort();
 
   // 2. Device Management paths
-  const devicePathKeys = Object.keys(gatewayPaths).filter(p =>
-    p.startsWith('/devices')
+  const numberPathKeys = Object.keys(gatewayPaths).filter(p =>
+    p.startsWith('/phone_numbers')
   ).sort();
 
   // 3. WhatsApp API paths por category
@@ -500,7 +488,7 @@ function generateOpenAPIFromApp(app: any): any {
   const newsletterPaths = Object.keys(whatsappPaths).filter(p => p.startsWith('/api/newsletter')).sort();
 
  // Add paths in the desired order
-  [...gatewayPathKeys, ...devicePathKeys, ...appPaths, ...userPaths,
+  [...gatewayPathKeys, ...numberPathKeys, ...appPaths, ...userPaths,
    ...sendPaths, ...messagePaths, ...chatsPaths, ...chatPaths, 
    ...groupPaths, ...newsletterPaths].forEach(pathKey => {
     if (gatewayPaths[pathKey]) {
@@ -529,16 +517,16 @@ function createFallbackStructure(): any {
   return {
     openapi: "3.0.0",
     info: {
-      title: "WhatsApp API MultiDevice",
+      title: "Wapflow API",
       version: "6.9.0",
-      description: "API for sending WhatsApp messages with support for multiple devices and status webhooks.\n\n## Status Webhooks\n\nThis system supports webhooks for device status notifications:\n\n### Configuration\n- `statusWebhook`: URL to receive status notifications\n- `statusWebhookSecret`: Secret key for HMAC-SHA256 signature\n\n### Supported Events\n- **login_success**: Device connected successfully\n- **connected**: Device ready to use\n- **disconnected**: Device disconnected\n\n- **auth_failed**: Authentication failed\n- **container_event**: Other container events\n\n### Webhook Format\n```json\n{\n \"device\": {\n \"deviceHash\": \"a1b2c3d4e5f67890\",\n \"status\": \"active\"\n },\n \"event\": {\n \"type\": \"connected\",\n \"code\": \"LIST_DEVICES\",\n \"message\": \"Device connected and ready\"\n },\n \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Signature Check\nIf `statusWebhookSecret` was set, the `X-Webhook-Signature` header will contain the HMAC-SHA256 signature of the payload."
+      description: "API for sending WhatsApp messages with support for multiple phone numbers and status webhooks.\n\n## Status Webhooks\n\nThis system supports webhooks for phone number status notifications:\n\n### Configuration\n- `statusWebhook`: URL to receive status notifications\n- `statusWebhookSecret`: Secret key for HMAC-SHA256 signature\n\n### Supported Events\n- **login_success**: Phone number connected successfully\n- **connected**: Phone number ready to use\n- **disconnected**: Phone number disconnected\n\n- **auth_failed**: Authentication failed\n- **container_event**: Other container events\n\n### Webhook Format\n```json\n{\n \"phone number\": {\n \"numberHash\": \"a1b2c3d4e5f67890\",\n \"status\": \"active\"\n },\n \"event\": {\n \"type\": \"connected\",\n \"code\": \"LIST_PHONE_NUMBERS\",\n \"message\": \"Phone number connected and ready\"\n },\n \"timestamp\": \"2024-01-01T12:00:00.000Z\"\n}\n```\n\n### Signature Check\nIf `statusWebhookSecret` was set, the `X-Webhook-Signature` header will contain the HMAC-SHA256 signature of the payload."
     },
     servers: [
       { url: process.env.SERVER_URL }
     ],
     tags: [
       { name: "Gateway", description: "Gateway Authentication and Health" },
-      { name: "Device Management", description: "Device and container management" },
+      { name: "Phone number Management", description: "Phone number and container management" },
       { name: "app", description: "Initial Connection to Whatsapp server" },
       { name: "user", description: "Getting information" },
       { name: "send", description: "Send Message (Text/Image/File/Video)." },

@@ -4,23 +4,23 @@
 
 ### Basic Settings
 
-| Variable | Standard | Description |
-|----------|--------|-----------|
-| `BACKUP_ENABLED` | `false` | Enables/disables the automatic backup system|
-| `BACKUP_SCHEDULE` | `0 2 * * *` | Backup schedule (cron format) - default: 2 AM every day |
-| `BACKUP_TIMEZONE` | `America/Sao_Paulo` | Time zone for running backups|
-| `BACKUP_MAX_BACKUPS` | `3` | Maximum number of backups to keep (older versions are removed)|
-| `BACKUP_STOP_INSTANCES` | `false` | For instances before backup for greater data security|
+| Variable | Standard         | Description |
+|----------|------------------|-----------|
+| `BACKUP_ENABLED` | `false`          | Enables/disables the automatic backup system|
+| `BACKUP_SCHEDULE` | `0 2 * * *`      | Backup schedule (cron format) - default: 2 AM every day |
+| `BACKUP_TIMEZONE` | `Africq/Nairobi` | Time zone for running backups|
+| `BACKUP_MAX_BACKUPS` | `3`              | Maximum number of backups to keep (older versions are removed)|
+| `BACKUP_STOP_INSTANCES` | `false`          | For instances before backup for greater data security|
 
 ### S3 Settings
 
 | Variable | Standard | Description |
-|----------|--------|-----------|
-| `BACKUP_S3_BUCKET` | - | Nome do bucket S3 (obrigatório) |
-| `BACKUP_S3_REGION` | `us-east-1` | Região do S3 |
-| `BACKUP_S3_ACCESS_KEY` | - | Access Key do S3 (obrigatório) |
-| `BACKUP_S3_SECRET_KEY` | - | Secret Key do S3 (obrigatório) |
-| `BACKUP_S3_ENDPOINT` | - | Endpoint customizado S3 (opcional - para S3 compatível) |
+|----------|--------|----------|
+| `BACKUP_S3_BUCKET` | - | Nome do bucket S3 (mandatory) |
+| `BACKUP_S3_REGION` | `us-east-1` | S3 region|
+| `BACKUP_S3_ACCESS_KEY` | - | Access Key do S3 (mandatory) |
+| `BACKUP_S3_SECRET_KEY` | - | Secret Key do S3 (mandatory) |
+| `BACKUP_S3_ENDPOINT` | - | Custom S3 endpoint (optional - for S3 compatible) |
 
 ### Compression and Security Settings
 

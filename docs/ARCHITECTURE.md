@@ -2,7 +2,7 @@
 
 ## Overview
 
-WhatsApp Multi-Platform uses an intelligent proxy architecture to manage multiple WhatsApp devices.
+Wapflow Platform uses an intelligent proxy architecture to manage multiple WhatsApp Phone Numbers.
 
 ## Components
 
@@ -20,7 +20,7 @@ Auth     Queues       Official Library
 - **Container management**
 
 ### WhatsApp Processes
-- **Official binary**: `go-whatsapp-web-multidevice`
+- **Official binary**: `wapflow-multidevice`
 - **Isolated** per device
 - **Dynamic port** allocation
 - **Health monitoring**
@@ -28,18 +28,18 @@ Auth     Queues       Official Library
 ### API Routes
 Direct access to device APIs:
 ```
-/api/{endpoint} + deviceHash: deviceHash → Process:port/{endpoint}
+/api/{endpoint} + deviceHash: numberHash → Process:port/{endpoint}
 ```
 
 ## Security Features
 
-### Device Hash
-- Public identifier for devices
+### Phone Number Hash
+- Public identifier for phone numbers
 - No phone numbers in URLs
 - Generated automatically
 
 ### Device Identification
-- **All environments**: deviceHash only
+- **All environments**: numberHash only
 - **No phone data exposure**: Privacy by design
 - **Consistent**: Same identifier across all logs and APIs
 
