@@ -46,7 +46,7 @@ class UserService {
             logger.info(`User registered successfully: ${user.email}`, {userId: user.id});
 
             const title = 'Verify your Wapflow email';
-            const verifyEmailUrl = `https://wapflow.app/auth/verify-email?code=${code}`
+            const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
             const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -248,7 +248,7 @@ class UserService {
                 });
 
                 const title = 'Verify your Wapflow email';
-                const verifyEmailUrl = `https://wapflow.app/auth/verify-email?code=${code}`
+                const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
                 const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -356,7 +356,7 @@ class UserService {
             });
 
             const title = 'Verify your Wapflow email';
-            const verifyEmailUrl = `https://wapflow.app/auth/verify-email?code=${code}`
+            const verifyEmailUrl = `${process.env.CLIENT_URL}/auth/verify-email?code=${code}`
             const html = `
             <p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
@@ -501,7 +501,7 @@ class UserService {
             const updatedUser = await userRepository.update(user.id, {resetToken: code, resetTokenExpires: now.toISOString()});
 
             const title = 'Reset your Wapflow password';
-            const resetPasswordUrl = `https://wapflow.app/auth/reset-password?resetCode=${code}`
+            const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?resetCode=${code}`
             const html = `<p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
                 We received a request to reset your password for your Wapflow account.
