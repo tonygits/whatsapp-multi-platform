@@ -502,7 +502,7 @@ class UserService {
             const updatedUser = await userRepository.update(user.id, {resetToken: code, resetTokenExpires: now.toISOString()});
 
             const title = 'Reset your Wapflow password';
-            const resetPasswordUrl = `${clientUrl}/forgot-password?resetCode=${code}`
+            const resetPasswordUrl = `${clientUrl}/forgot-password?resetCode=${code}&userId=${user.id}`
             const html = `<p>Hi ${escapeHtml(user.first_name)},</p>
               <p>
                 We received a request to reset your password for your Wapflow account.
