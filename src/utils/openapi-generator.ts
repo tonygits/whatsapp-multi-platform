@@ -114,7 +114,7 @@ function generateOpenAPIFromApp(app: any): any {
     '/phone_numbers': {
       put: {
         operationId: 'updatePhoneNumberInfo',
-        tags: ['Phone Number Management'],
+        tags: ['Phone number Management'],
         summary: 'Update phone number information',
         description: 'Updates a phone number\'s name, message webhooks, and status webhooks.',
         security: [{ bearerAuth: [] }],

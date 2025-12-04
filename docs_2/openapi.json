@@ -209,11 +209,11 @@
         }
       },
       "post": {
-        "operationId": "createDevice",
+        "operationId": "createPhoneNumber",
         "tags": [
-          "Device Management"
+          "Phone number Management"
         ],
-        "summary": "Register new device",
+        "summary": "Register new phone number",
         "security": [
           {
             "bearerAuth": []

@@ -203,7 +203,7 @@
       "get": {
         "operationId": "listPhoneNumbers",
         "tags": [
-          "Device Management"
+          "Phone number Management"
         ],
         "summary": "List registered phone numbers",
         "description": "Returns list of all registered WhatsApp phone numbers",
