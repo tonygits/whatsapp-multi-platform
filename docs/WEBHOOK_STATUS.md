@@ -12,7 +12,7 @@
 
 ## 🔍 Overview
 
-The Status Webhook system allows your application to receive real-time notifications about status changes on connected WhatsApp devices. This includes connection, disconnection, authentication, and other important lifecycle events for devices and containers.
+The Status Webhook system allows your application to receive real-time notifications about status changes on connected WhatsApp phone numbers. This includes connection, disconnection, authentication, and other important lifecycle events for phone numbers and containers.
 
 ### Main Features:
 - Real-Time: Instant notifications about status changes
@@ -22,11 +22,11 @@ The Status Webhook system allows your application to receive real-time notificat
 
 ## ⚙️ Configuration
 
-### 1. Device Registration
-Configure the status webhook during device registration:
+### 1. Phone number Registration
+Configure the status webhook during phone number registration:
 
 ```bash
-curl -X POST http://localhost:3000/api/devices \
+curl -X POST http://localhost:3000/api/phone_numbers \
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
   -d '{
@@ -36,13 +36,13 @@ curl -X POST http://localhost:3000/api/devices \
 ```
 
 ### 2. Webhook Update
-Update an existing device's webhook:
+Update an existing phone number's webhook:
 
 ```bash
-curl -X PUT http://localhost:3000/api/devices\
+curl -X PUT http://localhost:3000/api/phone_numbers\
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
-  -H "deviceHash: a1b2c3d4e5f67890" \
+  -H "numberHash: a1b2c3d4e5f67890" \
   -d '{
     "statusWebhookUrl": "https://novosite.com/webhook/status",
     "statusWebhookSecret": "new-secret"
@@ -51,21 +51,21 @@ curl -X PUT http://localhost:3000/api/devices\
 
 ## 📊 Supported Events
 
-| Event | Code | Description | When It Occurs |
-|--------|--------|-----------|---------------|
-| `login_success` | `LOGIN_SUCCESS` | Device successfully authenticated | After login via QR Code or existing session |
-| `connected` | `LIST_DEVICES` | Device Connected and Ready | When the device is online and operational |
-| `disconnected` | `LIST_DEVICES` | Device Disconnected | Lost Connection or Logged Out |
-| `auth_failed` | `AUTH_FAILURE` | Authentication failed | Invalid credentials or session expired |
-| `container_event` | `GENERIC` | Other container events | Various WhatsApp process events|
+| Event | Code                 | Description                             | When It Occurs                                  |
+|--------|----------------------|-----------------------------------------|-------------------------------------------------|
+| `login_success` | `LOGIN_SUCCESS`      | Phone number successfully authenticated | After login via QR Code or existing session     |
+| `connected` | `LIST_PHONE_NUMBERS` | Phone number Connected and Ready        | When the phone number is online and operational |
+| `disconnected` | `LIST_PHONE_NUMBERS`       | Phone number Disconnected               | Lost Connection or Logged Out                   |
+| `auth_failed` | `AUTH_FAILURE`       | Authentication failed                   | Invalid credentials or session expired          |
+| `container_event` | `GENERIC`            | Other container events                  | Various WhatsApp process events                 |
 
 ## 📦 Payload Format
 
 ### Base Structure
 ```json
 {
-  "device": {
-    "deviceHash": "string",
+  "phone_number": {
+    "numberHash": "string",
     "status": "string"
   },
   "event": {
@@ -80,19 +80,19 @@ curl -X PUT http://localhost:3000/api/devices\
 
 ### Detailed Fields
 
-#### Device Object
-- `deviceHash`: Unique device hash (format: `a1b2c3d4e5f67890`)
-- `status`: Current device status (see status table below)
+#### Phone number Object
+- `numberHash`: Unique number hash (format: `a1b2c3d4e5f67890`)
+- `status`: Current phone number status (see status table below)
 
-#### Device Status
-| Status | Description | When It Occurs | Context |
-|--------|-----------|---------------|----------|
-| `connected` | WhatsApp connected | Device authenticated and functional | WhatsApp status |
-| `disconnected` | WhatsApp disconnected | Lost connection to WhatsApp | WhatsApp status |
-| `active` | Device active | Container + WhatsApp working | Device status |
-| `running` | Container running | WhatsApp process running | Container status |
-| `stopped` | Container stopped | WhatsApp process terminated | Container status |
-| `error` | System error | Container or authentication failure | General status |
+#### Phone number Status
+| Status | Description           | When It Occurs                            | Context             |
+|--------|-----------------------|-------------------------------------------|---------------------|
+| `connected` | WhatsApp connected    | Phone number authenticated and functional | WhatsApp status     |
+| `disconnected` | WhatsApp disconnected | Lost connection to WhatsApp               | WhatsApp status     |
+| `active` | Phone number active   | Container + WhatsApp working              | Phone number status |
+| `running` | Container running     | WhatsApp process running                  | Container status    |
+| `stopped` | Container stopped     | WhatsApp process terminated               | Container status    |
+| `error` | System error          | Container or authentication failure       | General status      |
 
 #### Event Object
 - `type`: Event type (see events table)
@@ -159,36 +159,36 @@ def validate_webhook(payload, signature, secret):
 ### 1. Successful Login
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "connected"
   },
   "event": {
     "type": "login_success",
     "code": "LOGIN_SUCCESS",
-    "message": "Successfully pair with WhatsApp device",
-    "device_info": {
-      "id": "device-12@s.whatsapp.net"
+    "message": "Successfully pair with WhatsApp phone number",
+    "phone_number_info": {
+      "id": "phone_number-12@s.whatsapp.net"
     }
   },
   "timestamp": "2025-08-12T15:30:45.123Z"
 }
 ```
 
-### 2. Connected Device
+### 2. Connected Phone number
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "connected"
   },
   "event": {
     "type": "connected",
     "code": "LIST_DEVICES", 
-    "message": "Device connected and ready",
-    "devices": [
+    "message": "Phone number connected and ready",
+    "phone_numbers": [
       {
-        "device": "device-12@s.whatsapp.net"
+        "phone_number": "phone_number-12@s.whatsapp.net"
       }
     ]
   },
@@ -196,18 +196,18 @@ def validate_webhook(payload, signature, secret):
 }
 ```
 
-### 3. Device Disconnected
+### 3. Phone number Disconnected
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "disconnected"
   },
   "event": {
     "type": "disconnected", 
     "code": "LIST_DEVICES",
-    "message": "Device disconnected",
-    "devices": []
+    "message": "Phone number disconnected",
+    "phone_numbers": []
   },
   "timestamp": "2025-08-12T16:45:12.345Z"
 }
@@ -216,8 +216,8 @@ def validate_webhook(payload, signature, secret):
 ### 4. Authentication Failure
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "error"
   },
   "event": {
@@ -236,8 +236,8 @@ def validate_webhook(payload, signature, secret):
 ### 5. Container Started
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "running"
   },
   "event": {
@@ -256,8 +256,8 @@ def validate_webhook(payload, signature, secret):
 ### 6. Container Stopped
 ```json
 {
-  "device": {
-    "deviceHash": "a1b2c3d4e5f67890",
+  "phone_number": {
+    "numberHash": "a1b2c3d4e5f67890",
     "status": "stopped"
   },
   "event": {
@@ -318,10 +318,10 @@ async function processWebhook(payload) {
   
   switch (event.event.type) {
     case 'connected':
-      await handleDeviceConnected(event);
+      await handlePhoneConnected(event);
       break;
     case 'disconnected':
-      await handleDeviceDisconnected(event);
+      await handlePhoneDisconnected(event);
       break;
     case 'login_success':
       await handleLoginSuccess(event);
@@ -335,8 +335,8 @@ async function processWebhook(payload) {
       // ... other events
   }
 
-// Also process by device status
-  switch (event.device.status) {
+// Also process by phone status
+  switch (event.phone.status) {
     case 'running':
       await handleContainerRunning(event);
       break;
@@ -344,7 +344,7 @@ async function processWebhook(payload) {
       await handleContainerStopped(event);
       break;
     case 'error':
-      await handleDeviceError(event);
+      await handlePhoneError(event);
       break;
   }
 }
@@ -361,7 +361,7 @@ Implement idempotency using the timestamp:
 const processedEvents = new Set();
 
 function processWebhook(event) {
-  const eventId = `${event.device.deviceHash}-${event.timestamp}`;
+  const eventId = `${event.phone.numberHash}-${event.timestamp}`;
   
   if (processedEvents.has(eventId)) {
     console.log('Event already processed, skipping');

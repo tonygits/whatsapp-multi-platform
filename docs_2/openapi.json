@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "WhatsApp API MultiDevice",
+    "title": "Wapflow API",
     "version": "6.9.0",
     "description": "This API is used for sending whatsapp via API"
   },
@@ -105,14 +105,14 @@
         }
       }
     },
-    "/api/devices": {
+    "/api/phone_numbers": {
       "get": {
-        "operationId": "listDevices",
+        "operationId": "listPhoneNumbers",
         "tags": [
-          "Device Management"
+          "Phone number Management"
         ],
-        "summary": "List registered devices",
-        "description": "Returns list of all registered WhatsApp devices",
+        "summary": "List registered phone numbers",
+        "description": "Returns list of all registered WhatsApp phone numbers",
         "parameters": [
           {
             "name": "status",
@@ -153,7 +153,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Device list",
+            "description": "Phone number list",
             "content": {
               "application/json": {
                 "schema": {

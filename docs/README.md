@@ -32,15 +32,15 @@
 
 ```bash
 # Register device
-POST /api/devices
+POST /api/phone_numbers
 
 # Get QR code
 GET /api/login
-Header: deviceHash: {deviceHash}
+Header: deviceHash: {numberHash}
 
 # Send message
 POST /api/send/message
-Header: deviceHash: {deviceHash}
+Header: deviceHash: {numberHash}
 ```
 
 ## 📁 Project Structure
