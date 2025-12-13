@@ -1,6 +1,7 @@
 import logger from '../utils/logger';
 import deviceRepository from '../repositories/DeviceRepository';
 import {Device} from "../types/device";
+import subscriptionRepository from "../repositories/SubscriptionRepository";
 
 class DeviceManager {
     basePort: number;
@@ -170,9 +171,15 @@ class DeviceManager {
     async getDevice(numberHash: string): Promise<any> {
         try {
             const device = await deviceRepository.findByDeviceHash(numberHash);
-
             if (!device) {
                 return null;
+            }
+
+            const deviceSubscriptions = await subscriptionRepository.listByNumberHashes([numberHash]);
+            //Add subscription into a map for easy access
+            const subscriptionMap: {[key: string]: any} = {};
+            for (const subscription of deviceSubscriptions) {
+                subscriptionMap[subscription.numberHash] = subscription;
             }
 
             return {
@@ -186,6 +193,7 @@ class DeviceManager {
                     port: device.container_port
                 },
                 webhookUrl: device.webhook_url,
+                subscription: subscriptionMap[device.device_hash] || null,
                 webhookSecret: device.webhook_secret,
                 statusWebhookUrl: device.status_webhook_url,
                 statusWebhookSecret: device.status_webhook_secret,
@@ -207,9 +215,15 @@ class DeviceManager {
     async getDeviceByPhone(phoneNumber: string): Promise<any | null> {
         try {
             const device = await deviceRepository.findByPhoneNumber(phoneNumber);
-
             if (!device) {
                 return null;
+            }
+
+            const deviceSubscriptions = await subscriptionRepository.listByNumberHashes([device.device_hash]);
+            //Add subscription into a map for easy access
+            const subscriptionMap: {[key: string]: any} = {};
+            for (const subscription of deviceSubscriptions) {
+                subscriptionMap[subscription.numberHash] = subscription;
             }
 
             return {
@@ -223,6 +237,7 @@ class DeviceManager {
                     port: device.container_port
                 },
                 webhookUrl: device.webhook_url,
+                subscription: subscriptionMap[device.device_hash] || null,
                 webhookSecret: device.webhook_secret,
                 statusWebhookUrl: device.status_webhook_url,
                 statusWebhookSecret: device.status_webhook_secret,
@@ -269,6 +284,14 @@ class DeviceManager {
     async getUserDevicesByStatus(userId: string, statuses: string[]): Promise<Array<any>> {
         try {
             const devices = await deviceRepository.findAll({ user_id: userId, status: { $in: statuses } });
+
+            let numberHashes: string[] = devices.map((device: any) => device.device_hash);
+            const deviceSubscriptions = await subscriptionRepository.listByNumberHashes(numberHashes);
+            //Add subscription into a map for easy access
+            const subscriptionMap: {[key: string]: any} = {};
+            for (const subscription of deviceSubscriptions) {
+                subscriptionMap[subscription.numberHash] = subscription;
+            }
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,
@@ -282,6 +305,7 @@ class DeviceManager {
                     },
                     webhookUrl: device.webhook_url,
                     webhookSecret: device.webhook_secret,
+                    subscription: subscriptionMap[device.device_hash] || null,
                     statusWebhookUrl: device.status_webhook_url,
                     statusWebhookSecret: device.status_webhook_secret,
                     createdAt: device.created_at,
@@ -305,6 +329,13 @@ class DeviceManager {
     async getUserDevices(userId: string): Promise<Array<any>> {
         try {
             const devices = await deviceRepository.findAll({user_id: userId});
+            let numberHashes: string[] = devices.map((device: any) => device.device_hash);
+            const deviceSubscriptions = await subscriptionRepository.listByNumberHashes(numberHashes);
+            //Add subscription into a map for easy access
+            const subscriptionMap: {[key: string]: any} = {};
+            for (const subscription of deviceSubscriptions) {
+                subscriptionMap[subscription.numberHash] = subscription;
+            }
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,
@@ -317,6 +348,7 @@ class DeviceManager {
                         port: device.container_port
                     },
                     webhookUrl: device.webhook_url,
+                    subscription: subscriptionMap[device.device_hash] || null,
                     webhookSecret: device.webhook_secret,
                     statusWebhookUrl: device.status_webhook_url,
                     statusWebhookSecret: device.status_webhook_secret,
@@ -325,7 +357,7 @@ class DeviceManager {
                     lastSeen: device.last_seen
                 }));
             } else {
-                logger.warn('findAll() did not return an array of devices');
+                logger.warn('find all did not return an array of devices');
                 return [];
             }
         } catch (error) {
@@ -341,6 +373,13 @@ class DeviceManager {
     async getAllDevices(): Promise<Array<any>> {
         try {
             const devices = await deviceRepository.findAll();
+            let numberHashes: string[] = devices.map((device: any) => device.device_hash);
+            const deviceSubscriptions = await subscriptionRepository.listByNumberHashes(numberHashes);
+            //Add subscription into a map for easy access
+            const subscriptionMap: {[key: string]: any} = {};
+            for (const subscription of deviceSubscriptions) {
+                subscriptionMap[subscription.numberHash] = subscription;
+            }
             if (Array.isArray(devices)) {
                 return devices.map((device: any) => ({
                     id: device.id,
@@ -353,6 +392,7 @@ class DeviceManager {
                         port: device.container_port
                     },
                     webhookUrl: device.webhook_url,
+                    subscription: subscriptionMap[device.device_hash] || null,
                     webhookSecret: device.webhook_secret,
                     statusWebhookUrl: device.status_webhook_url,
                     statusWebhookSecret: device.status_webhook_secret,

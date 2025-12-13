@@ -6,6 +6,7 @@ export type Device = {
     containerId?: string,
     containerPort?: string,
     status: string,
+    subscription?: any,
     phoneNumber: string,
     port: string,
     webhookUrl?: string,

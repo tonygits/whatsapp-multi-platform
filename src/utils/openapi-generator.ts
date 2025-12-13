@@ -42,7 +42,7 @@ function generateOpenAPIFromApp(app: any): any {
   // Reorder tags - Gateway and Device Management first
   baseDoc.tags = [
     { name: 'Gateway', description: 'Gateway Authentication and Health' },
-    { name: 'Phone number Management', description: 'Phone number and container management' },
+    { name: 'Phone number', description: 'Phone number and container' },
     { name: 'app', description: 'Initial Connection to Whatsapp server' },
     { name: 'user', description: 'Getting information' },
     { name: 'send', description: 'Send Message (Text/Image/File/Video).' },

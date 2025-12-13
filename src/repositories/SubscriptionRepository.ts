@@ -136,6 +136,37 @@ class SubscriptionRepository {
         }
     }
 
+    async listByNumberHashes(numberHashes: string[]): Promise<Subscription[]> {
+        try {
+            if (numberHashes.length === 0) {
+                return [];
+            }
+
+            const placeholders = numberHashes.map(() => '?').join(', ');
+            const query = `SELECT * FROM subscriptions WHERE device_hash IN (${placeholders})`;
+            const subscriptions = await database.all(query, numberHashes);
+
+            return subscriptions.map((subscription: any) => ({
+                id: subscription.id,
+                code: subscription.code,
+                customerId: subscription.customer_id,
+                email: subscription.email,
+                planCode: subscription.plan_code,
+                numberHash: subscription.device_hash,
+                status: subscription.status,
+                nextBillingDate: subscription.next_billing_date,
+                createdAt: subscription.created_at,
+                updatedAt: subscription.updated_at,
+            }));
+        } catch (error) {
+            logger.error('Error listing subscriptions by number hashes:', error);
+            throw {
+                message: 'Error listing subscriptions by number hashes',
+                originalError: error
+            }
+        }
+    }
+
     /**
      * Find subscription by code
      * @returns {Promise<Object|null>} - Subscription or null
