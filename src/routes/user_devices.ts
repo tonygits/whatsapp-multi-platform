@@ -54,6 +54,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
                 numberHash: device.numberHash,
                 status: device.status,
                 phoneNumber: device.phoneNumber,
+                subscription: device.subscription || null,
                 container: {
                     id: containerId,
                     port: containerPort
